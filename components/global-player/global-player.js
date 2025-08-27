@@ -25,6 +25,9 @@ Component({
     
     // 播放器状态
     globalPlayer: null,  // 使用全局播放器实例
+    
+    // 分类管理
+    categoryMap: {},
     playingTimer: null,
     isDragging: false,
     shouldAutoPlay: false,
@@ -53,6 +56,7 @@ Component({
     ready() {
       console.log('global-player组件已准备好')
       console.log('组件初始数据:', this.data)
+      this.loadCategories()
     }
   },
 
@@ -326,8 +330,15 @@ Component({
         return
       }
       
+      // 使用真实的分类名称更新trackInfo
+      const realCategoryName = this.getRealCategoryName(trackInfo.category || trackInfo.categoryId)
+      const updatedTrackInfo = {
+        ...trackInfo,
+        category: realCategoryName || trackInfo.category || '未知分类'
+      }
+      
       this.setData({
-        currentTrack: trackInfo,
+        currentTrack: updatedTrackInfo,
         isVisible: true,
         currentTime: 0,
         progress: 0,
@@ -525,6 +536,71 @@ Component({
         
         console.log('跳转到进度:', progress + '%', '时间:', seekTime + 's')
       }
+    },
+
+    /**
+     * 加载分类数据
+     */
+    async loadCategories() {
+      try {
+        const { categoryManager } = require('../../utils/categoryManager')
+        
+        // 确保分类管理器已初始化
+        await categoryManager.init()
+        
+        // 获取所有分类并构建映射
+        const categories = categoryManager.getAllCategories()
+        const categoryMap = {}
+        
+        categories.forEach(category => {
+          // 支持通过ID和旧的分类名称映射
+          categoryMap[category.id] = category.name
+          categoryMap[category.code] = category.name
+          
+          // 兼容旧的硬编码分类名称
+          if (category.id === 1) {
+            categoryMap['自然音'] = category.name
+            categoryMap['natural_sound'] = category.name
+          } else if (category.id === 2) {
+            categoryMap['白噪音'] = category.name
+            categoryMap['white_noise'] = category.name
+          } else if (category.id === 3) {
+            categoryMap['脑波音频'] = category.name
+            categoryMap['brainwave'] = category.name
+          } else if (category.id === 4) {
+            categoryMap['AI音乐'] = category.name
+            categoryMap['ai_music'] = category.name
+          } else if (category.id === 5) {
+            categoryMap['疗愈资源'] = category.name
+            categoryMap['healing_resource'] = category.name
+          }
+        })
+        
+        this.setData({ categoryMap })
+        console.log('全局播放器分类映射加载完成:', categoryMap)
+      } catch (error) {
+        console.error('加载分类映射失败:', error)
+      }
+    },
+
+    /**
+     * 获取真实的分类名称
+     */
+    getRealCategoryName(category) {
+      if (!category) return null
+      
+      // 如果是数字，说明是分类ID
+      if (typeof category === 'number') {
+        return this.data.categoryMap[category] || null
+      }
+      
+      // 如果是字符串，先检查是否有映射
+      if (this.data.categoryMap[category]) {
+        return this.data.categoryMap[category]
+      }
+      
+      // 如果没有映射，直接返回原值
+      return category
     },
 
     // 格式化时间显示

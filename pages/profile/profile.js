@@ -32,6 +32,7 @@ Page({
     // 新增：用户资料编辑相关
     hasChanges: false,
     saving: false,
+    savingProgress: 0,
     tempAvatar: '',
     tempNickname: '',
 
@@ -242,31 +243,34 @@ Page({
         return
       }
 
-      // 加载播放统计
+      // 使用播放历史接口计算统计数据
       const api = require('../../utils/api');
       const result = await api.request({
-        url: '/play-records/stats',
+        url: '/play-records/recent',
         method: 'GET',
         data: {
-          days: 30  // 最近30天的统计
+          limit: 1000,  // 获取更多记录用于统计
+          days: 30      // 最近30天
         },
         showLoading: false
       });
 
-      if (result.success) {
-        const data = result.data;
+      if (result.success && result.data) {
+        const records = result.data || [];
+        const stats = this.calculateStatsFromRecords(records);
+        
         this.setData({
           stats: {
             assessmentCount: 0,  // 将在下面单独加载
-            musicCount: data.total_records || 0,
-            totalListenTime: Math.floor((data.total_duration || 0) / 60), // 转换为分钟
-            consecutiveDays: data.active_days || 0
+            musicCount: stats.totalRecords,
+            totalListenTime: stats.totalMinutes,
+            consecutiveDays: stats.activeDays
           }
         });
 
         console.log('用户统计数据加载成功:', this.data.stats);
       } else {
-        console.warn('加载统计数据失败:', result.error);
+        console.warn('加载播放记录失败:', result.error);
         this.setFallbackStats();
       }
 
@@ -277,6 +281,44 @@ Page({
       console.error('加载用户统计失败:', error);
       this.setFallbackStats();
     }
+  },
+
+  /**
+   * 从播放记录计算统计数据
+   */
+  calculateStatsFromRecords(records) {
+    if (!records || records.length === 0) {
+      return {
+        totalRecords: 0,
+        totalMinutes: 0,
+        activeDays: 0
+      };
+    }
+
+    // 计算总播放次数
+    const totalRecords = records.length;
+
+    // 计算总播放时长（分钟）
+    const totalSeconds = records.reduce((total, record) => {
+      return total + (record.actual_play_duration || record.play_duration || 0);
+    }, 0);
+    const totalMinutes = Math.floor(totalSeconds / 60);
+
+    // 计算活跃天数
+    const playDates = new Set();
+    records.forEach(record => {
+      if (record.created_at) {
+        const date = new Date(record.created_at).toDateString();
+        playDates.add(date);
+      }
+    });
+    const activeDays = playDates.size;
+
+    return {
+      totalRecords,
+      totalMinutes,
+      activeDays
+    };
   },
 
   /**
@@ -474,7 +516,10 @@ Page({
     }
 
     try {
-      this.setData({ saving: true })
+      this.setData({ saving: true, savingProgress: 0 })
+      
+      // 模拟进度条动画
+      this.simulateProgress()
       
       const user = AuthService.getCurrentUser() || {}
       const updateData = {
@@ -496,19 +541,28 @@ Page({
       const res = await UserAPI.updateUserInfo(updateData)
       
       if (res && res.success) {
-        // 更新本地存储（同时保存到两个key以保证兼容性）
-        const updatedUserInfo = { ...user, ...res.data }
-        wx.setStorageSync('userInfo', updatedUserInfo)    // 兼容旧代码
-        wx.setStorageSync('user_info', updatedUserInfo)   // tokenManager期望的key
+        // 完成进度条到100%
+        if (this.progressInterval) {
+          clearInterval(this.progressInterval)
+        }
+        this.setData({ savingProgress: 100 })
         
-        this.setData({ 
-          userInfo: updatedUserInfo,
-          hasChanges: false,
-          tempAvatar: '',
-          tempNickname: ''
-        })
-        
-        wx.showToast({ title: '资料保存成功', icon: 'success' })
+        // 稍微延迟显示完成效果
+        setTimeout(() => {
+          // 更新本地存储（同时保存到两个key以保证兼容性）
+          const updatedUserInfo = { ...user, ...res.data }
+          wx.setStorageSync('userInfo', updatedUserInfo)    // 兼容旧代码
+          wx.setStorageSync('user_info', updatedUserInfo)   // tokenManager期望的key
+          
+          this.setData({ 
+            userInfo: updatedUserInfo,
+            hasChanges: false,
+            tempAvatar: '',
+            tempNickname: ''
+          })
+          
+          wx.showToast({ title: '资料保存成功', icon: 'success' })
+        }, 300)
       } else {
         throw new Error(res?.message || '保存失败')
       }
@@ -519,8 +573,34 @@ Page({
         icon: 'none' 
       })
     } finally {
-      this.setData({ saving: false })
+      // 清理进度条interval
+      if (this.progressInterval) {
+        clearInterval(this.progressInterval)
+        this.progressInterval = null
+      }
+      // 延迟一点时间让用户看到完成效果
+      setTimeout(() => {
+        this.setData({ saving: false, savingProgress: 0 })
+      }, 500)
     }
+  },
+
+  /**
+   * 模拟保存进度条动画
+   */
+  simulateProgress() {
+    let progress = 0
+    const interval = setInterval(() => {
+      progress += Math.random() * 25 + 10 // 随机增加10-35%
+      if (progress >= 90) {
+        progress = 90 // 最多到90%，剩下10%等实际完成
+        clearInterval(interval)
+      }
+      this.setData({ savingProgress: Math.min(progress, 90) })
+    }, 200) // 每200ms更新一次
+    
+    // 保存这个interval的引用，以便在保存完成时清理
+    this.progressInterval = interval
   },
 
   // 跳转到设备绑定页面

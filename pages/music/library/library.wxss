@@ -1,5 +1,5 @@
 /* pages/music/library/library.wxss */
-/* 音乐库页面样式 */
+/* 音频库页面样式 */
 
 /* 页面容器 - 添加统一背景 */
 .page-container {
@@ -171,7 +171,7 @@
   font-weight: bold;
 }
 
-/* 音乐列表 */
+/* 音频列表 */
 .music-list, .sequence-list {
   display: flex;
   flex-direction: column;
@@ -199,7 +199,7 @@
   background: rgba(255, 255, 255, 1);
 }
 
-/* 音乐封面 */
+/* 音频封面 */
 .music-cover, .sequence-cover {
   position: relative;
   width: 120rpx;
@@ -269,7 +269,7 @@
   50% { transform: scaleY(1.5); }
 }
 
-/* 音乐信息 */
+/* 音频信息 */
 .music-info, .sequence-info {
   flex: 1;
   margin-right: 20rpx;

@@ -1,5 +1,5 @@
 // pages/music/library/library.js
-// 音乐库页面
+// 音频库页面
 const app = getApp()
 const { MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
@@ -33,7 +33,7 @@ Page({
   },
 
   onLoad() {
-    console.log('音乐库页面加载')
+    console.log('音频库页面加载')
 
     // 检查页面访问权限
     const currentPages = getCurrentPages()
@@ -90,7 +90,7 @@ Page({
     
     // 显示引导用户登录的提示
     wx.showToast({
-      title: '请先登录查看音乐库',
+      title: '请先登录查看音频库',
       icon: 'none',
       duration: 2000
     })
@@ -139,7 +139,7 @@ Page({
         }
       } else {
         console.log('用户未登录')
-        this.promptLogin('请先登录后再查看音乐库')
+        this.promptLogin('请先登录后再查看音频库')
         return false
       }
     } catch (error) {
@@ -222,7 +222,7 @@ Page({
   },
 
   /**
-   * 加载音乐数据
+   * 加载音频数据
    */
   async loadMusicData() {
     // 检查用户信息
@@ -232,7 +232,7 @@ Page({
       
       // 如果仍然没有用户信息，提示登录
       if (!this.data.userInfo) {
-        console.warn('无法获取用户信息，跳过音乐数据加载')
+        console.warn('无法获取用户信息，跳过音频数据加载')
         wx.showToast({
           title: '请先登录',
           icon: 'none'
@@ -248,14 +248,14 @@ Page({
       const userInfo = this.data.userInfo
       const userId = userInfo.id || userInfo.user_id || userInfo.userId // 修正：增加对userId的兼容
       
-      console.log('加载音乐数据，用户信息:', {
+      console.log('加载音频数据，用户信息:', {
         userInfo: userInfo,
         userId: userId,
         availableFields: Object.keys(userInfo || {})
       })
 
       if (!userId) {
-        console.error('用户ID为空，无法加载音乐数据:', userInfo)
+        console.error('用户ID为空，无法加载音频数据:', userInfo)
         wx.showToast({
           title: '用户信息异常，请重新登录',
           icon: 'none'
@@ -269,10 +269,10 @@ Page({
         return
       }
 
-      // 并行加载60秒音乐和长序列音乐
+      // 并行加载60秒音频和长序列音频
       const [musicResult, longSequenceResult] = await Promise.all([
         MusicAPI.getUserMusic(userId).catch((error) => {
-          console.error('获取用户音乐失败:', error)
+          console.error('获取用户音频失败:', error)
           return { data: [] }
         }),
         LongSequenceAPI.getUserLongSequences(userId).catch((error) => {
@@ -281,7 +281,7 @@ Page({
         })
       ])
 
-      // 处理音乐数据，确保字段映射正确
+      // 处理音频数据，确保字段映射正确
       const processedMusicList = (musicResult.data || []).map(music => ({
         id: music.id,
         duration: music.duration_seconds,
@@ -301,10 +301,10 @@ Page({
       // 处理长序列数据
       const processedLongSequenceList = (longSequenceResult.data || []).map(sequence => ({
         id: sequence.id,
-        title: `长序列音乐 #${sequence.id}`,
+        title: `长序列音频 #${sequence.id}`,
         total_duration: sequence.total_duration_minutes * 60,
         segments_count: sequence.segment_count,
-        description: `基于心理评测生成的${sequence.total_duration_minutes}分钟疗愈音乐`,
+        description: `基于心理评测生成的${sequence.total_duration_minutes}分钟疗愈音频`,
         created_at: sequence.created_at,
         cover_url: '/images/default-sequence-cover.svg',
         is_favorite: false,
@@ -316,7 +316,7 @@ Page({
         longSequenceList: processedLongSequenceList
       })
 
-      console.log('音乐数据加载完成:', {
+      console.log('音频数据加载完成:', {
         musicCount: processedMusicList.length,
         longSequenceCount: processedLongSequenceList.length,
         musicData: processedMusicList,
@@ -324,7 +324,7 @@ Page({
       })
 
     } catch (error) {
-      console.error('加载音乐数据失败:', error)
+      console.error('加载音频数据失败:', error)
       wx.showToast({
         title: '加载失败，请重试',
         icon: 'error'
@@ -353,7 +353,7 @@ Page({
         canUseFeature: subscriptionInfo.is_subscribed
       })
       
-      // 如果用户没有订阅且有生成的音乐，显示订阅提示
+      // 如果用户没有订阅且有生成的音频，显示订阅提示
       if (!subscriptionInfo.is_subscribed && this.data.musicList.length > 0) {
         this.showSubscriptionTip()
       }
@@ -373,7 +373,7 @@ Page({
     setTimeout(() => {
       wx.showModal({
         title: '订阅提示',
-        content: '您可以免费试听生成的音乐。订阅后可享受无限制下载、更多音乐库功能和专业疗愈计划。',
+        content: '您可以免费试听生成的音频。订阅后可享受无限制下载、更多音频库功能和专业疗愈计划。',
         confirmText: '了解订阅',
         cancelText: '稍后再说',
         success: (res) => {
@@ -403,32 +403,32 @@ Page({
   },
 
   /**
-   * 播放音乐
+   * 播放音频
    */
   async onPlayMusic(e) {
     const { music } = e.currentTarget.dataset
     
     if (!music.file_path && !music.audio_url && !music.url) {
       wx.showToast({
-        title: '音乐文件不存在',
+        title: '音频文件不存在',
         icon: 'error'
       })
       return
     }
 
-    // 直接播放音乐，移除订阅检查以便用户可以试听
-    // 用户可以播放自己生成的音乐
+    // 直接播放音频，移除订阅检查以便用户可以试听
+    // 用户可以播放自己生成的音频
     this.playMusicWithGlobalPlayer(music)
   },
 
   /**
-   * 播放音乐核心流程
+   * 播放音频核心流程
    */
   playMusicProcess(music) {
-    // 构建音乐对象
+    // 构建音频对象
     const musicObj = {
       id: music.id,
-      title: `疗愈音乐 ${music.id}`,
+      title: `疗愈音频 ${music.id}`,
       src: `${app.globalData.apiBaseUrl}${music.file_path}`,
       duration: music.duration_seconds,
       type: 'music'
@@ -444,16 +444,16 @@ Page({
   },
 
   /**
-   * 播放长序列音乐
+   * 播放长序列音频
    */
   async onPlaySequence(e) {
     const { sequence } = e.currentTarget.dataset
-    console.log('🎵 点击长序列音乐:', sequence)
+    console.log('🎵 点击长序列音频:', sequence)
 
-    // 🔑 优先检查长序列音乐权限
+    // 🔑 优先检查长序列音频权限
     const permissionCheck = await requireSubscription('long_sequence', {
-      modalTitle: '长序列音乐播放',
-      modalContent: '长序列音乐功能是高级功能，需要订阅后使用。订阅用户可以播放和生成30分钟长序列疗愈音乐。',
+      modalTitle: '长序列音频播放',
+      modalContent: '长序列音频功能是高级功能，需要订阅后使用。订阅用户可以播放和生成30分钟长序列疗愈音频。',
       onConfirm: async (action) => {
         if (action === 'trial') {
           // 试用成功后继续播放
@@ -470,7 +470,7 @@ Page({
 
     // 检查文件路径（权限检查通过后再检查文件）
     if (!sequence.final_file_path && !sequence.audio_url && !sequence.url) {
-      console.log('🔍 长序列音乐文件路径缺失，跳转到播放页面获取:', sequence)
+      console.log('🔍 长序列音频文件路径缺失，跳转到播放页面获取:', sequence)
       // 跳转到长序列播放页面，由播放页面处理文件加载
       wx.navigateTo({
         url: `/pages/longSequence/player/player?sessionId=${sequence.id}`
@@ -482,7 +482,7 @@ Page({
   },
 
   /**
-   * 播放长序列音乐核心流程
+   * 播放长序列音频核心流程
    */
   playSequenceProcess(sequence) {
     // 跳转到长序列播放页面
@@ -492,7 +492,7 @@ Page({
   },
 
   /**
-   * 跳转到音乐生成页面
+   * 跳转到音频生成页面
    */
   onGoToGenerate() {
     // 跳转到评测选择页（tabBar 页面必须使用 switchTab）
@@ -511,17 +511,17 @@ Page({
   },
 
   /**
-   * 切换音乐收藏状态
+   * 切换音频收藏状态
    */
   async onToggleFavorite(e) {
-    console.log('❤️ 60秒音乐收藏按钮被点击', e)
+    console.log('❤️ 60秒音频收藏按钮被点击', e)
     // 阻止事件冒泡，防止触发播放
     e.stopPropagation && e.stopPropagation()
     
     const { music } = e.currentTarget.dataset
     
     if (!music) {
-      console.error('❌ 没有获取到音乐数据')
+      console.error('❌ 没有获取到音频数据')
       wx.showToast({
         title: '数据错误',
         icon: 'error'
@@ -531,7 +531,7 @@ Page({
 
     console.log('❤️ 切换收藏状态:', {
       id: music.id,
-      title: music.title || '60秒音乐',
+      title: music.title || '60秒音频',
       currentFavorite: music.is_favorite
     })
 
@@ -569,17 +569,17 @@ Page({
   },
 
   /**
-   * 显示音乐菜单
+   * 显示音频菜单
    */
   onShowMusicMenu(e) {
-    console.log('📋 60秒音乐更多菜单被点击', e)
+    console.log('📋 60秒音频更多菜单被点击', e)
     // 阻止事件冒泡，防止触发播放
     e.stopPropagation && e.stopPropagation()
     
     const { music } = e.currentTarget.dataset
     
     if (!music) {
-      console.error('❌ 没有获取到音乐数据')
+      console.error('❌ 没有获取到音频数据')
       wx.showToast({
         title: '数据错误',
         icon: 'error'
@@ -589,10 +589,10 @@ Page({
 
     console.log('📋 显示菜单:', {
       id: music.id,
-      title: music.title || '60秒音乐'
+      title: music.title || '60秒音频'
     })
 
-    // 保存音乐数据，用于菜单选择回调
+    // 保存音频数据，用于菜单选择回调
     const savedMusic = music
 
     console.log('📋 准备显示ActionSheet菜单')
@@ -608,15 +608,15 @@ Page({
         
         if (res.tapIndex === 0) {
           // 播放
-          console.log('🎵 从菜单播放60秒音乐:', savedMusic.title || `音乐#${savedMusic.id}`)
+          console.log('🎵 从菜单播放60秒音频:', savedMusic.title || `音频#${savedMusic.id}`)
           this.playMusic(savedMusic)
         } else if (res.tapIndex === 1) {
           // 下载
-          console.log('📥 从菜单下载60秒音乐:', savedMusic.title || `音乐#${savedMusic.id}`)
+          console.log('📥 从菜单下载60秒音频:', savedMusic.title || `音频#${savedMusic.id}`)
           this.downloadMusic(savedMusic)
         } else if (res.tapIndex === 2) {
           // 删除
-          console.log('🗑️ 从菜单删除60秒音乐:', savedMusic.title || `音乐#${savedMusic.id}`)
+          console.log('🗑️ 从菜单删除60秒音频:', savedMusic.title || `音频#${savedMusic.id}`)
           this.deleteMusic(savedMusic)
         }
       },
@@ -627,33 +627,33 @@ Page({
   },
 
   /**
-   * 直接播放60秒音乐（不依赖事件对象）
+   * 直接播放60秒音频（不依赖事件对象）
    */
   async playMusic(music) {
-    console.log('🎵 直接播放60秒音乐:', music)
+    console.log('🎵 直接播放60秒音频:', music)
 
-    // 🔑 优先检查音乐播放权限（如果需要）
+    // 🔑 优先检查音频播放权限（如果需要）
     // const permissionCheck = await requireSubscription('music', {...})
 
     // 检查文件路径
     if (!music.file_path && !music.audio_url && !music.url) {
-      console.log('🔍 60秒音乐文件路径缺失:', music)
+      console.log('🔍 60秒音频文件路径缺失:', music)
       wx.showToast({
-        title: '音乐文件不存在',
+        title: '音频文件不存在',
         icon: 'error'
       })
       return
     }
 
-    // 播放音乐
+    // 播放音频
     this.playMusicWithGlobalPlayer(music)
   },
 
   /**
-   * 直接下载60秒音乐（不依赖事件对象）
+   * 直接下载60秒音频（不依赖事件对象）
    */
   async downloadMusic(music) {
-    console.log('📥 直接下载60秒音乐:', music)
+    console.log('📥 直接下载60秒音频:', music)
     
     try {
       wx.showLoading({ title: '下载中...' })
@@ -671,10 +671,10 @@ Page({
         icon: 'success'
       })
 
-      console.log('60秒音乐已保存到:', savedPath)
+      console.log('60秒音频已保存到:', savedPath)
 
     } catch (error) {
-      console.error('下载60秒音乐失败:', error)
+      console.error('下载60秒音频失败:', error)
       wx.showToast({
         title: '下载失败',
         icon: 'error'
@@ -685,14 +685,14 @@ Page({
   },
 
   /**
-   * 直接删除60秒音乐（不依赖事件对象）
+   * 直接删除60秒音频（不依赖事件对象）
    */
   deleteMusic(music) {
-    console.log('🗑️ 直接删除60秒音乐:', music)
+    console.log('🗑️ 直接删除60秒音频:', music)
 
     wx.showModal({
-      title: '删除音乐',
-      content: `确定要删除"${music.title || '60秒音乐'}"吗？`,
+      title: '删除音频',
+      content: `确定要删除"${music.title || '60秒音频'}"吗？`,
       confirmText: '删除',
       cancelText: '取消',
       success: async (res) => {
@@ -709,7 +709,7 @@ Page({
             this.loadMusicData()
 
           } catch (error) {
-            console.error('删除60秒音乐失败:', error)
+            console.error('删除60秒音频失败:', error)
             wx.showToast({
               title: '删除失败',
               icon: 'error'
@@ -834,15 +834,15 @@ Page({
   },
 
   /**
-   * 直接播放长序列音乐（不依赖事件对象）
+   * 直接播放长序列音频（不依赖事件对象）
    */
   async playLongSequence(sequence) {
-    console.log('🎵 直接播放长序列音乐:', sequence)
+    console.log('🎵 直接播放长序列音频:', sequence)
 
-    // 🔑 优先检查长序列音乐权限
+    // 🔑 优先检查长序列音频权限
     const permissionCheck = await requireSubscription('long_sequence', {
-      modalTitle: '长序列音乐播放',
-      modalContent: '长序列音乐功能是高级功能，需要订阅后使用。订阅用户可以播放和生成30分钟长序列疗愈音乐。',
+      modalTitle: '长序列音频播放',
+      modalContent: '长序列音频功能是高级功能，需要订阅后使用。订阅用户可以播放和生成30分钟长序列疗愈音频。',
       onConfirm: async (action) => {
         if (action === 'trial') {
           // 试用成功后继续播放
@@ -859,7 +859,7 @@ Page({
 
     // 检查文件路径（权限检查通过后再检查文件）
     if (!sequence.final_file_path && !sequence.audio_url && !sequence.url) {
-      console.log('🔍 长序列音乐文件路径缺失，跳转到播放页面获取:', sequence)
+      console.log('🔍 长序列音频文件路径缺失，跳转到播放页面获取:', sequence)
       // 跳转到长序列播放页面，由播放页面处理文件加载
       wx.navigateTo({
         url: `/pages/longSequence/player/player?sessionId=${sequence.id}`
@@ -867,15 +867,15 @@ Page({
       return
     }
 
-    // 权限检查通过，播放音乐
+    // 权限检查通过，播放音频
     this.playSequenceWithGlobalPlayer(sequence)
   },
 
   /**
-   * 直接下载长序列音乐（不依赖事件对象）
+   * 直接下载长序列音频（不依赖事件对象）
    */
   async downloadLongSequence(sequence) {
-    console.log('📥 直接下载长序列音乐:', sequence)
+    console.log('📥 直接下载长序列音频:', sequence)
     
     try {
       wx.showLoading({ title: '下载中...' })
@@ -893,10 +893,10 @@ Page({
         icon: 'success'
       })
 
-      console.log('长序列音乐已保存到:', savedPath)
+      console.log('长序列音频已保存到:', savedPath)
 
     } catch (error) {
-      console.error('下载长序列音乐失败:', error)
+      console.error('下载长序列音频失败:', error)
       wx.showToast({
         title: '下载失败',
         icon: 'error'
@@ -907,14 +907,14 @@ Page({
   },
 
   /**
-   * 直接删除长序列音乐（不依赖事件对象）
+   * 直接删除长序列音频（不依赖事件对象）
    */
   deleteLongSequence(sequence) {
-    console.log('🗑️ 直接删除长序列音乐:', sequence)
+    console.log('🗑️ 直接删除长序列音频:', sequence)
 
     wx.showModal({
       title: '删除长序列',
-      content: `确定要删除"${sequence.title || '长序列音乐'}"吗？`,
+      content: `确定要删除"${sequence.title || '长序列音频'}"吗？`,
       confirmText: '删除',
       cancelText: '取消',
       success: async (res) => {
@@ -950,7 +950,7 @@ Page({
 
     wx.showModal({
       title: '删除长序列',
-      content: '确定要删除这个长序列音乐吗？',
+      content: '确定要删除这个长序列音频吗？',
       confirmText: '删除',
       cancelText: '取消',
       success: async (res) => {
@@ -979,7 +979,7 @@ Page({
   },
 
   /**
-   * 下载音乐
+   * 下载音频
    */
   async onDownloadMusic(e) {
     const { music } = e.currentTarget.dataset
@@ -997,10 +997,10 @@ Page({
         icon: 'success'
       })
 
-      console.log('音乐已保存到:', savedPath)
+      console.log('音频已保存到:', savedPath)
 
     } catch (error) {
-      console.error('下载音乐失败:', error)
+      console.error('下载音频失败:', error)
       wx.showToast({
         title: '下载失败',
         icon: 'error'
@@ -1011,7 +1011,7 @@ Page({
   },
 
   /**
-   * 下载长序列音乐
+   * 下载长序列音频
    */
   async onDownloadLongSequence(e) {
     const { session } = e.currentTarget.dataset
@@ -1032,10 +1032,10 @@ Page({
         icon: 'success'
       })
 
-      console.log('长序列音乐已保存到:', savedPath)
+      console.log('长序列音频已保存到:', savedPath)
 
     } catch (error) {
-      console.error('下载长序列音乐失败:', error)
+      console.error('下载长序列音频失败:', error)
       wx.showToast({
         title: '下载失败',
         icon: 'error'
@@ -1061,14 +1061,14 @@ Page({
   },
 
   /**
-   * 删除音乐
+   * 删除音频
    */
   onDeleteMusic(e) {
     const { music } = e.currentTarget.dataset
     
     wx.showModal({
-      title: '删除音乐',
-      content: '确定要删除这首音乐吗？',
+      title: '删除音频',
+      content: '确定要删除这首音频吗？',
       confirmText: '删除',
       cancelText: '取消',
       success: async (res) => {
@@ -1085,7 +1085,7 @@ Page({
             this.loadMusicData()
 
           } catch (error) {
-            console.error('删除音乐失败:', error)
+            console.error('删除音频失败:', error)
             wx.showToast({
               title: '删除失败',
               icon: 'error'
@@ -1180,10 +1180,10 @@ Page({
   },
 
   /**
-   * 生成音乐标题
+   * 生成音频标题
    */
   generateMusicTitle(music) {
-    if (music.title && music.title !== '个性化疗愈音乐') {
+    if (music.title && music.title !== '个性化疗愈音频') {
       return music.title
     }
 
@@ -1193,7 +1193,7 @@ Page({
     const date = music.assessment_date ? new Date(music.assessment_date) : new Date(music.created_at)
     const monthDay = `${date.getMonth() + 1}.${date.getDate()}`
 
-    return `${scaleName}·${mood}音乐 ${monthDay}`
+    return `${scaleName}·${mood}音频 ${monthDay}`
   },
 
   /**
@@ -1229,7 +1229,7 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: 'AI疗愈 - 我的音乐库',
+      title: 'AI疗愈 - 我的音频库',
       path: '/pages/music/library/library',
       imageUrl: '/images/share-library.png'
     }
@@ -1299,9 +1299,9 @@ Page({
     })
   },
 
-  // 使用全局播放器播放音乐
+  // 使用全局播放器播放音频
   playMusicWithGlobalPlayer(musicInfo) {
-    console.log('使用全局播放器播放音乐:', musicInfo)
+    console.log('使用全局播放器播放音频:', musicInfo)
     
     // 构建正确的音频URL
     let audioUrl = musicInfo.audio_url || musicInfo.file_path || musicInfo.path || musicInfo.url
@@ -1311,12 +1311,12 @@ Page({
       audioUrl = `${baseUrl}${audioUrl}`
     }
     
-    // 准备播放器需要的音乐数据格式
+    // 准备播放器需要的音频数据格式
     const trackInfo = {
       name: this.generateMusicTitle(musicInfo),
       url: audioUrl,
       image: musicInfo.cover_image || musicInfo.cover_url || musicInfo.image || '/images/default-music-cover.svg',
-      category: musicInfo.category || 'AI音乐',
+      category: musicInfo.category || 'AI音频',
       type: this.data.currentTab,
       id: musicInfo.id,
       duration: musicInfo.duration || musicInfo.duration_seconds || 60
@@ -1346,9 +1346,9 @@ Page({
     }, 100)
   },
 
-  // 使用全局播放器播放长序列音乐
+  // 使用全局播放器播放长序列音频
   playSequenceWithGlobalPlayer(sequenceInfo) {
-    console.log('使用全局播放器播放长序列音乐:', sequenceInfo)
+    console.log('使用全局播放器播放长序列音频:', sequenceInfo)
     
     // 构建正确的音频URL
     let audioUrl = sequenceInfo.final_file_path || sequenceInfo.audio_url || sequenceInfo.path || sequenceInfo.url
@@ -1358,12 +1358,12 @@ Page({
       audioUrl = `${baseUrl}${audioUrl}`
     }
     
-    // 准备播放器需要的音乐数据格式
+    // 准备播放器需要的音频数据格式
     const trackInfo = {
       name: sequenceInfo.title || sequenceInfo.name || '未知长序列',
       url: audioUrl,
       image: sequenceInfo.cover_image || sequenceInfo.cover_url || sequenceInfo.image || '/images/default-sequence-cover.svg',
-      category: '长序列音乐',
+      category: '长序列音频',
       type: 'longSequence',
       id: sequenceInfo.id,
       duration: sequenceInfo.duration || 1800 // 默认30分钟
@@ -1403,7 +1403,7 @@ Page({
         displayName: '免费用户',
         expiresAt: null,
         daysLeft: 0,
-        features: ['60秒音乐生成'],
+        features: ['60秒音频生成'],
         showUpgrade: true,
         statusColor: '#999',
         statusIcon: '👤'
@@ -1416,7 +1416,7 @@ Page({
             displayName: '试用会员',
             expiresAt: subscriptionInfo.trial_expires_at,
             daysLeft: this.calculateDaysLeft(subscriptionInfo.trial_expires_at),
-            features: ['60秒音乐生成', 'AI音乐生成', '长序列音乐'],
+            features: ['60秒音频生成', 'AI音频生成', '长序列音频'],
             showUpgrade: true,
             statusColor: '#f59e0b',
             statusIcon: '⭐'
@@ -1427,7 +1427,7 @@ Page({
             displayName: '高级会员',
             expiresAt: subscriptionInfo.premium_expires_at,
             daysLeft: this.calculateDaysLeft(subscriptionInfo.premium_expires_at),
-            features: ['60秒音乐生成', 'AI音乐生成', '长序列音乐', '无限播放'],
+            features: ['60秒音频生成', 'AI音频生成', '长序列音频', '无限播放'],
             showUpgrade: false,
             statusColor: '#10b981',
             statusIcon: '💎'
@@ -1438,7 +1438,7 @@ Page({
             displayName: 'VIP会员',
             expiresAt: subscriptionInfo.vip_expires_at,
             daysLeft: this.calculateDaysLeft(subscriptionInfo.vip_expires_at),
-            features: ['60秒音乐生成', 'AI音乐生成', '长序列音乐', '无限播放', '专属客服'],
+            features: ['60秒音频生成', 'AI音频生成', '长序列音频', '无限播放', '专属客服'],
             showUpgrade: false,
             statusColor: '#8b5cf6',
             statusIcon: '👑'
@@ -1459,7 +1459,7 @@ Page({
           displayName: '免费用户',
           expiresAt: null,
           daysLeft: 0,
-          features: ['60秒音乐生成'],
+          features: ['60秒音频生成'],
           showUpgrade: true,
           statusColor: '#999',
           statusIcon: '👤'

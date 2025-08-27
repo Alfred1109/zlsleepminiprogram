@@ -363,7 +363,7 @@
 .priority-medium { background: #fffbeb; color: #b45309; } /* Darker text */
 .priority-low { background: #eff6ff; color: #3b82f6; }
 
-/* 专属疗愈音乐方案 */
+/* 专属疗愈音频方案 */
 .plan-description {
   font-size: 26rpx;
   color: var(--text-secondary);
@@ -508,6 +508,7 @@
 .primary-actions, .additional-actions {
   display: flex;
   gap: 24rpx;
+  width: 100%;
 }
 .primary-actions {
   margin-bottom: 24rpx;
@@ -517,27 +518,59 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24rpx;
+  padding: 28rpx 24rpx;
   border-radius: 16rpx;
-  font-size: 28rpx;
-  font-weight: 500;
+  font-size: 30rpx;
+  font-weight: 600;
   border: none;
   background-color: transparent;
+  transition: all 0.3s ease;
+  min-height: 96rpx;
+  position: relative;
 }
 .btn-icon {
   margin-right: 12rpx;
+  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .primary-btn {
-  background: var(--primary-color);
+  background: linear-gradient(135deg, #2BBAA5 0%, #1ea895 100%);
   color: white;
+  font-weight: 600;
+  font-size: 30rpx;
+  box-shadow: 0 6rpx 20rpx rgba(43, 186, 165, 0.4);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+}
+
+.primary-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 3rpx 10rpx rgba(43, 186, 165, 0.3);
 }
 .secondary-btn {
-  background: #e0f2f1;
-  color: #0d9488; /* Darker shade for better contrast */
+  background: linear-gradient(135deg, #e0f2f1 0%, #ccede8 100%);
+  color: #0d9488;
+  font-weight: 600;
+  border: 2rpx solid rgba(13, 148, 136, 0.2);
+}
+
+.secondary-btn:active {
+  transform: translateY(2rpx);
+  background: linear-gradient(135deg, #ccede8 0%, #b8e7e0 100%);
 }
 .outline-btn {
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
+  border: 2rpx solid #e5e7eb;
+  color: #374151;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.outline-btn:active {
+  transform: translateY(2rpx);
+  background: rgba(249, 250, 251, 0.9);
+  border-color: #d1d5db;
 }
 
 /* 温馨提示 */

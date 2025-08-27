@@ -4,7 +4,7 @@
   <view class="search-section">
     <view class="search-bar">
       <view class="search-icon"></view>
-      <input placeholder="搜索自然声音、冥想音乐..." bindconfirm="onSearch" />
+      <input placeholder="搜索疗愈音乐、冥想声音..." bindconfirm="onSearch" />
     </view>
   </view>
 
@@ -34,8 +34,8 @@
         <text class="info-value">{{currentSound.name || currentSound.title || (isPlaying ? '疗愈' : '暂无音乐')}}</text>
       </view>
       <view class="wave-info-item">
-        <text class="info-label">音乐类型:</text>
-        <text class="info-value">{{currentSound.category || '疗愈音乐'}}</text>
+        <text class="info-label">疗愈类型:</text>
+        <text class="info-value">{{currentSound.category || (selectedCategory ? getCategoryName(selectedCategory) : '请选择分类')}}</text>
       </view>
       <view class="wave-info-item">
         <text class="info-label">播放状态:</text>
@@ -44,11 +44,10 @@
     </view>
   </view>
 
-  <!-- 声音分类 -->
+  <!-- 疗愈分类 -->
   <view class="section-header">
-    <text class="section-title">声音分类</text>
+    <text class="section-title">疗愈分类</text>
     <view class="section-actions">
-      <view class="refresh-btn" bindtap="forceRefreshCategories">🔄</view>
       <view class="section-more" bindtap="showAllCategories">查看全部</view>
     </view>
   </view>

@@ -3,52 +3,69 @@
 <view class="page-container">
   <!-- 用户信息头部 -->
   <view class="profile-header">
-    <view class="user-info">
-      <!-- 头像选择按钮 -->
-      <button wx:if="{{isLoggedIn}}" class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-        <image class="avatar" src="{{userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}"/>
-        <view class="avatar-overlay">
-          <text class="avatar-tip">点击更换</text>
-        </view>
-      </button>
-      <image wx:else class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}"/>
-      
-      <view class="user-detail">
-        <!-- 昵称输入框 -->
-        <view wx:if="{{isLoggedIn}}" class="nickname-container">
-          <input 
-            class="nickname-input" 
-            type="nickname" 
-            placeholder="点击设置昵称" 
-            value="{{userInfo.nickName || userInfo.nickname || userInfo.username || ''}}"
-            bind:blur="onNicknameChange"
-            confirm-type="done"
-          />
-          <text class="edit-tip">可选择微信昵称或自定义</text>
-        </view>
-        <text wx:else class="nickname">{{userInfo.nickName || userInfo.username || '未登录'}}</text>
-        
-        <view wx:if="{{!isLoggedIn}}" class="login-actions">
-          <button class="btn btn-secondary btn-small" bindtap="onLogin">点击登录</button>
-        </view>
-        <view wx:else class="user-status">
-          <view class="status-badge">
-            <text class="vip-tag" style="color: {{subscriptionStatus.statusColor}}">
-              {{subscriptionStatus.displayName}}
-            </text>
+    <view class="user-main-info">
+      <view class="user-info">
+        <!-- 头像选择按钮 -->
+        <button wx:if="{{isLoggedIn}}" class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+          <image class="avatar" src="{{userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}"/>
+          <view class="avatar-overlay">
+            <text class="avatar-tip">点击更换</text>
           </view>
-          <text class="register-time">注册时间：{{formatDate(userInfo.createdAt)}}</text>
+        </button>
+        <image wx:else class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}"/>
+        
+        <view class="user-detail">
+          <!-- 昵称输入框 -->
+          <view wx:if="{{isLoggedIn}}" class="nickname-container">
+            <input 
+              class="nickname-input" 
+              type="nickname" 
+              placeholder="点击设置昵称" 
+              value="{{userInfo.nickName || userInfo.nickname || userInfo.username || ''}}"
+              bind:blur="onNicknameChange"
+              confirm-type="done"
+              maxlength="12"
+            />
+          </view>
+          <text wx:else class="nickname">{{userInfo.nickName || userInfo.username || '未登录'}}</text>
+          
+          <view class="user-status">
+            <view wx:if="{{isLoggedIn}}" class="status-badge">
+              <text class="vip-tag" style="background: {{subscriptionStatus.statusColor}};">
+                <text class="vip-icon">{{subscriptionStatus.statusIcon}}</text>
+                {{subscriptionStatus.displayName}}
+              </text>
+            </view>
+          </view>
         </view>
       </view>
-    </view>
-
-    <!-- 快捷操作 -->
-    <view wx:if="{{isLoggedIn}}" class="quick-actions">
-      <!-- 保存按钮 -->
-      <button wx:if="{{hasChanges}}" class="btn btn-primary btn-small" bind:tap="onSaveProfile" loading="{{saving}}">
-        {{saving ? '保存中...' : '保存资料'}}
-      </button>
-      <button class="btn btn-secondary btn-small" bindtap="onLogout">退出登录</button>
+      
+      <!-- 快捷操作 -->
+      <view class="quick-actions">
+        <view wx:if="{{!isLoggedIn}}" class="login-button-container">
+          <button class="btn btn-primary btn-medium" bindtap="onLogin">登录</button>
+        </view>
+        <view wx:else class="action-buttons-container">
+          <view class="action-buttons">
+            <!-- 保存按钮 -->
+            <button wx:if="{{hasChanges && !saving}}" class="btn btn-primary btn-mini" bind:tap="onSaveProfile">
+              保存
+            </button>
+            <!-- 自定义进度条 -->
+            <view wx:if="{{saving}}" class="saving-progress-container">
+              <view class="progress-bar-container">
+                <view class="progress-bar-bg">
+                  <view class="progress-bar-fill" style="width: {{savingProgress}}%"></view>
+                  <view class="progress-bar-glow"></view>
+                </view>
+                <text class="progress-text">保存中</text>
+              </view>
+            </view>
+            <!-- 退出按钮 -->
+            <button class="btn btn-secondary btn-mini" bindtap="onLogout">退出</button>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -74,7 +91,7 @@
             <view class="stat-icon">🎵</view>
             <view class="stat-content">
               <text class="stat-number">{{stats.musicCount}}</text>
-              <text class="stat-label">生成音乐</text>
+              <text class="stat-label">生成音频</text>
             </view>
           </view>
         </view>
@@ -151,7 +168,7 @@
           <view class="list-item-icon">❤️</view>
           <view class="list-item-content">
             <view class="list-item-title">我的收藏</view>
-            <view class="list-item-subtitle">收藏的音乐和评测</view>
+            <view class="list-item-subtitle">收藏的音频和评测</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -160,7 +177,7 @@
           <view class="list-item-icon">📥</view>
           <view class="list-item-content">
             <view class="list-item-title">我的下载</view>
-            <view class="list-item-subtitle">已下载的音乐文件</view>
+            <view class="list-item-subtitle">已下载的音频文件</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -169,7 +186,7 @@
           <view class="list-item-icon">🕒</view>
           <view class="list-item-content">
             <view class="list-item-title">播放历史</view>
-            <view class="list-item-subtitle">最近播放的音乐</view>
+            <view class="list-item-subtitle">最近播放的音频</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>

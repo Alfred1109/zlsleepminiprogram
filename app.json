@@ -46,7 +46,7 @@
       },
       {
         "pagePath": "pages/music/library/library",
-        "text": "音乐",
+        "text": "音疗",
         "iconPath": "images/tab-music.png",
         "selectedIconPath": "images/tab-music-active.png"
       },

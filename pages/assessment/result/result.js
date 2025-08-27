@@ -83,7 +83,7 @@ Page({
   },
 
   /**
-   * 生成60秒音乐
+   * 生成60秒音频
    */
   async generate60sMusic() {
     this.setData({ 
@@ -98,7 +98,7 @@ Page({
         this.setData({ musicResult: result.data })
         
         wx.showToast({
-          title: '音乐生成成功',
+          title: '音频生成成功',
           icon: 'success'
         })
 
@@ -109,14 +109,14 @@ Page({
           })
         }, 1500)
       } else {
-        throw new Error(result.error || '音乐生成失败')
+        throw new Error(result.error || '音频生成失败')
       }
 
     } catch (error) {
-      console.error('生成60秒音乐失败:', error)
+      console.error('生成60秒音频失败:', error)
       wx.showModal({
         title: '生成失败',
-        content: error.message || '音乐生成失败，请重试',
+        content: error.message || '音频生成失败，请重试',
         showCancel: true,
         confirmText: '重试',
         success: (res) => {
@@ -134,7 +134,7 @@ Page({
   },
 
   /**
-   * 生成30分钟长序列音乐
+   * 生成30分钟长序列音频
    */
   async generateLongSequence() {
     if (!this.data.assessmentId) {
@@ -212,7 +212,7 @@ Page({
   },
 
   /**
-   * 查看音乐库
+   * 查看音频库
    */
   onViewMusicLibrary() {
     wx.switchTab({
@@ -318,7 +318,7 @@ Page({
         id: 'breathing_exercise',
         icon: '🧘‍♀️',
         title: '深呼吸练习',
-        description: '配合音乐进行腹式呼吸，有助于放松神经系统',
+        description: '配合音频进行腹式呼吸，有助于放松神经系统',
         priority: 'medium',
         priorityText: '中优先级'
       },
@@ -326,7 +326,7 @@ Page({
         id: 'sleep_hygiene',
         icon: '😴',
         title: '改善睡眠环境',
-        description: '保持卧室温度适宜、光线暗淡，使用舒缓的背景音乐',
+        description: '保持卧室温度适宜、光线暗淡，使用舒缓的背景音频',
         priority: 'medium',
         priorityText: '中优先级'
       },
@@ -351,7 +351,7 @@ Page({
       {
         time: '晨起',
         icon: '☀️',
-        name: '唤醒音乐',
+        name: '唤醒音频',
         duration: '10分钟'
       },
       {

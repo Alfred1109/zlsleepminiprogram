@@ -110,26 +110,7 @@
   /* gap: 12rpx; removed for compatibility */
 }
 
-.refresh-btn {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.8);
-  padding: 12rpx 16rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-  margin-right: 12rpx;
-  min-width: 56rpx;
-  height: 56rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.refresh-btn:active {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(0.95) rotate(180deg);
-}
 
 .section-more {
   font-size: 24rpx;
@@ -146,7 +127,7 @@
   transform: scale(0.98);
 }
 
-/* 声音分类 */
+/* 疗愈分类 */
 .sound-categories {
   display: flex;
   flex-wrap: wrap;

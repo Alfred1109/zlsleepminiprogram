@@ -105,15 +105,15 @@
       </view>
     </view>
 
-    <!-- 疗愈音乐方案 -->
+    <!-- 疗愈音频方案 -->
     <view class="healing-plan-card">
       <view class="card-title">
         <view class="title-icon">🎵</view>
-        <text>专属疗愈音乐方案</text>
+        <text>专属疗愈音频方案</text>
       </view>
       
       <view class="plan-description">
-        <text>基于您的评测结果，我们为您推荐以下疗愈音乐类型</text>
+        <text>基于您的评测结果，我们为您推荐以下疗愈音频类型</text>
       </view>
 
       <view class="music-options-new">
@@ -123,7 +123,7 @@
             <view class="option-badge">快速体验</view>
           </view>
           <view class="option-content">
-            <view class="option-title">60秒疗愈音乐</view>
+            <view class="option-title">60秒疗愈音频</view>
             <view class="option-description">AI智能生成，快速缓解当前状态</view>
             <view class="option-features">
               <text class="feature">• 即时生成</text>
@@ -197,7 +197,7 @@
       <view class="primary-actions">
         <button class="action-btn primary-btn" bindtap="onViewMusicLibrary">
           <view class="btn-icon">🎼</view>
-          <text>探索音乐库</text>
+          <text>探索音频库</text>
         </button>
         <button class="action-btn secondary-btn" bindtap="onRetakeAssessment">
           <view class="btn-icon">🔄</view>
@@ -229,7 +229,7 @@
           <view class="tip-category-title">🎧 聆听建议</view>
           <view class="tip-item">• 选择安静舒适的环境，避免外界干扰</view>
           <view class="tip-item">• 使用高质量耳机，获得最佳音质体验</view>
-          <view class="tip-item">• 建议闭眼聆听，专注于音乐带来的感受</view>
+          <view class="tip-item">• 建议闭眼聆听，专注于音频带来的感受</view>
         </view>
         
         <view class="tip-category">
@@ -252,8 +252,8 @@
   <view wx:if="{{generating}}" class="generating-overlay">
     <view class="generating-content">
       <view class="generating-spinner"></view>
-      <view class="generating-title">{{generationType === '60s' ? '正在生成60秒音乐...' : '正在生成30分钟疗愈音乐...'}}</view>
-      <view class="generating-subtitle">基于您的评测结果，AI正在为您定制专属音乐</view>
+      <view class="generating-title">{{generationType === '60s' ? '正在生成60秒音频...' : '正在生成30分钟疗愈音频...'}}</view>
+      <view class="generating-subtitle">基于您的评测结果，AI正在为您定制专属音频</view>
     </view>
   </view>
   </view>

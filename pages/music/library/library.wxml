@@ -1,10 +1,10 @@
 <!--pages/music/library/library.wxml-->
-<!-- 音乐库页面 -->
+<!-- 音频库页面 -->
 <view class="page-container">
   <!-- 页面标题 -->
   <view class="page-header">
-    <view class="page-header-title">音乐库</view>
-    <view class="page-header-subtitle">您的专属疗愈音乐收藏</view>
+    <view class="page-header-title">音频库</view>
+    <view class="page-header-subtitle">您的专属疗愈音频收藏</view>
   </view>
 
   <!-- 页面内容 -->
@@ -18,7 +18,7 @@
         bindtap="onTabChange"
       >
         <view class="tab-icon">🎵</view>
-        <text class="tab-text">60秒音乐</text>
+        <text class="tab-text">60秒音频</text>
         <view wx:if="{{musicList.length > 0}}" class="tab-badge">{{musicList.length}}</view>
       </view>
       <view
@@ -27,7 +27,7 @@
         bindtap="onTabChange"
       >
         <view class="tab-icon">🎼</view>
-        <text class="tab-text">长序列音乐</text>
+        <text class="tab-text">长序列音频</text>
         <view wx:if="{{longSequenceList.length > 0}}" class="tab-badge">{{longSequenceList.length}}</view>
       </view>
     </view>
@@ -67,24 +67,24 @@
     <!-- 加载状态 -->
     <view wx:if="{{loading}}" class="loading-container">
       <view class="loading-spinner"></view>
-      <view class="loading-text">加载音乐库中...</view>
+      <view class="loading-text">加载音频库中...</view>
     </view>
 
-  <!-- 60秒音乐列表 -->
+  <!-- 60秒音频列表 -->
   <view wx:elif="{{currentTab === 'music'}}" class="content-container">
     <!-- 空状态 -->
     <view wx:if="{{musicList.length === 0}}" class="empty-state">
       <image class="empty-icon" src="/images/empty-music.svg" mode="aspectFit" />
-      <view class="empty-text">暂无音乐</view>
-      <view class="empty-desc">快去生成您的专属疗愈音乐吧</view>
-      <button class="btn-primary" bindtap="onGoToGenerate">生成音乐</button>
+      <view class="empty-text">暂无音频</view>
+      <view class="empty-desc">快去生成您的专属疗愈音频吧</view>
+      <button class="btn-primary" bindtap="onGoToGenerate">生成音频</button>
       <!-- 调试信息 -->
       <view wx:if="{{userInfo}}" class="debug-info" style="margin-top: 20rpx; font-size: 24rpx; color: #999;">
         用户ID: {{userInfo.id || userInfo.user_id || userInfo.userId || '未知'}}
       </view>
     </view>
 
-    <!-- 音乐列表 -->
+    <!-- 音频列表 -->
     <view wx:else class="music-list">
       <view 
         wx:for="{{musicList}}" 
@@ -170,13 +170,13 @@
     </view>
   </view>
 
-  <!-- 长序列音乐列表 -->
+  <!-- 长序列音频列表 -->
   <view wx:elif="{{currentTab === 'longSequence'}}" class="content-container">
     <!-- 空状态 -->
     <view wx:if="{{longSequenceList.length === 0}}" class="empty-state">
       <image class="empty-icon" src="/images/empty-sequence.svg" mode="aspectFit" />
-      <view class="empty-text">暂无长序列音乐</view>
-      <view class="empty-desc">创建您的专属长时间疗愈音乐</view>
+      <view class="empty-text">暂无长序列音频</view>
+      <view class="empty-desc">创建您的专属长时间疗愈音频</view>
       <button class="btn-primary" bindtap="onGoToCreateSequence">创建长序列</button>
     </view>
 
@@ -208,7 +208,7 @@
         </view>
 
         <view class="sequence-info">
-          <view class="sequence-title">{{item.title || '长序列疗愈音乐'}}</view>
+          <view class="sequence-title">{{item.title || '长序列疗愈音频'}}</view>
           <view class="sequence-meta">
             <text class="sequence-duration">{{formatTime(item.total_duration)}}</text>
             <text class="sequence-segments">{{item.segments_count}}段</text>

@@ -10,24 +10,19 @@ class UnifiedMusicManager {
     this.api = require('./api')
     this.brainwaveGenerator = require('./brainwaveGenerator')
     
-    // 缓存配置
-    this.cacheKey = 'unified_music_cache'
-    this.cacheExpiry = 24 * 60 * 60 * 1000 // 24小时
+    // 移除缓存配置 - 现在直接从服务器获取数据
     
     console.log('统一音乐管理器初始化')
   }
 
   /**
-   * 初始化管理器
+   * 初始化管理器 - 直接从服务器获取最新数据
    */
   async init() {
     try {
       console.log('初始化统一音乐管理器...')
       
-      // 尝试从缓存加载
-      await this.loadFromCache()
-      
-      // 从服务器更新分类
+      // 直接从服务器获取最新分类数据
       await this.refreshCategories()
       
       console.log('统一音乐管理器初始化完成')
@@ -40,37 +35,70 @@ class UnifiedMusicManager {
   }
 
   /**
-   * 从服务器刷新分类数据
+   * 从服务器获取分类数据 - 无缓存版本（添加详细调试）
    */
   async refreshCategories() {
     try {
-      console.log('从服务器刷新分类数据...')
+      console.log('=== 开始从服务器获取分类数据 ===')
       
-      // 直接调用服务器（因为这是公开API）
+      // 检查网络配置
+      const { getCurrentConfig } = require('./config')
+      const config = getCurrentConfig()
+      console.log('📡 当前API配置:', {
+        API_BASE_URL: config.API_BASE_URL,
+        STATIC_BASE_URL: config.STATIC_BASE_URL,
+        DEBUG: config.DEBUG,
+        TIMEOUT: config.TIMEOUT
+      })
+      
+      // 添加时间戳防止浏览器缓存
+      const timestamp = Date.now()
+      const requestUrl = `/music/categories?t=${timestamp}`
+      
+      console.log('🌐 发起API请求:', requestUrl)
+      console.log('⏰ 请求时间:', new Date().toLocaleString())
+      
       const response = await this.api.request({
-        url: '/music/categories',
+        url: requestUrl,
         method: 'GET',
-        showLoading: false
+        showLoading: false,
+        timeout: 15000 // 增加超时时间
+      })
+
+      console.log('📨 收到API响应:', {
+        response: response,
+        success: response?.success,
+        dataType: typeof response?.data,
+        dataLength: Array.isArray(response?.data) ? response.data.length : 'not array'
       })
 
       if (response && response.success && response.data) {
         this.categories = response.data
         this.buildCategoryMap()
         
-        // 保存到缓存
-        await this.saveToCache()
-        
-        console.log('分类数据刷新成功:', this.categories.length)
+        console.log('✅ 分类数据获取成功:', {
+          count: this.categories.length,
+          categories: this.categories.map(cat => ({ id: cat.id, name: cat.name }))
+        })
         return true
       } else {
-        console.warn('服务器返回数据异常，使用默认分类:', response)
+        console.error('❌ 服务器返回数据异常:', {
+          response: response,
+          hasResponse: !!response,
+          hasSuccess: response?.success,
+          hasData: !!response?.data
+        })
         this.useDefaultCategories()
-        return true
+        return false // 改为返回false表示失败
       }
     } catch (error) {
-      console.warn('刷新分类数据失败，使用默认分类:', error)
+      console.error('💥 获取分类数据失败:', {
+        error: error,
+        message: error.message,
+        stack: error.stack
+      })
       this.useDefaultCategories()
-      return true
+      return false // 改为返回false表示失败
     }
   }
 
@@ -573,86 +601,49 @@ class UnifiedMusicManager {
     return categoryImageMap[title] || categoryImageMap['default']
   }
 
-  /**
-   * 从缓存加载
-   */
-  async loadFromCache() {
-    try {
-      const cached = wx.getStorageSync(this.cacheKey)
-      if (cached && cached.categories && cached.timestamp) {
-        const cacheAge = Date.now() - cached.timestamp
-        if (cacheAge < this.cacheExpiry) {
-          this.categories = cached.categories
-          this.buildCategoryMap()
-          console.log('从缓存加载分类成功:', this.categories.length)
-          return true
-        }
-      }
-    } catch (error) {
-      console.warn('从缓存加载分类失败:', error)
-    }
-    return false
-  }
-
-  /**
-   * 保存到缓存
-   */
-  async saveToCache() {
-    try {
-      const cacheData = {
-        categories: this.categories,
-        timestamp: Date.now(),
-        version: '2.0'
-      }
-      wx.setStorageSync(this.cacheKey, cacheData)
-      console.log('分类缓存保存成功')
-    } catch (error) {
-      console.warn('保存分类缓存失败:', error)
-    }
-  }
+  // 缓存相关方法已移除 - 现在直接从服务器获取数据
 
   /**
    * 使用默认分类
    */
   useDefaultCategories() {
-    console.log('使用默认分类配置')
+    console.log('🚨🚨🚨 使用默认分类配置 - API请求失败！🚨🚨🚨')
     this.categories = [
       {
         id: 1,
-        name: '自然音',
+        name: '自然音(默认)',
         code: 'natural_sound',
         description: '大自然的真实声音',
         icon: '🌿',
         type: 'audio_file',
-        count: 1 // 设置为有内容，避免显示为空分类
+        count: 1
       },
       {
         id: 2,
-        name: '白噪音',
+        name: '白噪音(默认)',
         code: 'white_noise', 
         description: '各种频率的白噪音',
         icon: '🔊',
         type: 'audio_file',
-        count: 1 // 设置为有内容，避免显示为空分类
+        count: 1
       },
-
       {
         id: 4,
-        name: 'AI音乐',
+        name: 'AI音乐(默认)',
         code: 'ai_music',
         description: 'AI生成的个性化音乐', 
         icon: '🤖',
         type: 'audio_file',
-        count: 1 // 设置为有内容，避免显示为空分类
+        count: 1
       },
       {
         id: 5,
-        name: '疗愈资源',
+        name: '疗愈资源(默认)',
         code: 'healing_resource',
         description: '专业的疗愈资源',
         icon: '💚',
         type: 'audio_file',
-        count: 1 // 设置为有内容，避免显示为空分类
+        count: 1
       }
     ]
     this.buildCategoryMap()
@@ -682,17 +673,7 @@ class UnifiedMusicManager {
     return this.categoryMap.get(id) || null
   }
 
-  /**
-   * 清除缓存
-   */
-  clearCache() {
-    try {
-      wx.removeStorageSync(this.cacheKey)
-      console.log('统一音乐缓存已清除')
-    } catch (error) {
-      console.warn('清除缓存失败:', error)
-    }
-  }
+  // 缓存方法已移除
 
   /**
    * 强制刷新分类数据（绕过缓存）
@@ -739,39 +720,7 @@ class UnifiedMusicManager {
     }
   }
 
-  /**
-   * 获取缓存信息（用于调试）
-   */
-  getCacheInfo() {
-    try {
-      const cached = wx.getStorageSync(this.cacheKey)
-      if (cached && cached.timestamp) {
-        const cacheAge = Date.now() - cached.timestamp
-        const cacheAgeHours = Math.floor(cacheAge / (1000 * 60 * 60))
-        const cacheAgeMinutes = Math.floor((cacheAge % (1000 * 60 * 60)) / (1000 * 60))
-        
-        return {
-          hasCachedData: true,
-          cacheAge: cacheAge,
-          cacheAgeHuman: `${cacheAgeHours}小时${cacheAgeMinutes}分钟`,
-          cachedAt: new Date(cached.timestamp).toLocaleString(),
-          categoriesCount: cached.categories ? cached.categories.length : 0,
-          isExpired: cacheAge >= this.cacheExpiry
-        }
-      } else {
-        return {
-          hasCachedData: false,
-          message: '无缓存数据'
-        }
-      }
-    } catch (error) {
-      return {
-        hasCachedData: false,
-        error: error.message,
-        message: '读取缓存信息失败'
-      }
-    }
-  }
+  // 缓存信息方法已移除
 }
 
 // 创建全局实例
