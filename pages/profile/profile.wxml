@@ -1,0 +1,244 @@
+<!-- pages/profile/profile.wxml -->
+<!-- 个人资料页面 -->
+<view class="page-container">
+  <!-- 用户信息头部 -->
+  <view class="profile-header">
+    <view class="user-info">
+      <!-- 头像选择按钮 -->
+      <button wx:if="{{isLoggedIn}}" class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+        <image class="avatar" src="{{userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}"/>
+        <view class="avatar-overlay">
+          <text class="avatar-tip">点击更换</text>
+        </view>
+      </button>
+      <image wx:else class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}"/>
+      
+      <view class="user-detail">
+        <!-- 昵称输入框 -->
+        <view wx:if="{{isLoggedIn}}" class="nickname-container">
+          <input 
+            class="nickname-input" 
+            type="nickname" 
+            placeholder="点击设置昵称" 
+            value="{{userInfo.nickName || userInfo.nickname || userInfo.username || ''}}"
+            bind:blur="onNicknameChange"
+            confirm-type="done"
+          />
+          <text class="edit-tip">可选择微信昵称或自定义</text>
+        </view>
+        <text wx:else class="nickname">{{userInfo.nickName || userInfo.username || '未登录'}}</text>
+        
+        <view wx:if="{{!isLoggedIn}}" class="login-actions">
+          <button class="btn btn-secondary btn-small" bindtap="onLogin">点击登录</button>
+        </view>
+        <view wx:else class="user-status">
+          <view class="status-badge">
+            <text class="vip-tag" style="color: {{subscriptionStatus.statusColor}}">
+              {{subscriptionStatus.displayName}}
+            </text>
+          </view>
+          <text class="register-time">注册时间：{{formatDate(userInfo.createdAt)}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view wx:if="{{isLoggedIn}}" class="quick-actions">
+      <!-- 保存按钮 -->
+      <button wx:if="{{hasChanges}}" class="btn btn-primary btn-small" bind:tap="onSaveProfile" loading="{{saving}}">
+        {{saving ? '保存中...' : '保存资料'}}
+      </button>
+      <button class="btn btn-secondary btn-small" bindtap="onLogout">退出登录</button>
+    </view>
+  </view>
+
+  <!-- 页面内容 -->
+  <view class="page-content">
+
+    <!-- 用户数据统计 -->
+    <view wx:if="{{isLoggedIn}}" class="content-section">
+      <view class="section-header">
+        <view class="section-title">我的数据</view>
+      </view>
+
+      <view class="stats-container">
+        <view class="stats-row">
+          <view class="stat-card">
+            <view class="stat-icon">📊</view>
+            <view class="stat-content">
+              <text class="stat-number">{{stats.assessmentCount}}</text>
+              <text class="stat-label">评测次数</text>
+            </view>
+          </view>
+          <view class="stat-card">
+            <view class="stat-icon">🎵</view>
+            <view class="stat-content">
+              <text class="stat-number">{{stats.musicCount}}</text>
+              <text class="stat-label">生成音乐</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="stats-row">
+          <view class="stat-card">
+            <view class="stat-icon">⏰</view>
+            <view class="stat-content">
+              <text class="stat-number">{{stats.totalListenTime}}</text>
+              <text class="stat-label">聆听时长(分)</text>
+            </view>
+          </view>
+          <view class="stat-card">
+            <view class="stat-icon">🔥</view>
+            <view class="stat-content">
+              <text class="stat-number">{{stats.consecutiveDays}}</text>
+              <text class="stat-label">连续天数</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订阅状态 -->
+    <view wx:if="{{isLoggedIn}}" class="content-section">
+      <view class="section-header">
+        <view class="section-title">会员状态</view>
+      </view>
+
+      <view class="subscription-detail-card">
+        <view class="subscription-header">
+          <view class="subscription-icon-container">
+            <text class="subscription-icon">{{subscriptionStatus.statusIcon}}</text>
+          </view>
+          <view class="subscription-info">
+            <view class="subscription-title" style="color: {{subscriptionStatus.statusColor}}">
+              {{subscriptionStatus.displayName}}
+            </view>
+            <view wx:if="{{subscriptionStatus.daysLeft > 0}}" class="subscription-expiry">
+              剩余 {{subscriptionStatus.daysLeft}} 天到期
+            </view>
+            <view wx:elif="{{subscriptionStatus.expiresAt}}" class="subscription-expiry expired">
+              会员已过期
+            </view>
+            <view wx:else class="subscription-expiry">
+              享受基础功能
+            </view>
+          </view>
+          <view wx:if="{{subscriptionStatus.showUpgrade}}" class="subscription-action">
+            <button class="btn-subscription-upgrade" bindtap="onUpgradeSubscription">升级</button>
+          </view>
+        </view>
+        
+        <view class="subscription-benefits">
+          <view class="benefits-title">可用功能</view>
+          <view class="benefits-grid">
+            <view wx:for="{{subscriptionStatus.features}}" wx:key="*this" class="benefit-item">
+              <text class="benefit-icon">✓</text>
+              <text class="benefit-text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 我的内容 -->
+    <view class="content-section">
+      <view class="section-header">
+        <view class="section-title">我的内容</view>
+      </view>
+
+      <view class="list-container">
+        <view class="list-item" bindtap="goToFavorites">
+          <view class="list-item-icon">❤️</view>
+          <view class="list-item-content">
+            <view class="list-item-title">我的收藏</view>
+            <view class="list-item-subtitle">收藏的音乐和评测</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
+        <view class="list-item" bindtap="goToDownloads">
+          <view class="list-item-icon">📥</view>
+          <view class="list-item-content">
+            <view class="list-item-title">我的下载</view>
+            <view class="list-item-subtitle">已下载的音乐文件</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
+        <view class="list-item" bindtap="showHistory">
+          <view class="list-item-icon">🕒</view>
+          <view class="list-item-content">
+            <view class="list-item-title">播放历史</view>
+            <view class="list-item-subtitle">最近播放的音乐</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 更多功能 -->
+    <view class="content-section">
+      <view class="section-header">
+        <view class="section-title">更多功能</view>
+      </view>
+
+      <view class="list-container">
+        <view class="list-item" bindtap="showSettings">
+          <view class="list-item-icon">⚙️</view>
+          <view class="list-item-content">
+            <view class="list-item-title">设置</view>
+            <view class="list-item-subtitle">个性化设置和偏好</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
+        <view class="list-item" bindtap="showHelp">
+          <view class="list-item-icon">❓</view>
+          <view class="list-item-content">
+            <view class="list-item-title">使用帮助</view>
+            <view class="list-item-subtitle">功能介绍和使用指南</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
+        <view class="list-item" bindtap="showFeedback">
+          <view class="list-item-icon">💬</view>
+          <view class="list-item-content">
+            <view class="list-item-title">意见反馈</view>
+            <view class="list-item-subtitle">提出建议和问题反馈</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
+        <view class="list-item" bindtap="showAbout">
+          <view class="list-item-icon">ℹ️</view>
+          <view class="list-item-content">
+            <view class="list-item-title">关于我们</view>
+            <view class="list-item-subtitle">版本 1.0.0</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
+        <!-- 设备绑定 -->
+        <view wx:if="{{isLoggedIn}}" class="list-item" bindtap="goToDeviceBinding">
+          <view class="list-item-icon">📱</view>
+          <view class="list-item-content">
+            <view class="list-item-title">设备绑定</view>
+            <view class="list-item-subtitle">绑定智能设备与蓝牙音响</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
+        <!-- 同步微信资料 -->
+        <view wx:if="{{isLoggedIn}}" class="list-item" bindtap="onSyncWechatProfile">
+          <view class="list-item-icon">🔄</view>
+          <view class="list-item-content">
+            <view class="list-item-title">同步微信资料</view>
+            <view class="list-item-subtitle">更新昵称与头像</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

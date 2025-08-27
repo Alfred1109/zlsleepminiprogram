@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "音乐库",
+  "navigationBarBackgroundColor": "#4A90E2",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f8f9fa",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "usingComponents": {
+    "global-player": "/components/global-player/global-player"
+  }
+}

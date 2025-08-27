@@ -1,0 +1,54 @@
+/* components/waveform/waveform.wxss */
+/* 音乐波形图组件样式 -适配暗黑主题播放器 */
+
+.waveform-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center; /* 垂直居中对齐 */
+  justify-content: flex-start; /* 从左侧开始排列 */
+  overflow: hidden;
+}
+
+.waveform-background, .waveform-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4rpx; /* 波形条之间的间隙 */
+}
+
+.waveform-progress {
+  width: 0%; /* 由progress属性控制 */
+  overflow: hidden;
+  transition: width 0.1s linear;
+}
+
+.wave-bar {
+  flex-shrink: 0; /* 防止条被压缩 */
+  width: 4rpx;
+  min-height: 4rpx;
+  border-radius: 2rpx;
+  transition: height 0.3s ease;
+}
+
+.background-bar {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.progress-bar {
+  background: #1DB954; /* Spotify Green */
+}
+
+.progress-bar.playing {
+  /* 可以保留或移除播放动画 */
+}
+
+/* 移除指示器，因为进度由颜色填充显示 */
+.progress-indicator {
+  display: none;
+}

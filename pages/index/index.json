@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "medsleep疗愈",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "global-player": "/components/global-player/global-player",
+    "static-waveform": "/components/static-waveform/static-waveform"
+  }
+}

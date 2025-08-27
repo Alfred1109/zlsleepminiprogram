@@ -1,0 +1,231 @@
+/* pages/music/category/category.wxss */
+/* 分类音乐列表页面样式 - 简化版 */
+
+.page-container {
+  min-height: 100vh;
+  background: #2BBAA5;
+  padding: 0 32rpx 120rpx;
+  box-sizing: border-box;
+}
+
+.page-header {
+  padding: 40rpx 0 32rpx;
+  text-align: center;
+}
+
+.page-header-title {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 12rpx;
+}
+
+.page-header-subtitle {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 加载状态 */
+.loading-container {
+  text-align: center;
+  padding: 120rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  border-top: 4rpx solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: white;
+  font-size: 28rpx;
+}
+
+/* 音乐列表 */
+.music-list {
+  margin-top: 24rpx;
+}
+
+.music-item {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.music-item:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.music-cover {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
+  margin-right: 24rpx;
+  background-color: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+}
+
+.music-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.music-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-subtitle {
+  font-size: 24rpx;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 音乐操作 */
+.music-actions {
+  margin-left: 16rpx;
+}
+
+.action-btn {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #2BBAA5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4rpx 12rpx rgba(43, 186, 165, 0.3);
+}
+
+.action-btn:active {
+  transform: scale(0.9);
+  box-shadow: 0 2rpx 8rpx rgba(43, 186, 165, 0.4);
+}
+
+.action-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.play-btn .action-icon {
+  margin-left: 2rpx;
+}
+
+/* 播放指示器 */
+.playing-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: flex-end;
+  height: 32rpx;
+}
+
+.wave {
+  width: 6rpx;
+  background: #2BBAA5;
+  border-radius: 3rpx;
+  animation: wave 1.2s ease-in-out infinite;
+  margin: 0 2rpx;
+}
+
+.wave1 {
+  height: 20rpx;
+  animation-delay: 0s;
+}
+
+.wave2 {
+  height: 32rpx;
+  animation-delay: 0.2s;
+}
+
+.wave3 {
+  height: 24rpx;
+  animation-delay: 0.4s;
+}
+
+@keyframes wave {
+  0%, 50%, 100% {
+    transform: scaleY(1);
+  }
+  25% {
+    transform: scaleY(0.5);
+  }
+  75% {
+    transform: scaleY(1.5);
+  }
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-icon {
+  width: 120rpx;
+  height: 120rpx;
+  opacity: 0.6;
+  margin-bottom: 32rpx;
+}
+
+.empty-text {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 16rpx;
+}
+
+.empty-desc {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 48rpx;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  border-radius: 48rpx;
+  padding: 24rpx 48rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.98);
+}

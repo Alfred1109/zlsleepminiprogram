@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "音乐播放器",
+  "navigationBarBackgroundColor": "#2BBAA5",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#2BBAA5",
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
+  "usingComponents": {
+    "realtime-waveform": "../../../components/realtime-waveform/realtime-waveform",
+    "global-player": "../../../components/global-player/global-player"
+  }
+}

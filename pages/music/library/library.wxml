@@ -1,0 +1,272 @@
+<!--pages/music/library/library.wxml-->
+<!-- 音乐库页面 -->
+<view class="page-container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="page-header-title">音乐库</view>
+    <view class="page-header-subtitle">您的专属疗愈音乐收藏</view>
+  </view>
+
+  <!-- 页面内容 -->
+  <view class="page-content">
+
+    <!-- 标签页切换 -->
+    <view class="tab-container">
+      <view
+        class="tab-item {{currentTab === 'music' ? 'active' : ''}}"
+        data-tab="music"
+        bindtap="onTabChange"
+      >
+        <view class="tab-icon">🎵</view>
+        <text class="tab-text">60秒音乐</text>
+        <view wx:if="{{musicList.length > 0}}" class="tab-badge">{{musicList.length}}</view>
+      </view>
+      <view
+        class="tab-item {{currentTab === 'longSequence' ? 'active' : ''}}"
+        data-tab="longSequence"
+        bindtap="onTabChange"
+      >
+        <view class="tab-icon">🎼</view>
+        <text class="tab-text">长序列音乐</text>
+        <view wx:if="{{longSequenceList.length > 0}}" class="tab-badge">{{longSequenceList.length}}</view>
+      </view>
+    </view>
+
+    <!-- 订阅状态卡片 -->
+    <view class="subscription-status-card">
+      <view class="status-header">
+        <view class="status-icon-container">
+          <text class="status-icon">{{subscriptionStatus.statusIcon}}</text>
+        </view>
+        <view class="status-info">
+          <view class="status-title" style="color: {{subscriptionStatus.statusColor}}">
+            {{subscriptionStatus.displayName}}
+          </view>
+          <view wx:if="{{subscriptionStatus.daysLeft > 0}}" class="status-expiry">
+            剩余 {{subscriptionStatus.daysLeft}} 天
+          </view>
+          <view wx:elif="{{subscriptionStatus.expiresAt}}" class="status-expiry expired">
+            已过期
+          </view>
+        </view>
+        <view wx:if="{{subscriptionStatus.showUpgrade}}" class="upgrade-btn">
+          <button class="btn-upgrade" bindtap="onUpgradeSubscription">升级</button>
+        </view>
+      </view>
+      
+      <view class="status-features">
+        <view class="features-title">可用功能</view>
+        <view class="features-list">
+          <text wx:for="{{subscriptionStatus.features}}" wx:key="*this" class="feature-item">
+            • {{item}}
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">加载音乐库中...</view>
+    </view>
+
+  <!-- 60秒音乐列表 -->
+  <view wx:elif="{{currentTab === 'music'}}" class="content-container">
+    <!-- 空状态 -->
+    <view wx:if="{{musicList.length === 0}}" class="empty-state">
+      <image class="empty-icon" src="/images/empty-music.svg" mode="aspectFit" />
+      <view class="empty-text">暂无音乐</view>
+      <view class="empty-desc">快去生成您的专属疗愈音乐吧</view>
+      <button class="btn-primary" bindtap="onGoToGenerate">生成音乐</button>
+      <!-- 调试信息 -->
+      <view wx:if="{{userInfo}}" class="debug-info" style="margin-top: 20rpx; font-size: 24rpx; color: #999;">
+        用户ID: {{userInfo.id || userInfo.user_id || userInfo.userId || '未知'}}
+      </view>
+    </view>
+
+    <!-- 音乐列表 -->
+    <view wx:else class="music-list">
+      <view 
+        wx:for="{{musicList}}" 
+        wx:key="id"
+        class="music-item"
+        data-music="{{item}}"
+        bindtap="onPlayMusic"
+      >
+        <view class="music-cover">
+          <image
+            class="cover-image"
+            src="{{item.cover_url || '/images/default-music-cover.svg'}}"
+            mode="aspectFill"
+          />
+          
+          <!-- 播放状态指示器 -->
+          <view wx:if="{{currentPlayingId === item.id && currentPlayingType === 'music'}}" class="playing-indicator">
+            <view class="wave wave1"></view>
+            <view class="wave wave2"></view>
+            <view class="wave wave3"></view>
+          </view>
+          <view wx:else class="play-overlay">
+            <image class="play-icon" src="/images/play-white.svg" mode="aspectFit" />
+          </view>
+        </view>
+
+        <view class="music-info">
+          <view class="music-title">
+            {{generateMusicTitle(item)}}
+          </view>
+          <view class="music-subtitle">
+            基于 {{item.assessment_scale_name || '心理评测'}} · {{formatAssessmentDate(item.assessment_date)}}
+          </view>
+          <view class="music-meta">
+            <view class="meta-item">
+              <text class="meta-icon">⏱️</text>
+              <text class="meta-text">{{formatTime(item.duration)}}</text>
+            </view>
+            <view class="meta-item">
+              <text class="meta-icon">🎭</text>
+              <text class="meta-text">{{item.mood || '放松疗愈'}}</text>
+            </view>
+            <view class="meta-item">
+              <text class="meta-icon">📊</text>
+              <text class="meta-text">{{item.assessment_score || '--'}}分</text>
+            </view>
+          </view>
+          <view class="music-tags">
+            <text class="music-tag">{{item.music_style || '疗愈'}}</text>
+            <text class="music-tag">{{item.tempo || '中速'}}</text>
+            <text wx:if="{{item.is_favorite}}" class="music-tag favorite">收藏</text>
+          </view>
+        </view>
+
+        <view class="music-actions">
+          <button 
+            class="action-btn-with-text"
+            data-music="{{item}}"
+            catchtap="onToggleFavorite"
+          >
+            <view class="btn-icon">
+              <image
+                class="action-icon {{item.is_favorite ? 'active' : ''}}"
+                src="{{item.is_favorite ? '/images/heart-filled.svg' : '/images/heart.svg'}}"
+                mode="aspectFit"
+              />
+            </view>
+            <text class="btn-text">{{item.is_favorite ? '已收藏' : '收藏'}}</text>
+          </button>
+          
+          <button 
+            class="action-btn-with-text"
+            data-music="{{item}}"
+            catchtap="onShowMusicMenu"
+          >
+            <view class="btn-icon">
+              <image class="action-icon" src="/images/more.svg" mode="aspectFit" />
+            </view>
+            <text class="btn-text">更多</text>
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 长序列音乐列表 -->
+  <view wx:elif="{{currentTab === 'longSequence'}}" class="content-container">
+    <!-- 空状态 -->
+    <view wx:if="{{longSequenceList.length === 0}}" class="empty-state">
+      <image class="empty-icon" src="/images/empty-sequence.svg" mode="aspectFit" />
+      <view class="empty-text">暂无长序列音乐</view>
+      <view class="empty-desc">创建您的专属长时间疗愈音乐</view>
+      <button class="btn-primary" bindtap="onGoToCreateSequence">创建长序列</button>
+    </view>
+
+    <!-- 长序列列表 -->
+    <view wx:else class="sequence-list">
+      <view 
+        wx:for="{{longSequenceList}}" 
+        wx:key="id"
+        class="sequence-item"
+        data-sequence="{{item}}"
+        bindtap="onPlaySequence"
+      >
+        <view class="sequence-cover">
+          <image
+            class="cover-image"
+            src="{{item.cover_url || '/images/default-sequence-cover.svg'}}"
+            mode="aspectFill"
+          />
+
+          <!-- 播放状态指示器 -->
+          <view wx:if="{{currentPlayingId === item.id && currentPlayingType === 'longSequence'}}" class="playing-indicator">
+            <view class="wave wave1"></view>
+            <view class="wave wave2"></view>
+            <view class="wave wave3"></view>
+          </view>
+          <view wx:else class="play-overlay">
+            <image class="play-icon" src="/images/play-white.svg" mode="aspectFit" />
+          </view>
+        </view>
+
+        <view class="sequence-info">
+          <view class="sequence-title">{{item.title || '长序列疗愈音乐'}}</view>
+          <view class="sequence-meta">
+            <text class="sequence-duration">{{formatTime(item.total_duration)}}</text>
+            <text class="sequence-segments">{{item.segments_count}}段</text>
+          </view>
+          <view class="sequence-description">{{item.description}}</view>
+          <view class="sequence-date">{{formatDate(item.created_at)}}</view>
+        </view>
+
+        <view class="sequence-actions">
+          <button 
+            class="action-btn-with-text"
+            data-sequence="{{item}}"
+            catchtap="onToggleSequenceFavorite"
+          >
+            <view class="btn-icon">
+              <image
+                class="action-icon {{item.is_favorite ? 'active' : ''}}"
+                src="{{item.is_favorite ? '/images/heart-filled.svg' : '/images/heart.svg'}}"
+                mode="aspectFit"
+              />
+            </view>
+            <text class="btn-text">{{item.is_favorite ? '已收藏' : '收藏'}}</text>
+          </button>
+
+          <button
+            class="action-btn-with-text"
+            data-sequence="{{item}}"
+            catchtap="onShowSequenceMenu"
+          >
+            <view class="btn-icon">
+              <image class="action-icon" src="/images/more.svg" mode="aspectFit" />
+            </view>
+            <text class="btn-text">更多</text>
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+    <!-- 浮动操作按钮 -->
+    <view class="fab-container">
+      <button wx:if="{{currentTab === 'music'}}" class="fab" bindtap="onGoToGenerate">
+        <image class="fab-icon" src="/images/add-music.svg" mode="aspectFit" />
+      </button>
+      <button wx:else class="fab" bindtap="onGoToCreateSequence">
+        <image class="fab-icon" src="/images/add-sequence.svg" mode="aspectFit" />
+      </button>
+    </view>
+  </view>
+</view>
+
+<!-- 统一底部播放器 -->
+<global-player 
+  id="globalPlayer"
+  visible="{{showGlobalPlayer}}"
+  bind:playStateChange="onGlobalPlayerStateChange"
+  bind:nextTrack="onNextTrack"
+  bind:previousTrack="onPreviousTrack"
+  bind:closePlayer="onCloseGlobalPlayer"
+  bind:expandPlayer="onExpandGlobalPlayer"
+/>

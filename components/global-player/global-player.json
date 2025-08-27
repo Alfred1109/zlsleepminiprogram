@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "realtime-waveform": "../realtime-waveform/realtime-waveform"
+  }
+}

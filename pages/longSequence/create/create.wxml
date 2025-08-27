@@ -1,0 +1,167 @@
+<!--pages/longSequence/create/create.wxml-->
+<!-- 长序列音乐创建页面 -->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="header-title">创建长序列音乐</view>
+    <view class="header-subtitle">基于评测结果生成长时间疗愈音乐体验</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 生成进度 -->
+  <view wx:elif="{{generating}}" class="generation-container">
+    <view class="generation-header">
+      <view class="generation-title">正在生成您的专属音乐</view>
+      <view class="generation-subtitle">{{currentPhase}}</view>
+    </view>
+
+    <view class="progress-section">
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{generationProgress}}%"></view>
+      </view>
+      <view class="progress-text">{{generationProgress}}%</view>
+    </view>
+
+    <view class="generation-tips">
+      <view class="tip-item">• 正在分析您的心理状态</view>
+      <view class="tip-item">• 智能匹配音乐元素</view>
+      <view class="tip-item">• 生成个性化音乐序列</view>
+      <view class="tip-item">• 优化音频质量</view>
+    </view>
+  </view>
+
+  <!-- 主要内容 -->
+  <view wx:else class="main-content">
+    <!-- 评测记录选择 -->
+    <view class="section">
+      <view class="section-title">
+        <text class="title-text">选择评测记录</text>
+        <text class="title-desc">基于评测结果生成音乐</text>
+      </view>
+
+      <!-- 无评测记录 -->
+      <view wx:if="{{recentAssessments.length === 0}}" class="empty-state">
+        <image class="empty-icon" src="/images/empty-assessment.svg" mode="aspectFit"></image>
+        <view class="empty-text">暂无评测记录</view>
+        <view class="empty-desc">请先完成心理健康评测</view>
+        <button class="btn-primary" bindtap="onGoToAssessment">去做评测</button>
+      </view>
+
+      <!-- 评测记录列表 -->
+      <view wx:else class="assessment-list">
+        <view 
+          wx:for="{{recentAssessments}}" 
+          wx:key="id"
+          class="assessment-item {{selectedAssessment && selectedAssessment.id === item.id ? 'selected' : ''}}"
+          data-assessment="{{item}}"
+          bindtap="onSelectAssessment"
+        >
+          <view class="assessment-header">
+            <view class="assessment-name">{{item.scale_name}}</view>
+            <view class="assessment-time">{{formatTime(item.completed_at)}}</view>
+          </view>
+          
+          <view class="assessment-result">
+            <view class="result-score">
+              <text class="score-label">总分：</text>
+              <text class="score-value">{{item.total_score}}</text>
+            </view>
+            <view 
+              class="result-level"
+              style="color: {{getSeverityColor(item.severity_level)}}"
+            >
+              {{item.severity_level === 'normal' ? '正常' : 
+                item.severity_level === 'mild' ? '轻度' :
+                item.severity_level === 'moderate' ? '中度' : '重度'}}
+            </view>
+          </view>
+
+          <!-- 选中标识 -->
+          <view wx:if="{{selectedAssessment && selectedAssessment.id === item.id}}" class="selected-mark">
+            <image class="check-icon" src="/images/check.svg" mode="aspectFit"></image>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时长选择 -->
+    <view wx:if="{{recentAssessments.length > 0}}" class="section">
+      <view class="section-title">
+        <text class="title-text">选择时长</text>
+        <text class="title-desc">根据您的需求选择合适的时长</text>
+      </view>
+
+      <view class="duration-options">
+        <view 
+          wx:for="{{durationOptions}}" 
+          wx:key="value"
+          class="duration-item {{durationMinutes === item.value ? 'selected' : ''}}"
+          data-duration="{{item.value}}"
+          bindtap="onSelectDuration"
+        >
+          <view class="duration-label">{{item.label}}</view>
+          <view class="duration-desc">{{item.description}}</view>
+          
+          <!-- 选中标识 -->
+          <view wx:if="{{durationMinutes === item.value}}" class="duration-check">
+            <image class="check-icon" src="/images/check.svg" mode="aspectFit"></image>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 创建说明 -->
+    <view wx:if="{{recentAssessments.length > 0}}" class="section">
+      <view class="section-title">
+        <text class="title-text">长序列音乐说明</text>
+      </view>
+
+      <view class="info-content">
+        <view class="info-item">
+          <image class="info-icon" src="/images/info-analysis.svg" mode="aspectFit"></image>
+          <view class="info-text">
+            <view class="info-title">智能分析</view>
+            <view class="info-desc">基于您的评测结果深度分析情绪状态</view>
+          </view>
+        </view>
+
+        <view class="info-item">
+          <image class="info-icon" src="/images/info-sequence.svg" mode="aspectFit"></image>
+          <view class="info-text">
+            <view class="info-title">序列生成</view>
+            <view class="info-desc">创建多段式音乐，渐进式疗愈体验</view>
+          </view>
+        </view>
+
+        <view class="info-item">
+          <image class="info-icon" src="/images/info-personalized.svg" mode="aspectFit"></image>
+          <view class="info-text">
+            <view class="info-title">个性化定制</view>
+            <view class="info-desc">根据您的具体需求调整音乐风格和节奏</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 创建按钮 -->
+    <view wx:if="{{recentAssessments.length > 0}}" class="create-section">
+      <button
+        class="btn-create"
+        disabled="{{!selectedAssessment}}"
+        bindtap="onCreateSequence"
+      >
+        <image class="btn-icon" src="/images/create-music.svg" mode="aspectFit"></image>
+        <text>创建长序列音乐</text>
+      </button>
+
+      <view class="create-info">
+        <text class="info-text">预计生成时间：{{Math.ceil(durationMinutes / 10)}} - {{Math.ceil(durationMinutes / 5)}} 分钟</text>
+      </view>
+    </view>
+  </view>
+</view>

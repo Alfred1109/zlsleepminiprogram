@@ -1,0 +1,19 @@
+<!-- components/realtime-waveform/realtime-waveform.wxml -->
+<!-- 实时音频波形分析组件 -->
+<view class="realtime-waveform-container">
+  <canvas 
+    canvas-id="waveform-canvas"
+    class="waveform-canvas {{isPlaying ? 'playing' : 'paused'}}"
+    bindtap="onCanvasTap"
+  ></canvas>
+  
+  <!-- 波形状态指示器 -->
+  <view class="waveform-status" wx:if="{{!isInitialized}}">
+    <text class="status-text">初始化中...</text>
+  </view>
+  
+  <!-- 分析模式指示器 -->
+  <view class="analysis-mode" wx:if="{{isInitialized}}">
+    <text class="mode-text">{{analyserNode ? '实时分析' : '模拟分析'}}</text>
+  </view>
+</view>

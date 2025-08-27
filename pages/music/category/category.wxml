@@ -1,0 +1,90 @@
+<!--pages/music/category/category.wxml-->
+<!-- 分类音乐列表页面 -->
+<view class="page-container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="page-header-title">{{categoryName}}</view>
+    <view class="page-header-subtitle">探索这个分类下的疗愈音乐</view>
+  </view>
+
+  <!-- 页面内容 -->
+  <view class="page-content">
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">加载音乐中...</view>
+    </view>
+
+    <!-- 音乐列表 -->
+    <view wx:elif="{{musicList.length > 0}}" class="content-container">
+      <view class="music-list">
+        <view 
+          wx:for="{{musicList}}" 
+          wx:key="id"
+          class="music-item {{currentPlayingId === item.id ? 'playing' : ''}}"
+          data-music="{{item}}"
+          bindtap="onPlayMusic"
+        >
+          <view class="music-cover">
+            <image
+              class="cover-image"
+              src="{{item.image || '/images/default-music-cover.svg'}}"
+              mode="aspectFill"
+            />
+            
+            <!-- 播放状态指示器 -->
+            <view wx:if="{{currentPlayingId === item.id && isPlaying}}" class="playing-indicator">
+              <view class="wave wave1"></view>
+              <view class="wave wave2"></view>
+              <view class="wave wave3"></view>
+            </view>
+            <view wx:else class="play-overlay">
+              <image class="play-icon" src="/images/play-white.svg" mode="aspectFit" />
+            </view>
+          </view>
+
+          <view class="music-info">
+            <view class="music-title">{{item.title || item.name || '未知音乐'}}</view>
+            <view class="music-subtitle">{{item.description || categoryName}}</view>
+            <view class="music-meta" wx:if="{{item.duration}}">
+              <view class="meta-item">
+                <text class="meta-icon">⏱️</text>
+                <text class="meta-text">{{formatTime(item.duration)}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="music-actions">
+            <view class="action-btn play-btn" 
+                  data-music="{{item}}"
+                  bindtap="onPlayMusic"
+                  catchtap>
+              <image class="action-icon" 
+                     src="{{currentPlayingId === item.id && isPlaying ? '/images/pause.svg' : '/images/play.svg'}}" 
+                     mode="aspectFit" />
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">
+      <image class="empty-icon" src="/images/empty-music.svg" mode="aspectFit" />
+      <view class="empty-text">暂无音乐</view>
+      <view class="empty-desc">这个分类下还没有音乐资源</view>
+      <button class="btn-secondary" bindtap="onPullDownRefresh">重新加载</button>
+    </view>
+  </view>
+</view>
+
+<!-- 统一底部播放器 -->
+<global-player 
+  id="globalPlayer"
+  visible="{{showGlobalPlayer}}"
+  bind:playStateChange="onGlobalPlayerStateChange"
+  bind:nextTrack="onNextTrack"
+  bind:previousTrack="onPreviousTrack"
+  bind:closePlayer="onCloseGlobalPlayer"
+  bind:expandPlayer="onExpandGlobalPlayer"
+/>

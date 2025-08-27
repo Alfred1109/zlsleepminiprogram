@@ -1,0 +1,185 @@
+<!-- 设备绑定页面 -->
+<view class="device-page">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-icon">🌙</view>
+    <text class="page-title">助眠设备</text>
+    <text class="page-subtitle">连接您的助眠设备，开启深度睡眠之旅</text>
+  </view>
+
+  <!-- 历史配对记录 -->
+  <view class="history-section" wx:if="{{pairingHistory.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">
+        <view class="title-icon">📋</view>
+        <text>历史配对记录</text>
+      </view>
+      <button class="clear-history-btn" bindtap="clearHistory" wx:if="{{pairingHistory.length > 0}}">清空</button>
+    </view>
+    <view class="history-list">
+      <block wx:for="{{pairingHistory}}" wx:key="deviceId">
+        <view class="history-item" bindtap="reconnectDevice" data-device="{{item}}">
+          <view class="device-avatar">
+            <text class="device-type-icon">{{item.typeIcon}}</text>
+          </view>
+          <view class="device-details">
+            <text class="device-name">{{item.name}}</text>
+            <text class="device-mac">MAC: {{item.macAddress}}</text>
+            <text class="pair-time">上次连接: {{item.lastConnected}}</text>
+          </view>
+          <view class="reconnect-btn" wx:if="{{!item.connecting}}">
+            <text class="reconnect-icon">🔄</text>
+          </view>
+          <view class="connecting-indicator" wx:if="{{item.connecting}}">
+            <text class="loading-icon">⏳</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 当前连接状态 -->
+  <view class="connection-status" wx:if="{{connectedDevices.length > 0}}">
+    <view class="status-header">
+      <view class="status-icon connected">●</view>
+      <text class="status-text">已连接设备</text>
+    </view>
+    <view class="connected-list">
+      <block wx:for="{{connectedDevices}}" wx:key="deviceId">
+        <view class="connected-item {{selectedBluetoothDeviceId === item.deviceId ? 'selected' : ''}}" 
+              bindtap="selectBluetoothDevice" data-deviceid="{{item.deviceId}}">
+          <view class="device-avatar connected">
+            <text class="device-icon">🎵</text>
+          </view>
+          <view class="device-details">
+            <text class="device-name">{{item.name || item.localName || '未知设备'}}</text>
+            <text class="device-status">连接稳定 · 已选中</text>
+          </view>
+          <view class="check-mark" wx:if="{{selectedBluetoothDeviceId === item.deviceId}}">
+            <text class="check-icon">✓</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 设备扫描区域 -->
+  <view class="scan-section">
+    <view class="scan-header">
+      <view class="section-title">
+        <view class="title-icon">🔍</view>
+        <text>发现设备</text>
+      </view>
+      <button class="modern-scan-btn {{scanning ? 'scanning' : ''}}" bindtap="toggleBluetoothScan">
+        <view class="scan-btn-content">
+          <text class="scan-icon">{{scanning ? '⏱️' : '📡'}}</text>
+          <text class="scan-text">{{scanning ? '扫描中...' : '开始扫描'}}</text>
+        </view>
+        <view class="scan-animation" wx:if="{{scanning}}"></view>
+      </button>
+    </view>
+
+    <!-- 发现的设备列表 -->
+    <view class="discovered-list" wx:if="{{discoveredDevices.length > 0}}">
+      <block wx:for="{{discoveredDevices}}" wx:key="deviceId">
+        <view class="discovery-item" bindtap="connectBluetoothDevice" data-device="{{item}}">
+          <view class="device-avatar">
+            <text class="device-icon">{{item.name && item.name.includes('BT') ? '🎧' : '📱'}}</text>
+            <view class="signal-strength strength-{{item.RSSI > -50 ? 'strong' : item.RSSI > -70 ? 'medium' : 'weak'}}"></view>
+          </view>
+          <view class="device-details">
+            <text class="device-name">{{item.name || item.localName || '未知设备'}}</text>
+            <view class="device-meta">
+              <text class="signal-info">信号强度: {{item.RSSI}}dBm</text>
+              <text class="device-type">{{item.macAddress || '蓝牙设备'}}</text>
+            </view>
+          </view>
+          <button class="connect-btn {{item.connecting ? 'connecting' : ''}}" loading="{{item.connecting}}">
+            {{item.connecting ? '连接中' : '连接'}}
+          </button>
+        </view>
+      </block>
+    </view>
+
+    <!-- 扫描状态提示 -->
+    <view class="scan-status" wx:if="{{scanning}}">
+      <view class="scan-animation-circle"></view>
+      <text class="scan-status-text">正在搜索附近的助眠设备...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-discovery" wx:if="{{!scanning && connectedDevices.length === 0 && discoveredDevices.length === 0 && !bluetoothEnabled}}">
+      <view class="empty-illustration">🛜</view>
+      <text class="empty-title">蓝牙未开启</text>
+      <text class="empty-desc">请开启手机蓝牙后再试</text>
+    </view>
+
+    <view class="empty-discovery" wx:if="{{!scanning && connectedDevices.length === 0 && discoveredDevices.length === 0 && bluetoothEnabled}}">
+      <view class="empty-illustration">🔍</view>
+      <text class="empty-title">暂未发现设备</text>
+      <text class="empty-desc">请确保设备已开启并处于配对模式</text>
+      <button class="retry-scan-btn" bindtap="toggleBluetoothScan">重新扫描</button>
+    </view>
+  </view>
+
+  <!-- 助眠设备推荐 -->
+  <view class="smart-devices-section">
+    <view class="section-header">
+      <view class="section-title">
+        <view class="title-icon">🏠</view>
+        <text>智能助眠设备</text>
+      </view>
+    </view>
+    <view class="sleep-device-card" bindtap="bindSmartDevice" data-type="sleep-assistant">
+      <view class="card-background">
+        <view class="device-showcase">
+          <view class="device-icons">
+            <text class="icon-item">💡</text>
+            <text class="icon-item">🎵</text>
+            <text class="icon-item">🌸</text>
+            <text class="icon-item">🌬️</text>
+          </view>
+        </view>
+        <view class="card-content">
+          <view class="card-title">助眠设备套装</view>
+          <view class="card-subtitle">智能氛围灯 · 香薰机 · 白噪音设备</view>
+          <view class="card-features">
+            <text class="feature-item">• 智能调光调色</text>
+            <text class="feature-item">• 天然香薰扩散</text>
+            <text class="feature-item">• 自然白噪音</text>
+          </view>
+          <view class="setup-btn">
+            <text class="setup-text">设置助眠环境</text>
+            <text class="setup-arrow">→</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 使用提示 -->
+  <view class="tips-section">
+    <view class="tips-header">
+      <view class="tips-icon">💡</view>
+      <text class="tips-title">连接提示</text>
+    </view>
+    <view class="tips-list">
+      <view class="tip-item">
+        <view class="tip-bullet">•</view>
+        <text class="tip-text">确保助眠设备已开启并处于配对模式</text>
+      </view>
+      <view class="tip-item">
+        <view class="tip-bullet">•</view>
+        <text class="tip-text">手机蓝牙需保持开启状态</text>
+      </view>
+      <view class="tip-item">
+        <view class="tip-bullet">•</view>
+        <text class="tip-text">首次配对成功后，下次会自动记住设备</text>
+      </view>
+      <view class="tip-item">
+        <view class="tip-bullet">•</view>
+        <text class="tip-text">可在历史记录中快速重连以前配对的设备</text>
+      </view>
+    </view>
+  </view>
+</view>

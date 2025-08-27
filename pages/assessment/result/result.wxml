@@ -1,0 +1,260 @@
+<!--pages/assessment/result/result.wxml-->
+<!-- 评测结果页面 -->
+<view class="page-container">
+  <!-- 页面内容 -->
+  <view class="page-content">
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载结果中...</view>
+  </view>
+
+  <view wx:else class="result-container">
+    <!-- 精美的结果头部 -->
+    <view class="result-header-new">
+      <view class="header-decoration">
+        <view class="decoration-circle decoration-1"></view>
+        <view class="decoration-circle decoration-2"></view>
+        <view class="decoration-circle decoration-3"></view>
+      </view>
+      <view class="success-icon">✨</view>
+      <view class="header-title">评测完成</view>
+      <view class="header-subtitle">为您生成专属疗愈方案</view>
+      <view class="completion-badge">
+        <text class="badge-text">{{assessment.completed_at || '刚刚完成'}}</text>
+      </view>
+    </view>
+
+    <!-- 评测结果总览卡片 -->
+    <view wx:if="{{assessment}}" class="result-overview-card">
+      <view class="overview-header">
+        <view class="scale-info">
+          <view class="scale-name">{{assessment.scale_name}}</view>
+          <view class="scale-type">心理健康评估</view>
+        </view>
+      </view>
+
+      <!-- 分数可视化区域 -->
+      <view class="score-visualization">
+        <view class="score-chart">
+          <view class="score-circle-new">
+            <view class="score-bg"></view>
+            <view class="score-inner">
+              <view class="score-number">{{assessment.total_score}}</view>
+              <view class="score-total">/{{assessment.max_score || 100}}</view>
+            </view>
+          </view>
+        </view>
+        
+        <view class="score-analysis">
+          <view class="severity-badge severity-{{assessment.severity_level}}">
+            {{getSeverityLabel(assessment.severity_level)}}
+          </view>
+          <view class="severity-description">{{getSeverityDescription(assessment.severity_level)}}</view>
+          <view class="score-percentile">超过了{{getScorePercentile(assessment.total_score)}}%的用户</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 详细分析报告 -->
+    <view class="analysis-report-card">
+      <view class="card-title">
+        <view class="title-icon">📊</view>
+        <text>详细分析报告</text>
+      </view>
+      
+      <!-- 评测维度分析 -->
+      <view class="dimensions-analysis">
+        <view class="dimension-item" wx:for="{{assessmentDimensions}}" wx:key="name">
+          <view class="dimension-header">
+            <view class="dimension-name">{{item.name}}</view>
+            <view class="dimension-score">{{item.score}}/{{item.maxScore}}</view>
+          </view>
+          <view class="dimension-bar">
+            <view class="bar-bg"></view>
+            <view class="bar-fill" style="width: {{(item.score / item.maxScore * 100) || 0}}%;"></view>
+          </view>
+          <view class="dimension-level">{{item.level}}</view>
+        </view>
+      </view>
+
+      <!-- 专业解读 -->
+      <view class="professional-interpretation">
+        <view class="interpretation-title">专业解读</view>
+        <view class="interpretation-content">
+          <view class="interpretation-text">{{assessment.interpretation || getDetailedInterpretation(assessment)}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 个性化建议卡片 -->
+    <view class="recommendations-card">
+      <view class="card-title">
+        <view class="title-icon">💡</view>
+        <text>个性化建议</text>
+      </view>
+      
+      <view class="recommendation-list">
+        <view class="recommendation-item" wx:for="{{personalizedRecommendations}}" wx:key="id">
+          <view class="recommendation-icon">{{item.icon}}</view>
+          <view class="recommendation-content">
+            <view class="recommendation-title">{{item.title}}</view>
+            <view class="recommendation-desc">{{item.description}}</view>
+          </view>
+          <view class="recommendation-priority priority-{{item.priority}}">{{item.priorityText}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 疗愈音乐方案 -->
+    <view class="healing-plan-card">
+      <view class="card-title">
+        <view class="title-icon">🎵</view>
+        <text>专属疗愈音乐方案</text>
+      </view>
+      
+      <view class="plan-description">
+        <text>基于您的评测结果，我们为您推荐以下疗愈音乐类型</text>
+      </view>
+
+      <view class="music-options-new">
+        <view class="option-card-new quick-option" bindtap="generate60sMusic">
+          <view class="option-header">
+            <view class="option-icon">⚡</view>
+            <view class="option-badge">快速体验</view>
+          </view>
+          <view class="option-content">
+            <view class="option-title">60秒疗愈音乐</view>
+            <view class="option-description">AI智能生成，快速缓解当前状态</view>
+            <view class="option-features">
+              <text class="feature">• 即时生成</text>
+              <text class="feature">• 针对性强</text>
+              <text class="feature">• 随时聆听</text>
+            </view>
+          </view>
+          <view class="option-action">
+            <view wx:if="{{generating && generationType === '60s'}}" class="generating-status">
+              <view class="generating-spinner"></view>
+              <text>生成中...</text>
+            </view>
+            <view wx:else class="action-button quick-btn">
+              <text>立即生成</text>
+              <text class="btn-arrow">→</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="option-card-new deep-option">
+          <view class="option-header">
+            <view class="option-icon">🧘</view>
+            <view class="option-badge recommended">推荐方案</view>
+          </view>
+          <view class="option-content">
+            <view class="option-title">30分钟深度疗愈</view>
+            <view class="option-description">完整的ISO三阶段疗愈体验，深层调节</view>
+            <view class="option-features">
+              <text class="feature">• 科学三阶段</text>
+              <text class="feature">• 深度疗愈</text>
+              <text class="feature">• 持续效果</text>
+            </view>
+          </view>
+          <view class="option-action">
+            <view wx:if="{{generating && generationType === 'long'}}" class="generating-status">
+              <view class="generating-spinner"></view>
+              <text>生成中...</text>
+            </view>
+            <view wx:else class="action-button deep-btn" bindtap="generateLongSequence">
+              <text>开始生成</text>
+              <text class="btn-arrow">→</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 疗愈计划制定 -->
+    <view class="healing-schedule-card">
+      <view class="card-title">
+        <view class="title-icon">📅</view>
+        <text>建议疗愈计划</text>
+      </view>
+      
+      <view class="schedule-content">
+        <view class="schedule-item" wx:for="{{healingSchedule}}" wx:key="time">
+          <view class="schedule-time">{{item.time}}</view>
+          <view class="schedule-activity">
+            <view class="activity-icon">{{item.icon}}</view>
+            <view class="activity-details">
+              <view class="activity-name">{{item.name}}</view>
+              <view class="activity-duration">{{item.duration}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮区域 -->
+    <view class="actions-section">
+      <view class="primary-actions">
+        <button class="action-btn primary-btn" bindtap="onViewMusicLibrary">
+          <view class="btn-icon">🎼</view>
+          <text>探索音乐库</text>
+        </button>
+        <button class="action-btn secondary-btn" bindtap="onRetakeAssessment">
+          <view class="btn-icon">🔄</view>
+          <text>重新评测</text>
+        </button>
+      </view>
+      
+      <view class="additional-actions">
+        <button class="action-btn outline-btn" bindtap="onSaveReport">
+          <view class="btn-icon">💾</view>
+          <text>保存报告</text>
+        </button>
+        <button class="action-btn outline-btn" open-type="share">
+          <view class="btn-icon">📤</view>
+          <text>分享结果</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 温馨提示和专业建议 -->
+    <view class="tips-section-new">
+      <view class="tips-header">
+        <view class="tips-icon">💡</view>
+        <view class="tips-title">温馨提示</view>
+      </view>
+      
+      <view class="tips-content">
+        <view class="tip-category">
+          <view class="tip-category-title">🎧 聆听建议</view>
+          <view class="tip-item">• 选择安静舒适的环境，避免外界干扰</view>
+          <view class="tip-item">• 使用高质量耳机，获得最佳音质体验</view>
+          <view class="tip-item">• 建议闭眼聆听，专注于音乐带来的感受</view>
+        </view>
+        
+        <view class="tip-category">
+          <view class="tip-category-title">⏰ 时间安排</view>
+          <view class="tip-item">• 每日固定时间聆听，养成疗愈习惯</view>
+          <view class="tip-item">• 睡前30分钟是最佳疗愈时间</view>
+          <view class="tip-item">• 压力大时可随时进行短时疗愈</view>
+        </view>
+        
+        <view class="tip-category disclaimer">
+          <view class="tip-category-title">⚠️ 重要提醒</view>
+          <view class="tip-item">• 本评测结果仅供心理健康参考</view>
+          <view class="tip-item">• 如有严重心理问题，请及时咨询专业医生</view>
+          <view class="tip-item">• 疗愈是辅助手段，不可替代专业治疗</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{generating}}" class="generating-overlay">
+    <view class="generating-content">
+      <view class="generating-spinner"></view>
+      <view class="generating-title">{{generationType === '60s' ? '正在生成60秒音乐...' : '正在生成30分钟疗愈音乐...'}}</view>
+      <view class="generating-subtitle">基于您的评测结果，AI正在为您定制专属音乐</view>
+    </view>
+  </view>
+  </view>
+</view>

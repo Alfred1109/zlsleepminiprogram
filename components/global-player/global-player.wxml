@@ -1,0 +1,83 @@
+<!-- 统一底部播放器组件 -->
+<view class="global-player {{isVisible ? 'show' : 'hide'}}" wx:if="{{isVisible && (currentTrack.name || currentTrack.title)}}">
+  <!-- 播放器主体 -->
+  <view class="player-main" bindtap="expandPlayer">
+    <!-- 音乐信息 -->
+    <view class="track-info">
+      <image 
+        class="track-cover" 
+        src="{{currentTrack.image || '/images/default-music-cover.svg'}}" 
+        mode="aspectFill"
+      />
+      <view class="track-details">
+        <text class="track-title">{{currentTrack.name}}</text>
+        <text class="track-subtitle">{{currentTrack.category || currentTrack.type}}</text>
+      </view>
+    </view>
+
+    <!-- 播放控制 -->
+    <view class="player-controls">
+      <view class="control-btn" catchtap="previousTrack">
+        <text class="iconfont">⏮</text>
+      </view>
+      <view class="control-btn play-btn" catchtap="togglePlay">
+        <text class="iconfont">{{isPlaying ? '⏸' : '▶'}}</text>
+      </view>
+      <view class="control-btn" catchtap="nextTrack">
+        <text class="iconfont">⏭</text>
+      </view>
+      <view class="control-btn timer-btn" catchtap="toggleTimer">
+        <text class="iconfont timer-icon {{timerEnabled ? 'active' : ''}}">⏰</text>
+      </view>
+      <view class="control-btn close-btn" catchtap="closePlayer">
+        <text class="iconfont">✕</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 实时波形可视化 -->
+  <view class="waveform-section" wx:if="{{isPlaying}}">
+    <realtime-waveform 
+      audioContext="{{audioContext}}"
+      isPlaying="{{isPlaying}}"
+      theme="healing"
+      barCount="{{50}}"
+      refreshRate="{{60}}"
+      bind:seek="onWaveformSeek"
+    />
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-container">
+    <view class="progress-track">
+      <view class="progress-fill" style="width: {{progress}}%"></view>
+      <view class="progress-handle" style="left: {{progress}}%" bindtouchstart="onProgressTouchStart" bindtouchmove="onProgressTouchMove" bindtouchend="onProgressTouchEnd"></view>
+    </view>
+    <view class="time-info">
+      <text class="current-time">{{formatTime(currentTime)}}</text>
+      <text class="total-time" wx:if="{{!timerEnabled}}">{{formatTime(duration)}}</text>
+      <text class="timer-countdown" wx:if="{{timerEnabled}}">⏰ {{formatTime(timerRemaining)}}</text>
+    </view>
+  </view>
+
+  <!-- 定时选择器 -->
+  <view class="timer-selector {{showTimerSelector ? 'timer-expanded' : 'timer-collapsed'}}">
+    <view class="timer-options">
+      <view class="timer-option {{selectedTimer === 10 ? 'selected' : ''}}" bindtap="selectTimer" data-duration="10">
+        <text class="timer-text">10分钟</text>
+      </view>
+      <view class="timer-option {{selectedTimer === 30 ? 'selected' : ''}}" bindtap="selectTimer" data-duration="30">
+        <text class="timer-text">30分钟</text>
+      </view>
+      <view class="timer-option {{selectedTimer === 60 ? 'selected' : ''}}" bindtap="selectTimer" data-duration="60">
+        <text class="timer-text">1小时</text>
+      </view>
+      <view class="timer-option {{selectedTimer === 120 ? 'selected' : ''}}" bindtap="selectTimer" data-duration="120">
+        <text class="timer-text">2小时</text>
+      </view>
+      <view class="timer-option cancel" bindtap="cancelTimer">
+        <text class="timer-text">关闭定时</text>
+      </view>
+    </view>
+  </view>
+</view>

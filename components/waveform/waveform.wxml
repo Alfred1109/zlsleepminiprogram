@@ -1,0 +1,26 @@
+<!-- components/waveform/waveform.wxml -->
+<!-- 音乐波形图组件 -->
+<view class="waveform-container">
+  <!-- 静态波形背景 -->
+  <view class="waveform-background">
+    <view 
+      wx:for="{{waveformData}}" 
+      wx:key="index"
+      class="wave-bar background-bar"
+      style="height: {{item}}%"
+    ></view>
+  </view>
+  
+  <!-- 动态播放进度波形 -->
+  <view class="waveform-progress" style="width: {{progress}}%">
+    <view 
+      wx:for="{{waveformData}}" 
+      wx:key="index"
+      class="wave-bar progress-bar {{isPlaying ? 'playing' : ''}}"
+      style="height: {{item}}%; animation-delay: {{index * 0.1}}s"
+    ></view>
+  </view>
+  
+  <!-- 播放进度指示器 -->
+  <view class="progress-indicator" style="left: {{progress}}%"></view>
+</view>

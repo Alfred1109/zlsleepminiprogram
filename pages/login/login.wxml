@@ -1,0 +1,148 @@
+<!--pages/login/login.wxml-->
+<!-- 登录页面 -->
+<view class="container">
+  <!-- 顶部logo和标题 -->
+  <view class="header">
+    <image class="logo" src="/images/logo.svg" mode="aspectFit"></image>
+    <view class="title">medsleep疗愈</view>
+    <view class="subtitle">专业的心理健康与疗愈平台</view>
+  </view>
+
+  <!-- 登录方式切换 -->
+  <view class="login-methods">
+    <view 
+      wx:for="{{loginMethods}}" 
+      wx:key="id"
+      class="method-item {{currentMethod === item.id ? 'active' : ''}}"
+      data-method="{{item.id}}"
+      bindtap="onSwitchMethod"
+    >
+      <image class="method-icon" src="{{item.icon.replace('.png', '.svg')}}" mode="aspectFit"></image>
+      <text class="method-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 微信登录 -->
+  <view wx:if="{{currentMethod === 'wechat'}}" class="login-form">
+    <view class="form-description">
+      <text class="main-desc">智能微信登录</text>
+      <text class="sub-desc">自动适配环境，确保登录成功</text>
+      <text class="wechat-tip">✓ 真机环境完整体验 ✓ 开发环境智能降级</text>
+    </view>
+
+    <button
+      class="login-btn primary wechat-btn"
+      disabled="{{loading}}"
+      bindtap="onWechatLogin"
+    >
+      <image wx:if="{{!loading}}" class="btn-icon" src="/images/wechat-icon.svg" mode="aspectFit"></image>
+      <view wx:if="{{loading}}" class="loading-spinner"></view>
+      <text>{{loading ? '智能登录中...' : '一键登录'}}</text>
+    </button>
+
+    <!-- 统一风格：移除额外提示块，保持与其他方式一致的结构（标题/说明/主按钮） -->
+  </view>
+
+
+
+  <!-- 账号密码登录 -->
+  <view wx:elif="{{currentMethod === 'account'}}" class="login-form">
+    <view class="form-description">
+      <text class="main-desc">账号密码登录</text>
+      <text class="sub-desc">输入用户名和密码完成登录</text>
+    </view>
+
+    <!-- 开发环境提示 -->
+    <view wx:if="{{isDevEnv}}" class="dev-notice">
+      <text class="dev-notice-text">开发环境测试账号已自动填入</text>
+      <text class="dev-notice-detail">用户名: test, 密码: 123456</text>
+    </view>
+
+    <view class="form-group">
+      <view class="input-wrapper">
+        <image class="input-icon" src="/images/user-icon.svg" mode="aspectFit"></image>
+        <input 
+          class="form-input"
+          type="text"
+          placeholder="请输入用户名"
+          value="{{username}}"
+          bindinput="onUsernameInput"
+        />
+      </view>
+    </view>
+
+    <view class="form-group">
+      <view class="input-wrapper">
+        <image class="input-icon" src="/images/lock-icon.svg" mode="aspectFit"></image>
+        <input 
+          class="form-input"
+          type="{{showPassword ? 'text' : 'password'}}"
+          placeholder="请输入密码"
+          value="{{password}}"
+          bindinput="onPasswordInput"
+        />
+        <image 
+          class="toggle-password"
+          src="{{showPassword ? '/images/eye-open.svg' : '/images/eye-close.svg'}}"
+          mode="aspectFit"
+          bindtap="onTogglePassword"
+        ></image>
+      </view>
+    </view>
+
+    <button 
+      class="login-btn primary"
+      disabled="{{loading}}"
+      bindtap="onAccountLogin"
+    >
+      <view wx:if="{{loading}}" class="loading-spinner"></view>
+      <text>{{loading ? '登录中...' : '登录'}}</text>
+    </button>
+
+    <view class="form-links">
+      <text class="link-text" bindtap="onForgotPassword">忘记密码？</text>
+      <text class="link-text" bindtap="onRegister">注册账号</text>
+    </view>
+  </view>
+
+
+
+  <!-- 服务条款 -->
+  <view class="terms">
+    <!-- 用户协议 -->
+    <view class="terms-item">
+      <checkbox 
+        class="terms-checkbox" 
+        checked="{{agreeToUserAgreement}}" 
+        bindtap="onToggleUserAgreement"
+      />
+      <view class="terms-text-wrapper" bindtap="onToggleUserAgreement">
+        <text class="terms-text">
+          我已阅读并同意
+          <text class="terms-link" bindtap="onViewUserAgreement" catchtap="true">《用户协议》</text>
+        </text>
+      </view>
+    </view>
+    
+    <!-- 隐私政策 -->
+    <view class="terms-item">
+      <checkbox 
+        class="terms-checkbox" 
+        checked="{{agreeToPrivacyPolicy}}" 
+        bindtap="onTogglePrivacyPolicy"
+      />
+      <view class="terms-text-wrapper" bindtap="onTogglePrivacyPolicy">
+        <text class="terms-text">
+          我已阅读并同意
+          <text class="terms-link" bindtap="onViewPrivacyPolicy" catchtap="true">《隐私政策》</text>
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部信息 -->
+  <view class="footer">
+    <text class="footer-text">专业的心理健康服务平台</text>
+    <text class="footer-text">让疗愈重燃您的心灵</text>
+  </view>
+</view>

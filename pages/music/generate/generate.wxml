@@ -1,0 +1,135 @@
+<!--pages/music/generate/generate.wxml-->
+<!-- 音乐生成页面 -->
+<view class="page-container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="header-icon">🎵</view>
+    <view class="page-title">AI音乐生成</view>
+    <view class="page-subtitle">基于您的心理评测结果，生成个性化疗愈音乐</view>
+  </view>
+
+  <!-- 页面内容 -->
+  <view class="page-content">
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">正在加载评测记录...</view>
+    </view>
+
+    <!-- 主要内容 -->
+    <view wx:else>
+      <!-- 评测记录选择 -->
+      <view class="content-section">
+        <view class="section-header">
+          <view>
+            <view class="section-title">选择评测记录</view>
+            <view class="section-subtitle">基于评测结果生成音乐</view>
+          </view>
+        </view>
+
+        <!-- 无评测记录 -->
+        <view wx:if="{{recentAssessments.length === 0}}" class="empty-container">
+          <image class="empty-icon" src="/images/empty-assessment.svg" mode="aspectFit"></image>
+          <view class="empty-title">暂无评测记录</view>
+          <view class="empty-subtitle">请先完成心理健康评测</view>
+          <button class="btn btn-primary" bindtap="onGoToAssessment">去做评测</button>
+        </view>
+
+        <!-- 评测记录列表 -->
+        <view wx:else class="assessment-list">
+        <view 
+          wx:for="{{recentAssessments}}" 
+          wx:key="id"
+          class="assessment-item {{selectedAssessment && selectedAssessment.id === item.id ? 'selected' : ''}}"
+          data-assessment="{{item}}"
+          bindtap="onSelectAssessment"
+        >
+          <view class="assessment-header">
+            <view class="assessment-name">{{item.scale_name}}</view>
+            <view class="assessment-time">{{formatTime(item.completed_at)}}</view>
+          </view>
+          
+          <view class="assessment-result">
+            <view class="result-score">
+              <text class="score-label">总分：</text>
+              <text class="score-value">{{item.total_score}}</text>
+            </view>
+            <view 
+              class="result-level"
+              style="color: {{getSeverityColor(item.severity_level)}}"
+            >
+              {{item.severity_level === 'normal' ? '正常' : 
+                item.severity_level === 'mild' ? '轻度' :
+                item.severity_level === 'moderate' ? '中度' : '重度'}}
+            </view>
+          </view>
+
+          <!-- 选中标识 -->
+          <view wx:if="{{selectedAssessment && selectedAssessment.id === item.id}}" class="selected-mark">
+            <image class="check-icon" src="/images/check.svg" mode="aspectFit"></image>
+          </view>
+        </view>
+        </view>
+      </view>
+
+      <!-- 生成按钮区域 -->
+      <view wx:if="{{recentAssessments.length > 0}}" class="content-section">
+        <view class="section-header">
+          <view class="section-title">音乐生成</view>
+        </view>
+
+        <view class="card">
+          <view class="generate-info">
+            <view class="info-title">生成说明</view>
+            <view class="info-content">
+              <view class="info-item">• 基于您的评测结果分析情绪状态</view>
+              <view class="info-item">• 智能匹配适合的音乐元素</view>
+              <view class="info-item">• 生成个性化的60秒疗愈音乐</view>
+            </view>
+          </view>
+
+          <button
+            class="btn btn-primary btn-block {{generating ? 'generating' : ''}}"
+            disabled="{{generating || !selectedAssessment}}"
+            bindtap="onGenerateMusic"
+          >
+            <view wx:if="{{generating}}" class="btn-loading">
+              <view class="loading-spinner small"></view>
+              <text>生成中...</text>
+            </view>
+            <text wx:else>生成音乐</text>
+          </button>
+        </view>
+      </view>
+
+      <!-- 快捷操作 -->
+      <view class="content-section">
+        <view class="section-header">
+          <view class="section-title">快捷操作</view>
+        </view>
+
+        <view class="quick-actions">
+          <view class="action-item" bindtap="onViewMusicLibrary">
+            <image class="action-icon" src="/images/music-library.svg" mode="aspectFit"></image>
+            <view class="action-text">音乐库</view>
+          </view>
+          <view class="action-item" bindtap="onGoToAssessment">
+            <image class="action-icon" src="/images/assessment.svg" mode="aspectFit"></image>
+            <view class="action-text">新评测</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 统一底部播放器 -->
+<global-player 
+  id="globalPlayer"
+  visible="{{showGlobalPlayer}}"
+  bind:playStateChange="onGlobalPlayerStateChange"
+  bind:nextTrack="onNextTrack"
+  bind:previousTrack="onPreviousTrack"
+  bind:closePlayer="onCloseGlobalPlayer"
+  bind:expandPlayer="onExpandGlobalPlayer"
+/>

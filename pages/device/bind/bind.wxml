@@ -1,0 +1,127 @@
+<!-- pages/device/bind/bind.wxml -->
+<view class="container">
+  <view class="header">
+    <view class="logo">
+      <!-- 内联SVG蓝牙图标 -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" style="width:80rpx; height:80rpx;">
+        <path fill="#007aff" d="M64 17c26 0 47 21 47 47S90 94 64 94 17 73 17 47 40 17 64 17M39 65r3 3 46-46-3-3-46 46M36 52r3 3 46-46-3-3-46 46M87 62r-3 3-45-45 3-3 45 45M91 76r-3 3-45-45 3-3 45 45"/>
+      </svg>
+    </view>
+    <view class="title">设备连接</view>
+  </view>
+  
+  <!-- 调试信息区域 -->
+  <view class="debug-panel">
+    <view class="debug-title">调试信息</view>
+    <view class="debug-content">
+      <view class="debug-item">
+        <text class="debug-label">蓝牙状态:</text>
+        <text class="debug-value">{{bluetoothState}}</text>
+      </view>
+      <view class="debug-item">
+        <text class="debug-label">扫描状态:</text>
+        <text class="debug-value">{{scanning ? '正在扫描' : '未扫描'}}</text>
+      </view>
+      <view class="debug-item">
+        <text class="debug-label">已发现设备数:</text>
+        <text class="debug-value">{{devices.length}}</text>
+      </view>
+      <view class="debug-item">
+        <text class="debug-label">特殊设备数:</text>
+        <text class="debug-value">{{specialDevices.length}}</text>
+      </view>
+      <view class="debug-item">
+        <text class="debug-label">普通设备数:</text>
+        <text class="debug-value">{{normalDevices.length}}</text>
+      </view>
+      <view wx:if="{{errorMsg}}" class="debug-item error">
+        <text class="debug-label">错误信息:</text>
+        <text class="debug-value">{{errorMsg}}</text>
+      </view>
+      <view wx:if="{{lastDevice}}" class="debug-item">
+        <text class="debug-label">最近发现:</text>
+        <text class="debug-value">{{lastDevice.name || '未命名'}} ({{lastDevice.deviceId.substr(0,8)}}..)</text>
+      </view>
+    </view>
+    <button class="debug-btn" bindtap="checkBluetoothState">检查蓝牙状态</button>
+  </view>
+
+  <view class="filter-options">
+    <view class="filter-item">
+      <view class="filter-label">只显示耳机设备:</view>
+      <switch checked="{{filterHeadphones}}" bindchange="onToggleFilterHeadphones" color="#007aff"/>
+    </view>
+    <view class="filter-item">
+      <view class="filter-label">只显示BT开头设备:</view>
+      <switch checked="{{filterBTPrefix}}" bindchange="onToggleFilterBTPrefix" color="#007aff"/>
+    </view>
+    <view class="filter-item">
+      <view class="filter-label">启用额外日志:</view>
+      <switch checked="{{enableExtraLogging}}" bindchange="onToggleExtraLogging" color="#007aff"/>
+    </view>
+  </view>
+
+  <view class="control-panel">
+    <button class="scan-button {{scanning ? 'scanning' : ''}}" bindtap="{{scanning ? 'stopScan' : 'startScan'}}">
+      {{scanning ? '停止扫描' : '开始扫描'}}
+    </button>
+  </view>
+
+  <view class="status-panel">
+    <view class="status-title">{{scanning ? '正在扫描设备...' : (devices.length > 0 ? '请选择要连接的设备' : '未发现设备')}}</view>
+    <view wx:if="{{loadingVisible && scanning}}" class="loading-indicator">
+      <view class="loading-dot"></view>
+      <view class="loading-dot"></view>
+      <view class="loading-dot"></view>
+    </view>
+  </view>
+
+  <scroll-view class="device-list" scroll-y>
+    <block wx:if="{{devices.length > 0}}">
+      <!-- 特殊设备优先显示 -->
+      <block wx:for="{{specialDevices}}" wx:key="deviceId">
+        <view class="device-item special-device" bindtap="onDeviceTap" data-device-id="{{item.deviceId}}">
+          <view class="device-icon bluetooth-icon special-icon"></view>
+          <view class="device-info">
+            <view class="device-name">{{item.name || '未知设备'}}
+              <text class="special-tag">推荐</text>
+            </view>
+            <view class="device-mac">MAC: {{item.macAddress || '未知地址'}}</view>
+            <view wx:if="{{item.deviceType}}" class="device-type">类型: {{item.deviceType}}</view>
+            <view class="device-id">ID: {{item.deviceId}}</view>
+          </view>
+          <view class="device-signal">
+            <view class="signal-strength" style="width: {{(item.RSSI + 100) / 50 * 100}}%"></view>
+            <text class="signal-value">{{item.RSSI || '-'}} dBm</text>
+          </view>
+        </view>
+      </block>
+      
+      <!-- 普通设备 -->
+      <block wx:for="{{normalDevices}}" wx:key="deviceId">
+        <view class="device-item" bindtap="onDeviceTap" data-device-id="{{item.deviceId}}">
+          <view class="device-icon bluetooth-icon"></view>
+          <view class="device-info">
+            <view class="device-name">{{item.name || '未知设备'}}</view>
+            <view class="device-mac">MAC: {{item.macAddress || '未知地址'}}</view>
+            <view wx:if="{{item.deviceType}}" class="device-type">类型: {{item.deviceType}}</view>
+            <view class="device-id">ID: {{item.deviceId}}</view>
+          </view>
+          <view class="device-signal">
+            <view class="signal-strength" style="width: {{(item.RSSI + 100) / 50 * 100}}%"></view>
+            <text class="signal-value">{{item.RSSI || '-'}} dBm</text>
+          </view>
+        </view>
+      </block>
+    </block>
+    
+    <view wx:else class="no-devices">
+      <text>{{scanning ? '搜索中...' : '未发现设备'}}</text>
+      <text wx:if="{{!scanning}}" class="hint-text">请点击"开始扫描"按钮搜索设备</text>
+    </view>
+  </scroll-view>
+
+  <view class="footer">
+    <text class="tips">提示: 请确保设备已开启并处于可发现状态</text>
+  </view>
+</view> 

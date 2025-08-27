@@ -1,0 +1,56 @@
+/* components/static-waveform/static-waveform.wxss */
+/* 静态音频波形预览组件样式 */
+
+.static-waveform-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+.static-waveform-canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 8rpx;
+  transition: opacity 0.3s ease;
+}
+
+.waveform-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 12rpx 24rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.status-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 不同主题的容器样式 */
+.static-waveform-container.healing {
+  background: linear-gradient(135deg, rgba(93, 158, 126, 0.05) 0%, rgba(123, 179, 160, 0.05) 100%);
+}
+
+.static-waveform-container.energetic {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.05) 0%, rgba(78, 205, 196, 0.05) 100%);
+}
+
+.static-waveform-container.calm {
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.05) 0%, rgba(136, 216, 192, 0.05) 100%);
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .waveform-overlay {
+    font-size: 22rpx;
+    padding: 10rpx 20rpx;
+  }
+}

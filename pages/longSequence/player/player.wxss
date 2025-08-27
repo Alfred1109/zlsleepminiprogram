@@ -1,0 +1,759 @@
+/* pages/longSequence/player/player.wxss */
+/* 长序列音乐播放器页面样式 - 与60秒播放器保持一致的现代风格 */
+@import "/styles/main.wxss";
+
+:root {
+  --player-background: linear-gradient(180deg, #2a2a2a 0%, #121212 100%);
+  --text-primary-dark: #ffffff;
+  --text-secondary-dark: #b3b3b3;
+  --accent-color: #1DB954; /* Spotify Green */
+  --card-bg-dark: rgba(255, 255, 255, 0.05);
+  --border-dark: rgba(255, 255, 255, 0.1);
+  /* 长序列特色颜色 */
+  --iso-color: #FF6B6B;
+  --transition-color: #FFB347;
+  --target-color: #50C878;
+}
+
+.page-container {
+  background: var(--player-background);
+  color: var(--text-primary-dark);
+  min-height: 100vh;
+  padding: 40rpx 0;
+  box-sizing: border-box;
+}
+
+.page-content {
+  padding: 0 40rpx;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+  color: var(--text-secondary-dark);
+}
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid var(--border-dark);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+.loading-text {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+}
+
+/* 播放器主容器 */
+.player-container {
+  display: flex;
+  flex-direction: column;
+  gap: 40rpx;
+  padding-bottom: 200rpx; /* 为底部播放器预留空间 */
+}
+
+/* 音乐封面区域 */
+.music-cover-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40rpx 0;
+}
+
+.cover-container {
+  position: relative;
+  width: 500rpx;
+  height: 500rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.5);
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.cover-image.rotating {
+  animation: rotate 20s linear infinite;
+}
+
+.cover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.play-indicator {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.play-indicator.playing {
+  opacity: 1;
+}
+
+.pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80rpx;
+  height: 80rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 1.5s ease-out infinite;
+}
+
+.pulse-ring-delay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80rpx;
+  height: 80rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 1.5s ease-out infinite 0.3s;
+}
+
+/* 音乐信息区域 */
+.music-info-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  text-align: center;
+}
+
+.music-title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: var(--text-primary-dark);
+  line-height: 1.2;
+}
+
+.music-subtitle {
+  font-size: 28rpx;
+  color: var(--text-secondary-dark);
+  line-height: 1.4;
+}
+
+.music-description {
+  font-size: 24rpx;
+  color: var(--text-secondary-dark);
+  line-height: 1.5;
+  margin-top: 8rpx;
+}
+
+.music-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.tag {
+  padding: 8rpx 16rpx;
+  background: var(--card-bg-dark);
+  border: 1rpx solid var(--border-dark);
+  border-radius: 20rpx;
+  font-size: 20rpx;
+  color: var(--text-secondary-dark);
+}
+
+/* ISO疗愈阶段样式 */
+.iso-phases-section {
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.05) 0%, rgba(138, 43, 226, 0.05) 100%);
+  border: 1rpx solid rgba(29, 185, 84, 0.2);
+  border-radius: 24rpx;
+  padding: 40rpx;
+  margin: 30rpx 0;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.phases-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32rpx;
+}
+
+.phases-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.title-icon {
+  font-size: 32rpx;
+}
+
+.title-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--text-primary-dark);
+}
+
+.phase-info-btn {
+  background: rgba(29, 185, 84, 0.1);
+  border: none;
+  border-radius: 20rpx;
+  padding: 8rpx;
+  transition: all 0.3s ease;
+}
+
+.phase-info-btn:active {
+  background: rgba(29, 185, 84, 0.2);
+  transform: scale(0.95);
+}
+
+.phase-icon {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.8;
+}
+
+.phases-progress-container {
+  margin-bottom: 32rpx;
+}
+
+.phases-progress {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+}
+
+.phase-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.phase-dot {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--text-secondary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 16rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.phase-emoji {
+  font-size: 28rpx;
+  opacity: 0.6;
+  transition: all 0.4s ease;
+}
+
+.phase-item.active .phase-dot {
+  background: linear-gradient(135deg, #1DB954 0%, #8A2BE2 100%);
+  box-shadow: 0 8rpx 32rpx rgba(29, 185, 84, 0.4);
+  transform: scale(1.1);
+}
+
+.phase-item.active .phase-emoji {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.phase-item.completed .phase-dot {
+  background: var(--accent-color);
+  box-shadow: 0 4rpx 16rpx rgba(29, 185, 84, 0.3);
+}
+
+.phase-item.completed .phase-emoji {
+  opacity: 1;
+}
+
+.phase-label {
+  font-size: 24rpx;
+  color: var(--text-secondary-dark);
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+
+.phase-description {
+  font-size: 20rpx;
+  color: var(--text-secondary-dark);
+  text-align: center;
+  opacity: 0.8;
+}
+
+.phase-item.active .phase-label {
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.phase-item.active .phase-description {
+  color: var(--accent-color);
+  opacity: 1;
+}
+
+.phase-line {
+  height: 4rpx;
+  background: var(--text-secondary-dark);
+  flex: 1;
+  margin: 32rpx 16rpx 0 16rpx;
+  border-radius: 2rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.phase-line-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #1DB954 0%, #8A2BE2 100%);
+  border-radius: 2rpx;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.phase-line.completed .phase-line-fill {
+  width: 100%;
+}
+
+/* 美化的当前阶段信息卡片 */
+.current-phase-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  border-radius: 20rpx;
+  padding: 32rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.phase-status {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.status-icon {
+  font-size: 48rpx;
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.2) 0%, rgba(138, 43, 226, 0.2) 100%);
+  border-radius: 50%;
+}
+
+.status-content {
+  flex: 1;
+}
+
+.status-title {
+  font-size: 28rpx;
+  color: var(--text-primary-dark);
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+
+.status-subtitle {
+  font-size: 22rpx;
+  color: var(--text-secondary-dark);
+  opacity: 0.8;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1DB954 0%, #8A2BE2 100%);
+  border-radius: 4rpx;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-glow {
+  position: absolute;
+  top: -2rpx;
+  width: 16rpx;
+  height: 12rpx;
+  background: radial-gradient(circle, rgba(29, 185, 84, 0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-text {
+  font-size: 24rpx;
+  color: var(--accent-color);
+  font-weight: bold;
+  min-width: 80rpx;
+  text-align: right;
+}
+
+/* 美化的阶段详情弹窗 */
+.phase-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%);
+  border: 1rpx solid rgba(29, 185, 84, 0.3);
+  border-radius: 24rpx;
+  padding: 48rpx;
+  margin: 40rpx;
+  max-width: 640rpx;
+  width: 100%;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20rpx);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(60rpx);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: var(--text-primary-dark);
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.modal-title::before {
+  content: "🧘‍♀️";
+  font-size: 32rpx;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text-secondary-dark);
+  font-size: 36rpx;
+  padding: 0;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0.95);
+}
+
+.phase-details {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.phase-detail-item {
+  padding: 32rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.15);
+  border-radius: 20rpx;
+  backdrop-filter: blur(10rpx);
+  position: relative;
+  overflow: hidden;
+}
+
+.phase-detail-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: linear-gradient(90deg, #1DB954 0%, #8A2BE2 100%);
+}
+
+.phase-detail-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--text-primary-dark);
+  margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.phase-detail-item:nth-child(1) .phase-detail-title::before {
+  content: "🌱";
+  font-size: 24rpx;
+}
+
+.phase-detail-item:nth-child(2) .phase-detail-title::before {
+  content: "🌊";
+  font-size: 24rpx;
+}
+
+.phase-detail-item:nth-child(3) .phase-detail-title::before {
+  content: "✨";
+  font-size: 24rpx;
+}
+
+.phase-detail-desc {
+  font-size: 24rpx;
+  color: var(--text-secondary-dark);
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* 分析信息区域 */
+.analysis-section {
+  background: var(--card-bg-dark);
+  border: 1rpx solid var(--border-dark);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin: 20rpx 0;
+}
+
+.analysis-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--text-primary-dark);
+  margin-bottom: 20rpx;
+}
+
+.analysis-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.analysis-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid var(--border-dark);
+}
+
+.analysis-item:last-child {
+  border-bottom: none;
+}
+
+.analysis-label {
+  font-size: 24rpx;
+  color: var(--text-secondary-dark);
+}
+
+.analysis-value {
+  font-size: 24rpx;
+  color: var(--text-primary-dark);
+  font-weight: 500;
+}
+
+/* 操作区域 */
+.action-section {
+  margin-top: 40rpx;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-around;
+  gap: 20rpx;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg-dark);
+  border: 1rpx solid var(--border-dark);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  flex: 1;
+  min-height: 120rpx;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2rpx);
+}
+
+.action-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 8rpx;
+  filter: brightness(0.8);
+  transition: all 0.3s ease;
+}
+
+.action-icon.active {
+  filter: brightness(1) sepia(1) hue-rotate(120deg) saturate(2);
+}
+
+.action-text {
+  font-size: 20rpx;
+  color: var(--text-secondary-dark);
+  text-align: center;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+  padding: 40rpx;
+}
+
+.empty-icon {
+  width: 120rpx;
+  height: 120rpx;
+  opacity: 0.5;
+  margin-bottom: 24rpx;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--text-primary-dark);
+  margin-bottom: 12rpx;
+}
+
+.empty-subtitle {
+  font-size: 24rpx;
+  color: var(--text-secondary-dark);
+  margin-bottom: 40rpx;
+  line-height: 1.4;
+}
+
+.btn.primary {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 24rpx 48rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* 动画 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 750rpx) {
+  .cover-container {
+    width: 400rpx;
+    height: 400rpx;
+  }
+  
+  .music-title {
+    font-size: 40rpx;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 16rpx;
+  }
+  
+  .action-btn {
+    flex-direction: row;
+    min-height: 80rpx;
+  }
+  
+  .action-icon {
+    margin-bottom: 0;
+    margin-right: 16rpx;
+  }
+}

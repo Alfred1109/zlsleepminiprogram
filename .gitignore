@@ -1,0 +1,53 @@
+# 微信小程序开发者工具相关文件
+/miniprogram_npm/
+.tea/
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 依赖目录
+node_modules/
+
+# 编辑器相关文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+*.db
+
+# 备份文件
+*.backup
+*.bisect_backup_*
+*_backup.*
+
+# Python相关（项目中有Python脚本）
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# 测试覆盖率文件
+coverage/
+.nyc_output/
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 缓存目录
+.cache/

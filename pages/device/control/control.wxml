@@ -1,0 +1,122 @@
+<!-- pages/device/control/control.wxml -->
+<view class="container">
+  <!-- 设备信息 -->
+  <view class="device-info">
+    <view class="device-icon"></view>
+    <view class="device-details">
+      <text class="device-name">{{deviceInfo.name || '智能助眠仪'}}</text>
+      <text class="device-status {{isConnected ? 'connected' : 'disconnected'}}">
+        {{isConnected ? '已连接' : '未连接'}}
+      </text>
+    </view>
+  </view>
+
+  <!-- 设备未连接提示 -->
+  <block wx:if="{{!isConnected}}">
+    <view class="not-connected">
+      <view class="not-connected-icon"></view>
+      <text class="not-connected-text">设备未连接，请重新连接</text>
+      <button class="reconnect-button" bindtap="reconnectDevice">重新连接</button>
+      <button class="bind-button" bindtap="goToBindPage">绑定其他设备</button>
+    </view>
+  </block>
+
+  <!-- 设备已连接 -->
+  <block wx:else>
+    <!-- 电源开关 -->
+    <view class="power-section">
+      <button class="power-button {{isPowered ? 'on' : 'off'}}" bindtap="togglePower">
+        <view class="power-icon"></view>
+      </button>
+      <text class="power-text">{{isPowered ? '已开启' : '已关闭'}}</text>
+    </view>
+
+    <!-- 功能区 -->
+    <block wx:if="{{isPowered}}">
+      <!-- 模式选择 -->
+      <view class="section-title">模式选择</view>
+      <view class="mode-section">
+        <view class="mode-item {{currentMode === 'sleep' ? 'active' : ''}}" 
+              bindtap="changeMode" 
+              data-mode="sleep">
+          <view class="mode-icon sleep-icon"></view>
+          <text>助眠</text>
+        </view>
+        <view class="mode-item {{currentMode === 'relax' ? 'active' : ''}}" 
+              bindtap="changeMode" 
+              data-mode="relax">
+          <view class="mode-icon relax-icon"></view>
+          <text>放松</text>
+        </view>
+        <view class="mode-item {{currentMode === 'focus' ? 'active' : ''}}" 
+              bindtap="changeMode" 
+              data-mode="focus">
+          <view class="mode-icon focus-icon"></view>
+          <text>专注</text>
+        </view>
+      </view>
+
+      <!-- 音量控制 -->
+      <view class="section-title">音量控制</view>
+      <view class="slider-section">
+        <view class="slider-icon volume-low-icon"></view>
+        <slider 
+          class="slider" 
+          min="0" 
+          max="100" 
+          value="{{volume}}" 
+          activeColor="#5D9E7E" 
+          backgroundColor="#E0E0E0" 
+          block-size="28" 
+          block-color="#5D9E7E"
+          bindchange="changeVolume"
+        />
+        <view class="slider-icon volume-high-icon"></view>
+      </view>
+
+      <!-- 亮度控制 -->
+      <view class="section-title">亮度控制</view>
+      <view class="slider-section">
+        <view class="slider-icon brightness-low-icon"></view>
+        <slider 
+          class="slider" 
+          min="0" 
+          max="100" 
+          value="{{brightness}}" 
+          activeColor="#5D9E7E" 
+          backgroundColor="#E0E0E0" 
+          block-size="28" 
+          block-color="#5D9E7E"
+          bindchange="changeBrightness"
+        />
+        <view class="slider-icon brightness-high-icon"></view>
+      </view>
+
+      <!-- 定时器 -->
+      <view class="section-title">定时关闭</view>
+      <view class="timer-section" bindtap="showTimerPicker">
+        <view class="timer-icon"></view>
+        <text class="timer-text">{{timer}}分钟后关闭</text>
+        <view class="timer-arrow"></view>
+      </view>
+    </block>
+  </block>
+
+  <!-- 定时器选择弹窗 -->
+  <view class="timer-picker-mask" wx:if="{{isSettingTimer}}" bindtap="hideTimerPicker"></view>
+  <view class="timer-picker" wx:if="{{isSettingTimer}}">
+    <view class="timer-picker-header">
+      <text>选择定时时间</text>
+      <view class="timer-picker-close" bindtap="hideTimerPicker"></view>
+    </view>
+    <view class="timer-picker-options">
+      <block wx:for="{{timerOptions}}" wx:key="*this">
+        <view class="timer-option {{timer === item ? 'active' : ''}}" 
+              bindtap="setTimer" 
+              data-time="{{item}}">
+          {{item}}分钟
+        </view>
+      </block>
+    </view>
+  </view>
+</view> 

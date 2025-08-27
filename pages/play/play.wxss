@@ -1,0 +1,224 @@
+/* pages/play/play.wxss */
+/* 全局样式通过 app.wxss 导入，无需重复导入 */
+
+.play-container {
+  padding: 30rpx;
+  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  min-height: 1334rpx;
+}
+
+.play-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24rpx;
+  padding: 30rpx;
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 30rpx;
+}
+
+/* 封面图样式 */
+.cover {
+  width: 100%;
+  height: 500rpx;
+  border-radius: 16rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+/* 音频信息 */
+.sound-info {
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.sound-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.sound-category {
+  font-size: 28rpx;
+  color: #6b7280;
+}
+
+/* 定时器显示 */
+.timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(43, 186, 165, 0.1);
+  padding: 16rpx;
+  border-radius: 40rpx;
+  margin-bottom: 30rpx;
+  color: #2BBAA5;
+  border: 1rpx solid rgba(43, 186, 165, 0.2);
+}
+
+.timer-icon {
+  width: 32rpx;
+  height: 32rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232BBAA5'%3E%3Cpath d='M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E");
+  background-size: contain;
+  margin-right: 10rpx;
+}
+
+/* 进度条 */
+.progress {
+  margin: 30rpx 0;
+}
+
+.time-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-top: 10rpx;
+}
+
+/* 控制按钮 */
+.control-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 40rpx 0;
+}
+
+.btn-circle {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(43, 186, 165, 0.4);
+  transition: all 0.2s;
+}
+
+.btn-circle:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 6rpx rgba(43, 186, 165, 0.3);
+}
+
+.btn-circle.small {
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.btn-circle.large {
+  width: 120rpx;
+  height: 120rpx;
+  margin: 0 40rpx;
+}
+
+.icon-play {
+  width: 40rpx;
+  height: 40rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-left: 8rpx;
+}
+
+.icon-pause {
+  width: 40rpx;
+  height: 40rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M6 19h4V5H6v14zm8-14v14h4V5h-4z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.icon-prev {
+  width: 30rpx;
+  height: 30rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M6 6h2v12H6zm3.5 6l8.5 6V6z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.icon-next {
+  width: 30rpx;
+  height: 30rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+/* 音量控制 */
+.volume-control {
+  display: flex;
+  align-items: center;
+  margin: 30rpx 0;
+}
+
+.volume-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232BBAA5'%3E%3Cpath d='M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.8-1-3.3-2.5-4v8c1.5-.7 2.5-2.2 2.5-4zM14 3.2v2.1c2.9.9 5 3.5 5 6.7s-2.1 5.8-5 6.7v2.1c4-.9 7-4.5 7-8.8s-3-7.9-7-8.8z'/%3E%3C/svg%3E");
+  background-size: contain;
+  margin-right: 20rpx;
+}
+
+.volume-slider {
+  flex: 1;
+}
+
+/* 定时设置 */
+.timer-setting {
+  padding: 30rpx;
+}
+
+.timer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.timer-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.btn-cancel {
+  font-size: 24rpx;
+  padding: 6rpx 20rpx;
+  height: auto;
+  min-height: auto;
+  line-height: 1.8;
+}
+
+.timer-options {
+  display: flex;
+  justify-content: space-between;
+}
+
+.timer-option {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  margin: 0 10rpx;
+  border-radius: 40rpx;
+  background: rgba(43, 186, 165, 0.1);
+  border: 1rpx solid rgba(43, 186, 165, 0.2);
+  font-size: 28rpx;
+  color: #2c3e50;
+  transition: all 0.3s;
+}
+
+.timer-option:first-child {
+  margin-left: 0;
+}
+
+.timer-option:last-child {
+  margin-right: 0;
+}
+
+.timer-option.active {
+  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  color: white;
+  box-shadow: 0 4rpx 12rpx rgba(43, 186, 165, 0.3);
+}

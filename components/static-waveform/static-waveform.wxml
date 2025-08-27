@@ -1,0 +1,14 @@
+<!-- components/static-waveform/static-waveform.wxml -->
+<!-- 静态音频波形预览组件 -->
+<view class="static-waveform-container">
+  <canvas 
+    canvas-id="static-waveform-canvas"
+    class="static-waveform-canvas"
+    bindtap="onCanvasTap"
+  ></canvas>
+  
+  <!-- 波形状态指示器 -->
+  <view class="waveform-overlay" wx:if="{{!isInitialized}}">
+    <text class="status-text">加载波形中...</text>
+  </view>
+</view>

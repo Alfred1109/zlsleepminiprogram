@@ -1,0 +1,68 @@
+<!-- pages/history/history.wxml -->
+<view class="container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <text class="title">播放历史</text>
+    <view class="actions" wx:if="{{!loading}}">
+      <view class="btn-refresh" bindtap="onRefresh">刷新</view>
+      <view class="btn-clear" bindtap="onClearAll" wx:if="{{history.length > 0}}">清空</view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载历史记录中...</text>
+  </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{error}}" class="error-container">
+    <view class="error-icon">❌</view>
+    <text class="error-text">{{error}}</text>
+    <button class="retry-btn" bindtap="onRefresh">重试</button>
+  </view>
+
+  <!-- 有历史记录时的列表 -->
+  <view wx:elif="{{history && history.length > 0}}" class="history-list">
+    <block wx:for="{{history}}" wx:key="id">
+      <view class="history-card">
+        <view class="sound-info" bindtap="playAgain" data-record="{{item}}">
+          <image class="sound-image" src="{{item.coverUrl || '/assets/images/default-cover.png'}}" mode="aspectFill"/>
+          <view class="sound-detail">
+            <text class="sound-name">{{item.soundName}}</text>
+            <text class="sound-meta">{{item.category}}</text>
+            <view class="play-info">
+              <text class="play-date">{{item.date}}</text>
+              <text class="play-duration">{{item.duration}}</text>
+              <text class="play-progress" wx:if="{{item.play_progress && item.play_progress !== '0%'}}">进度: {{item.play_progress}}</text>
+            </view>
+            <view class="play-source" wx:if="{{item.play_source}}">
+              <text class="source-text">来源: {{item.play_source}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="card-actions">
+          <view class="action-btn play" bindtap="playAgain" data-record="{{item}}">
+            <view class="action-icon play-icon"></view>
+          </view>
+          <view class="action-btn delete" bindtap="deleteRecord" data-record="{{item}}">
+            <view class="action-icon delete-icon"></view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-state">
+    <image class="empty-image" src="/assets/images/empty-history.png" mode="aspectFit"/>
+    <text class="empty-text">暂无播放历史</text>
+    <text class="empty-subtitle">开始播放音乐，记录将显示在这里</text>
+    <button class="btn-explore" bindtap="goToHome">去首页听音乐</button>
+  </view>
+
+  <!-- 页面底部提示 -->
+  <view wx:if="{{history.length > 0}}" class="footer-tip">
+    <text class="tip-text">显示最近30天的播放记录</text>
+  </view>
+</view>

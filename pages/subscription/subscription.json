@@ -1,0 +1,9 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "订阅服务",
+  "navigationBarTextStyle": "black",
+  "navigationBarBackgroundColor": "#f8f9fa",
+  "backgroundColor": "#f8f9fa",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50
+}

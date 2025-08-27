@@ -1,0 +1,130 @@
+<!--pages/music/player/player.wxml-->
+<!-- 音乐播放器页面 -->
+<view class="page-container">
+  <!-- 页面内容 -->
+  <view class="page-content">
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">正在加载音乐...</view>
+    </view>
+
+    <!-- 播放器主界面 -->
+    <view wx:else class="player-container">
+      <!-- 有音乐信息时显示播放器内容 -->
+      <view wx:if="{{musicInfo}}">
+        <!-- 音乐封面区域 -->
+        <view class="music-cover-section">
+          <view class="cover-container">
+            <image
+              class="cover-image {{isPlaying ? 'rotating' : ''}}"
+              src="{{musicInfo.cover_url || '/images/default-music-cover.svg'}}"
+              mode="aspectFill"
+            ></image>
+            <view class="cover-overlay">
+              <view class="play-indicator {{isPlaying ? 'playing' : ''}}">
+                <view class="pulse-ring"></view>
+                <view class="pulse-ring-delay"></view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 音乐信息区域 -->
+        <view class="music-info-section">
+          <view class="music-title">{{musicInfo.title || '个性化疗愈音乐'}}</view>
+          <view class="music-subtitle">
+            {{musicType === '60s' ? '60秒版本' : '长序列版本'}} · 
+            {{musicInfo.mood || '放松疗愈'}}
+          </view>
+          <view wx:if="{{musicInfo.description}}" class="music-description">
+            {{musicInfo.description}}
+          </view>
+          
+          <!-- 音乐标签 -->
+          <view class="music-tags">
+            <view class="tag">{{musicInfo.category || 'AI音乐'}}</view>
+            <view wx:if="{{musicInfo.mood}}" class="tag">{{musicInfo.mood}}</view>
+            <view class="tag">{{formattedDuration}}</view>
+          </view>
+        </view>
+
+        <!-- 实时波形可视化区域 -->
+        <view class="waveform-section">
+          <view class="waveform-wrapper">
+            <realtime-waveform
+              audioContext="{{audioContext}}"
+              isPlaying="{{isPlaying}}"
+              theme="{{computedMusicType || 'healing'}}"
+              barCount="{{60}}"
+              refreshRate="{{50}}"
+              bind:seek="onWaveformSeek"
+            />
+          </view>
+        </view>
+
+        <!-- 音乐分析信息 -->
+        <view wx:if="{{musicInfo.analysis}}" class="analysis-section">
+          <view class="analysis-title">音乐分析</view>
+          <view class="analysis-content">
+            <view class="analysis-item">
+              <text class="analysis-label">情绪匹配度</text>
+              <text class="analysis-value">{{musicInfo.analysis.mood_match}}%</text>
+            </view>
+            <view class="analysis-item">
+              <text class="analysis-label">节奏类型</text>
+              <text class="analysis-value">{{musicInfo.analysis.rhythm_type}}</text>
+            </view>
+            <view class="analysis-item">
+              <text class="analysis-label">音调特征</text>
+              <text class="analysis-value">{{musicInfo.analysis.tone_features}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 操作区域 -->
+        <view class="action-section">
+          <view class="action-buttons">
+            <button class="action-btn" bindtap="onShowMusicLibrary">
+              <image class="action-icon" src="/images/music-library.svg" mode="aspectFit"></image>
+              <text class="action-text">音乐库</text>
+            </button>
+
+            <button class="action-btn" bindtap="onToggleFavorite">
+              <image 
+                class="action-icon {{isFavorite ? 'active' : ''}}" 
+                src="{{isFavorite ? '/images/heart-filled.svg' : '/images/heart.svg'}}" 
+                mode="aspectFit"
+              ></image>
+              <text class="action-text">{{isFavorite ? '已收藏' : '收藏'}}</text>
+            </button>
+
+            <button class="action-btn" bindtap="onShare">
+              <image class="action-icon" src="/images/share.svg" mode="aspectFit"></image>
+              <text class="action-text">分享</text>
+            </button>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无音乐信息时的空状态 -->
+      <view wx:else class="empty-state">
+        <image class="empty-icon" src="/images/empty-music.svg" mode="aspectFit"></image>
+        <view class="empty-title">未找到音乐</view>
+        <view class="empty-subtitle">请检查音乐文件是否存在</view>
+        <button class="btn primary" bindtap="onNavigateBack">返回</button>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 统一底部播放器 -->
+<global-player 
+  id="globalPlayer"
+  visible="{{showGlobalPlayer}}"
+  bind:playStateChange="onGlobalPlayerStateChange"
+  bind:nextTrack="onNextTrack"
+  bind:previousTrack="onPreviousTrack"
+  bind:closePlayer="onCloseGlobalPlayer"
+  bind:expandPlayer="onExpandGlobalPlayer"
+/>

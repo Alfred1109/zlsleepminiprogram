@@ -1,0 +1,588 @@
+/* 助眠设备页面样式 */
+.device-page {
+  padding: 40rpx 32rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+/* 页面头部 */
+.page-header {
+  text-align: center;
+  margin-bottom: 60rpx;
+  padding: 40rpx 20rpx;
+}
+
+.header-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+  display: block;
+}
+
+.page-title {
+  display: block;
+  font-size: 52rpx;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 16rpx;
+  letter-spacing: 2rpx;
+}
+
+.page-subtitle {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.4;
+}
+
+/* 区域标题 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: white;
+}
+
+.title-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+
+.clear-history-btn {
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 历史配对记录 */
+.history-section {
+  margin-bottom: 48rpx;
+}
+
+.history-list {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20rpx;
+  padding: 8rpx;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  margin-bottom: 8rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.history-item:last-child {
+  margin-bottom: 0;
+}
+
+.history-item:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.device-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  position: relative;
+}
+
+.device-avatar.connected {
+  background: rgba(67, 233, 123, 0.3);
+}
+
+.device-type-icon,
+.device-icon {
+  font-size: 28rpx;
+}
+
+.device-details {
+  flex: 1;
+}
+
+.device-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: white;
+  margin-bottom: 6rpx;
+}
+
+.device-mac,
+.device-status {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4rpx;
+}
+
+.pair-time {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.reconnect-btn,
+.connecting-indicator {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.reconnect-icon,
+.loading-icon {
+  font-size: 24rpx;
+}
+
+/* 连接状态 */
+.connection-status {
+  margin-bottom: 48rpx;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.status-icon {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  margin-right: 12rpx;
+  font-size: 12rpx;
+}
+
+.status-icon.connected {
+  color: #43e97b;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.status-text {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: white;
+}
+
+.connected-list {
+  background: rgba(67, 233, 123, 0.1);
+  border-radius: 20rpx;
+  padding: 8rpx;
+}
+
+.connected-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: rgba(67, 233, 123, 0.15);
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.connected-item.selected {
+  border-color: rgba(67, 233, 123, 0.5);
+  background: rgba(67, 233, 123, 0.2);
+}
+
+.check-mark {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-icon {
+  font-size: 32rpx;
+  color: #43e97b;
+  font-weight: 700;
+}
+
+/* 扫描区域 */
+.scan-section {
+  margin-bottom: 48rpx;
+}
+
+.scan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.modern-scan-btn {
+  position: relative;
+  padding: 16rpx 32rpx;
+  background: linear-gradient(135deg, #43e97b, #38d9a9);
+  border-radius: 32rpx;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.modern-scan-btn.scanning {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.modern-scan-btn:active {
+  transform: scale(0.95);
+}
+
+.scan-btn-content {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.scan-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+
+.scan-text {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: white;
+}
+
+.scan-animation {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: scan-sweep 2s infinite;
+}
+
+@keyframes scan-sweep {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.discovered-list {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20rpx;
+  padding: 8rpx;
+}
+
+.discovery-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  margin-bottom: 8rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.discovery-item:last-child {
+  margin-bottom: 0;
+}
+
+.discovery-item:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.signal-strength {
+  position: absolute;
+  bottom: -4rpx;
+  right: -4rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 2rpx solid white;
+}
+
+.signal-strength.strength-strong {
+  background: #43e97b;
+}
+
+.signal-strength.strength-medium {
+  background: #fab005;
+}
+
+.signal-strength.strength-weak {
+  background: #fa5252;
+}
+
+.device-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.signal-info,
+.device-type {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 2rpx;
+}
+
+.connect-btn {
+  padding: 12rpx 24rpx;
+  background: linear-gradient(135deg, #43e97b, #38d9a9);
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.connect-btn.connecting {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.connect-btn:active {
+  transform: scale(0.95);
+}
+
+/* 扫描状态 */
+.scan-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 40rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20rpx;
+  margin-bottom: 32rpx;
+}
+
+.scan-animation-circle {
+  width: 80rpx;
+  height: 80rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.2);
+  border-top: 4rpx solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.scan-status-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+/* 智能助眠设备 */
+.smart-devices-section {
+  margin-bottom: 48rpx;
+}
+
+.sleep-device-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+  border-radius: 24rpx;
+  padding: 32rpx;
+  transition: all 0.3s ease;
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+}
+
+.sleep-device-card:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.12));
+}
+
+.card-background {
+  display: flex;
+  align-items: center;
+}
+
+.device-showcase {
+  margin-right: 24rpx;
+}
+
+.device-icons {
+  display: flex;
+  flex-wrap: wrap;
+  width: 120rpx;
+}
+
+.icon-item {
+  width: 56rpx;
+  height: 56rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  margin: 4rpx;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 12rpx;
+}
+
+.card-subtitle {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20rpx;
+}
+
+.card-features {
+  margin-bottom: 24rpx;
+}
+
+.feature-item {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  margin-bottom: 6rpx;
+}
+
+.setup-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 24rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.setup-text {
+  font-size: 26rpx;
+  color: white;
+  font-weight: 500;
+}
+
+.setup-arrow {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 空状态 */
+.empty-discovery {
+  text-align: center;
+  padding: 80rpx 40rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20rpx;
+  margin-bottom: 32rpx;
+}
+
+.empty-illustration {
+  font-size: 80rpx;
+  margin-bottom: 32rpx;
+  display: block;
+}
+
+.empty-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 500;
+  color: white;
+  margin-bottom: 16rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  margin-bottom: 32rpx;
+}
+
+.retry-scan-btn {
+  padding: 16rpx 32rpx;
+  background: linear-gradient(135deg, #43e97b, #38d9a9);
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: white;
+  font-weight: 500;
+}
+
+/* 使用提示 */
+.tips-section {
+  margin-top: 48rpx;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20rpx;
+  padding: 32rpx;
+}
+
+.tips-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.tips-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.tips-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: white;
+}
+
+.tips-list {
+  margin-left: 8rpx;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+}
+
+.tip-item:last-child {
+  margin-bottom: 0;
+}
+
+.tip-bullet {
+  width: 8rpx;
+  height: 8rpx;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  margin: 12rpx 16rpx 0 0;
+  flex-shrink: 0;
+}
+
+.tip-text {
+  flex: 1;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}

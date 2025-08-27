@@ -1,0 +1,232 @@
+/* pages/music/player/player.wxss */
+/* 现代音乐播放器页面样式 */
+@import "/styles/main.wxss";
+
+:root {
+  --player-background: linear-gradient(180deg, #2a2a2a 0%, #121212 100%);
+  --text-primary-dark: #ffffff;
+  --text-secondary-dark: #b3b3b3;
+  --accent-color: #1DB954; /* Spotify Green */
+  --card-bg-dark: rgba(255, 255, 255, 0.05);
+  --border-dark: rgba(255, 255, 255, 0.1);
+}
+
+.page-container {
+  background: var(--player-background);
+  color: var(--text-primary-dark);
+  min-height: 100vh;
+  padding: 40rpx 0;
+  box-sizing: border-box;
+}
+
+.page-content {
+  padding: 0 40rpx;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+  color: var(--text-secondary-dark);
+}
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid var(--border-dark);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+.loading-text {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+}
+
+/* 播放器主容器 */
+.player-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80rpx);
+  justify-content: space-between;
+}
+
+/* 音乐封面 */
+.music-cover-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  padding: 40rpx 0;
+}
+.cover-container {
+  position: relative;
+  width: 520rpx;
+  height: 520rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.5);
+  border-radius: 32rpx;
+}
+.cover-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 32rpx;
+  transition: transform 10s linear;
+}
+.cover-image.rotating {
+  animation: rotate-cover 20s linear infinite;
+}
+@keyframes rotate-cover {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 音乐信息 */
+.music-info-section {
+  text-align: center;
+  padding: 0 20rpx;
+  margin-bottom: 40rpx;
+}
+.music-title {
+  font-size: 44rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-subtitle {
+  font-size: 28rpx;
+  color: var(--text-secondary-dark);
+  margin-bottom: 24rpx;
+}
+.music-tags {
+  display: flex;
+  justify-content: center;
+  gap: 16rpx;
+}
+.tag {
+  background: var(--card-bg-dark);
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary-dark);
+}
+
+/* 波形区域 */
+.waveform-section {
+  height: 120rpx;
+  margin-bottom: 40rpx;
+}
+.waveform-wrapper {
+  height: 100%;
+}
+
+/* 音乐分析 */
+.analysis-section {
+  background: var(--card-bg-dark);
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-top: 40rpx;
+}
+.analysis-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-secondary-dark);
+  margin-bottom: 24rpx;
+  text-align: center;
+}
+.analysis-content {
+  display: flex;
+  justify-content: space-around;
+}
+.analysis-item {
+  text-align: center;
+}
+.analysis-label {
+  font-size: 24rpx;
+  color: var(--text-secondary-dark);
+  display: block;
+  margin-bottom: 8rpx;
+}
+.analysis-value {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-primary-dark);
+}
+
+/* 操作区域 */
+.action-section {
+  padding: 20rpx 0;
+}
+.action-buttons {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.action-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-secondary-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  transition: color 0.2s ease;
+}
+.action-btn:active {
+  color: var(--text-primary-dark);
+}
+.action-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+.action-icon.active {
+  filter: invert(58%) sepia(88%) saturate(541%) hue-rotate(97deg) brightness(96%) contrast(92%); /* Accent color filter */
+}
+.action-text {
+  font-size: 22rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+  color: var(--text-secondary-dark);
+}
+.empty-icon {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 40rpx;
+  opacity: 0.5;
+}
+.empty-title {
+  font-size: 36rpx;
+  font-weight: 500;
+  margin-bottom: 16rpx;
+  color: var(--text-primary-dark);
+}
+.empty-subtitle {
+  font-size: 28rpx;
+}
+.btn.primary {
+  margin-top: 40rpx;
+  background: var(--accent-color);
+  color: var(--text-primary-dark);
+  border-radius: 40rpx;
+  padding: 20rpx 60rpx;
+}
+
+/* 全局播放器占位 - 在此页面不直接显示，但保留样式兼容 */
+global-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}

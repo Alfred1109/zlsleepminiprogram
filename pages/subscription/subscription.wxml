@@ -1,0 +1,198 @@
+<!--pages/subscription/subscription.wxml-->
+<view class="container">
+  <!-- 当前订阅状态 -->
+  <view class="subscription-status" wx:if="{{subscriptionInfo}}">
+    <view class="status-content">
+      <!-- 订阅中状态 -->
+      <view class="status-title" wx:if="{{subscriptionInfo.is_subscribed}}">
+        <text class="status-icon">✅</text> 已订阅
+      </view>
+      
+      <!-- 试用中状态 -->
+      <view class="status-title" wx:elif="{{isInTrial}}">
+        <text class="status-icon">🎵</text> 试用中
+      </view>
+      
+      <!-- 试用已结束状态 -->
+      <view class="status-title" wx:elif="{{subscriptionInfo.trial_end_date && !subscriptionInfo.trial_available}}">
+        <text class="status-icon">⏰</text> 试用已结束
+      </view>
+      
+      <!-- 需要登录状态 -->
+      <view class="status-title" wx:elif="{{subscriptionInfo.requires_login}}">
+        <text class="status-icon">🔐</text> 需要登录
+      </view>
+      
+      <!-- 获取信息错误状态 -->
+      <view class="status-title" wx:elif="{{subscriptionInfo.error}}">
+        <text class="status-icon">❌</text> 获取状态失败
+      </view>
+      
+      <!-- 未订阅状态 -->
+      <view class="status-title" wx:else>
+        <text class="status-icon">📱</text> 未订阅
+      </view>
+      
+      <!-- 状态描述 -->
+      <view class="status-desc" wx:if="{{subscriptionInfo.is_subscribed}}">
+        {{subscriptionInfo.type === 'premium' ? '高级版' : subscriptionInfo.type === 'vip' ? 'VIP版' : '标准版'}}
+      </view>
+      <view class="status-desc" wx:elif="{{isInTrial}}">
+        7天免费试用期，可体验所有高级功能，还剩{{trialDaysLeft}}天
+      </view>
+      <view class="status-desc" wx:elif="{{subscriptionInfo.trial_end_date && !subscriptionInfo.trial_available}}">
+        试用期已结束，当前使用免费版功能
+      </view>
+      <view class="status-desc" wx:elif="{{subscriptionInfo.requires_login}}">
+        请先登录以查看和管理您的订阅状态
+      </view>
+      <view class="status-desc" wx:elif="{{subscriptionInfo.error}}">
+        {{subscriptionInfo.error}}，请稍后重试或联系客服
+      </view>
+      <view class="status-desc" wx:else>
+        当前使用免费版，功能受限
+      </view>
+      
+      <!-- 到期时间 -->
+      <view class="status-info" wx:if="{{subscriptionInfo.subscription_end_date}}">
+        订阅到期：{{subscriptionInfo.subscription_end_date}}
+        <text wx:if="{{subscriptionInfo.days_left}}">（剩余{{subscriptionInfo.days_left}}天）</text>
+      </view>
+      <view class="status-info" wx:elif="{{subscriptionInfo.trial_end_date && subscriptionInfo.status === 'active'}}">
+        试用到期：{{subscriptionInfo.trial_end_date}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 免费试用区域 -->
+  <!-- 正在试用中 -->
+  <view class="trial-card trial-active" wx:if="{{isInTrial}}">
+    <view class="trial-content">
+      <view class="trial-title">🎵 试用中</view>
+      <view class="trial-desc">
+        您正在免费试用高级功能，还剩<text class="highlight">{{trialDaysLeft}}</text>天
+        <view class="trial-features">
+          ✅ 无限制AI音乐生成
+          ✅ 长序列音乐播放
+          ✅ 高品质音频下载
+        </view>
+      </view>
+      <view class="trial-expire-info">
+        试用到期后将恢复免费版功能
+      </view>
+    </view>
+  </view>
+  
+  <!-- 可以开始试用 -->
+  <view class="trial-card" wx:elif="{{showTrialOption}}">
+    <view class="trial-content">
+      <view class="trial-title">🎵 免费试用7天</view>
+      <view class="trial-desc">
+        立即开始免费试用，体验所有高级功能：
+        · 无限制AI音乐生成
+        · 长序列音乐播放
+        · 高品质音频下载
+      </view>
+      <view class="trial-btn" bind:tap="onStartTrial">
+        {{purchasing ? '开始中...' : '立即开始试用'}}
+      </view>
+    </view>
+  </view>
+  
+  <!-- 试用已结束 -->
+  <view class="trial-card trial-expired" wx:elif="{{subscriptionInfo.trial_end_date && !subscriptionInfo.trial_available && !subscriptionInfo.is_subscribed}}">
+    <view class="trial-content">
+      <view class="trial-title">⏰ 试用已结束</view>
+      <view class="trial-desc">
+        您的7天免费试用期已结束，当前使用免费版功能
+        <view class="trial-features expired">
+          ❌ AI音乐生成受限
+          ❌ 无法播放长序列音乐
+          ❌ 无法下载高品质音频
+        </view>
+      </view>
+      <view class="trial-upgrade-info">
+        立即订阅，恢复所有高级功能
+      </view>
+    </view>
+  </view>
+  
+  <!-- 需要登录状态 -->
+  <view class="trial-card trial-login-required" wx:elif="{{subscriptionInfo.requires_login}}">
+    <view class="trial-content">
+      <view class="trial-title">🔐 请先登录</view>
+      <view class="trial-desc">
+        登录后可查看您的订阅状态并开始免费试用
+      </view>
+      <view class="trial-btn" bind:tap="onGoToLogin">
+        立即登录
+      </view>
+    </view>
+  </view>
+
+  <!-- 套餐选择 -->
+  <view class="plans-section" wx:if="{{!loading}}">
+    <view class="section-title">选择订阅套餐</view>
+    
+    <view class="plans-list">
+      <view 
+        class="plan-card {{selectedPlan === item.id ? 'selected' : ''}}"
+        wx:for="{{subscriptionPlans}}"
+        wx:key="id"
+        data-plan-id="{{item.id}}"
+        bind:tap="onSelectPlan"
+      >
+        <!-- 套餐标签 -->
+        <view class="plan-badge {{item.discount ? 'discount' : ''}}" wx:if="{{item.discount || item.type === 'vip'}}">
+          {{item.discount || (item.type === 'vip' ? 'VIP' : '推荐')}}
+        </view>
+        
+        <!-- 套餐头部 -->
+        <view class="plan-header">
+          <view class="plan-name">{{item.name}}</view>
+          <view class="plan-price">
+            <view class="price-amount">¥{{item.price}}</view>
+            <view class="price-period">{{item.duration === 30 ? '/月' : item.duration === 365 ? '/年' : '/' + item.duration + '天'}}</view>
+            <view class="price-discount" wx:if="{{item.discount}}">{{item.discount}}</view>
+          </view>
+        </view>
+        
+        <!-- 套餐特性 -->
+        <view class="plan-features">
+          <view class="feature-item" wx:for="{{item.features}}" wx:for-item="feature" wx:key="*this">
+            <view class="feature-icon"></view>
+            <text>{{feature}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <view>正在加载套餐信息...</view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && subscriptionPlans.length === 0}}">
+    <view class="empty-icon">📦</view>
+    <view class="empty-text">暂无可用套餐</view>
+  </view>
+</view>
+
+<!-- 购买按钮 -->
+<view class="purchase-section" wx:if="{{!loading && subscriptionPlans.length > 0}}">
+  <view 
+    class="purchase-btn {{purchasing || !selectedPlan ? 'disabled' : ''}}"
+    bind:tap="onPurchaseSubscription"
+  >
+    {{purchasing ? '处理中...' : '立即订阅'}}
+  </view>
+  
+  <!-- 底部链接 -->
+  <view class="footer-links">
+    <text class="footer-link" bind:tap="onViewAgreement">用户协议</text>
+    <text class="footer-link" bind:tap="onContactService">联系客服</text>
+  </view>
+</view>

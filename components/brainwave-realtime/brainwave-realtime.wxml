@@ -1,0 +1,22 @@
+<!-- components/brainwave-realtime/brainwave-realtime.wxml -->
+<!-- 实时脑波可视化组件 -->
+<view class="brainwave-realtime-container {{brainwaveType}} {{isPlaying ? 'playing' : 'paused'}}">
+  <canvas 
+    id="brainwave-canvas" 
+    type="2d" 
+    class="brainwave-canvas"
+    bindtap="onCanvasTap"
+  ></canvas>
+  
+  <!-- 脑波信息显示 -->
+  <view class="brainwave-info">
+    <view class="brainwave-name">{{brainwaveConfig[brainwaveType].name}}</view>
+    <view class="brainwave-freq">{{brainwaveConfig[brainwaveType].baseFreq}}Hz</view>
+  </view>
+  
+  <!-- 状态指示器 -->
+  <view class="status-indicator {{isPlaying ? 'active' : 'inactive'}}">
+    <view class="status-dot"></view>
+    <text class="status-text">{{isPlaying ? '实时分析' : '静态模式'}}</text>
+  </view>
+</view>

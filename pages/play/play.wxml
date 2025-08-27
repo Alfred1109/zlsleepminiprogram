@@ -1,0 +1,80 @@
+<!-- pages/play/play.wxml -->
+<view class="container play-container">
+  <view class="play-card">
+    <!-- 封面图 -->
+    <image class="cover" src="{{sound.cover}}" mode="aspectFill"/>
+    
+    <!-- 音频信息 -->
+    <view class="sound-info">
+      <text class="sound-title">{{sound.name}}</text>
+      <text class="sound-category">{{sound.category}}</text>
+    </view>
+    
+    <!-- 定时器显示 -->
+    <view class="timer" wx:if="{{isTimerOn}}">
+      <view class="timer-icon"></view>
+      <text>定时关闭：剩余 {{timerValue}} 分钟</text>
+    </view>
+    
+    <!-- 进度条 -->
+    <view class="progress">
+      <slider 
+        min="0" 
+        max="{{duration}}" 
+        value="{{currentTime}}" 
+        activeColor="var(--primary-color)"
+        backgroundColor="#E0E0E0"
+        block-size="12"
+        block-color="#FFFFFF"
+        bindchange="seek"
+      />
+      <view class="time-info">
+        <text>{{formatTime(currentTime)}}</text>
+        <text>{{formatTime(duration)}}</text>
+      </view>
+    </view>
+    
+    <!-- 控制按钮 -->
+    <view class="control-buttons">
+      <view class="btn-circle small" bindtap="prev">
+        <view class="icon-prev"></view>
+      </view>
+      <view class="btn-circle large" bindtap="togglePlay">
+        <view class="{{isPlaying ? 'icon-pause' : 'icon-play'}}"></view>
+      </view>
+      <view class="btn-circle small" bindtap="next">
+        <view class="icon-next"></view>
+      </view>
+    </view>
+    
+    <!-- 音量控制 -->
+    <view class="volume-control">
+      <view class="volume-icon"></view>
+      <slider 
+        class="volume-slider" 
+        min="0" 
+        max="100" 
+        value="{{volume}}" 
+        activeColor="var(--primary-color)"
+        backgroundColor="#E0E0E0"
+        block-size="12"
+        bindchange="setVolume"
+      />
+    </view>
+  </view>
+  
+  <!-- 定时设置 -->
+  <view class="timer-setting card">
+    <view class="timer-header">
+      <text class="timer-title">定时关闭</text>
+      <button class="btn-cancel" wx:if="{{isTimerOn}}" bindtap="stopTimer">取消</button>
+    </view>
+    
+    <view class="timer-options">
+      <view class="timer-option {{timerValue === 15 ? 'active' : ''}}" bindtap="setTimer" data-time="15">15分钟</view>
+      <view class="timer-option {{timerValue === 30 ? 'active' : ''}}" bindtap="setTimer" data-time="30">30分钟</view>
+      <view class="timer-option {{timerValue === 45 ? 'active' : ''}}" bindtap="setTimer" data-time="45">45分钟</view>
+      <view class="timer-option {{timerValue === 60 ? 'active' : ''}}" bindtap="setTimer" data-time="60">60分钟</view>
+    </view>
+  </view>
+</view>

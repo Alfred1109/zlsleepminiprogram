@@ -1,0 +1,130 @@
+<!-- pages/index/index.wxml -->
+<view class="container">
+  <!-- 顶部搜索区域 -->
+  <view class="search-section">
+    <view class="search-bar">
+      <view class="search-icon"></view>
+      <input placeholder="搜索自然声音、冥想音乐..." bindconfirm="onSearch" />
+    </view>
+  </view>
+
+
+
+  <!-- 实时音乐波形区域 -->
+  <view class="brainwave-section {{isPlaying ? 'playing' : ''}}">
+    <!-- 波形可视化容器 -->
+    <view class="waveform-container">
+      <static-waveform 
+        isPlaying="{{isPlaying}}"
+        progress="{{playProgress}}"
+        theme="healing"
+        barCount="{{80}}"
+        duration="{{currentSound.duration || 180}}"
+        musicId="{{currentSound.id || playingSoundId}}"
+        musicName="{{currentSound.name || currentSound.title}}"
+        musicType="{{currentSound.category || currentSound.type}}"
+        bind:seek="onWaveformSeek"
+      />
+    </view>
+    
+    <!-- 当前音乐状态显示 -->
+    <view class="wave-info">
+      <view class="wave-info-item">
+        <text class="info-label">正在播放:</text>
+        <text class="info-value">{{currentSound.name || currentSound.title || (isPlaying ? '疗愈' : '暂无音乐')}}</text>
+      </view>
+      <view class="wave-info-item">
+        <text class="info-label">音乐类型:</text>
+        <text class="info-value">{{currentSound.category || '疗愈音乐'}}</text>
+      </view>
+      <view class="wave-info-item">
+        <text class="info-label">播放状态:</text>
+        <text class="info-value">{{isPlaying ? '播放中' : '待机'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 声音分类 -->
+  <view class="section-header">
+    <text class="section-title">声音分类</text>
+    <view class="section-more" bindtap="showAllCategories">查看全部</view>
+  </view>
+  
+  <!-- 三个分类一排布局 -->
+  <view class="sound-categories">
+    <view wx:for="{{categories}}" wx:key="id" 
+          class="sound-category-item {{selectedCategory === item.id ? 'selected' : ''}}" 
+          bindtap="onCategoryTap" 
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+          data-index="{{index}}">
+      <view class="sound-category-icon category-icon-{{item.id}}">
+        <text class="category-emoji">{{item.icon || '🎵'}}</text>
+      </view>
+      <text>{{item.name || '未知分类'}}</text>
+      <text class="category-count" wx:if="{{item.count > 0}}">{{item.count}}首</text>
+    </view>
+  </view>
+
+
+
+  <!-- 分类推荐音频区域 -->
+  <view class="category-recommendations" wx:if="{{selectedCategory && categoryRecommendations.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">{{getCategoryName(selectedCategory)}} · 推荐</text>
+    </view>
+    
+    <!-- 垂直排列的推荐列表 -->
+    <view class="recommendations-vertical-list">
+      <view wx:for="{{categoryRecommendations}}" wx:key="id" wx:if="{{index < 3}}"
+            class="recommendation-vertical-item {{playingSoundId === item.id ? 'playing' : ''}}"
+            bindtap="onRecommendationTap"
+            data-music="{{item}}">
+        
+        <!-- 音频封面 -->
+        <view class="music-cover-vertical">
+          <image 
+            class="cover-image-vertical" 
+            src="{{item.image || '/images/default-music-cover.svg'}}" 
+            mode="aspectFill"
+          />
+        </view>
+        
+        <!-- 音频信息 -->
+        <view class="music-info-vertical">
+          <text class="music-title-vertical">{{item.title}}</text>
+          <text class="music-duration-vertical" wx:if="{{item.duration}}">{{formatDuration(item.duration)}}</text>
+        </view>
+        
+        <!-- 播放按钮 -->
+        <view class="play-button-vertical" 
+              catchtap="onPlayRecommendation" 
+              data-music="{{item}}">
+          <text class="play-icon-vertical">▶</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+
+
+  <!-- 使用提示 -->
+  <view class="usage-tip" wx:if="{{!selectedCategory}}">
+    <view class="tip-icon">💡</view>
+    <view class="tip-content">
+      <text class="tip-title">开始您的疗愈之旅</text>
+      <text class="tip-desc">选择一个分类，查看推荐音频并开始播放</text>
+    </view>
+  </view>
+</view>
+
+<!-- 统一底部播放器 -->
+<global-player 
+  id="globalPlayer"
+  visible="{{showGlobalPlayer}}"
+  bind:playStateChange="onGlobalPlayerStateChange"
+  bind:nextTrack="onNextTrack"
+  bind:previousTrack="onPreviousTrack"
+  bind:closePlayer="onCloseGlobalPlayer"
+  bind:expandPlayer="onExpandGlobalPlayer"
+/>

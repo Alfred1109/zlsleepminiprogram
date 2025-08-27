@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "音乐分类",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "light",
+  "usingComponents": {
+    "global-player": "/components/global-player/global-player"
+  }
+}

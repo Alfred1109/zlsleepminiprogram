@@ -1,0 +1,89 @@
+<!--pages/assessment/questions/questions.wxml-->
+<!-- 评测答题页面 -->
+<view class="page-container">
+  <!-- 页面内容 -->
+  <view class="page-content">
+    <!-- 顶部进度条 -->
+    <view class="progress-container">
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{progress}}%"></view>
+      </view>
+      <view class="progress-text">
+        {{currentQuestionIndex + 1}} / {{questions.length}}
+      </view>
+    </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载题目中...</view>
+  </view>
+
+  <!-- 题目内容 -->
+  <view wx:else class="question-container">
+    <view wx:if="{{questions.length > 0}}" class="question-content">
+      <!-- 题目标题 -->
+      <view class="question-header">
+        <view class="question-number">第 {{currentQuestionIndex + 1}} 题</view>
+        <view class="scale-name">{{scaleName}}</view>
+      </view>
+
+      <!-- 题目文本 -->
+      <view class="question-text">
+        {{questions[currentQuestionIndex].question_text}}
+      </view>
+
+      <!-- 答案选项 -->
+      <view class="options-container">
+        <view 
+          wx:for="{{questions[currentQuestionIndex].options}}" 
+          wx:key="value"
+          class="option-item {{answers[questions[currentQuestionIndex].id] === item.value ? 'selected' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onSelectAnswer"
+        >
+          <view class="option-radio">
+            <view wx:if="{{answers[questions[currentQuestionIndex].id] === item.value}}" class="option-checked">✓</view>
+          </view>
+          <view class="option-content">
+            <view class="option-text">{{item.text}}</view>
+            <view wx:if="{{item.description}}" class="option-description">{{item.description}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 导航按钮 -->
+      <view class="navigation-container">
+        <button 
+          wx:if="{{currentQuestionIndex > 0}}"
+          class="nav-button prev-button"
+          bindtap="onPreviousQuestion"
+        >
+          上一题
+        </button>
+        
+        <button 
+          class="nav-button next-button {{!hasCurrentAnswer ? 'disabled' : ''}}"
+          bindtap="onNextQuestion"
+          disabled="{{!hasCurrentAnswer}}"
+        >
+          {{currentQuestionIndex === questions.length - 1 ? '完成评测' : '下一题'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交状态 -->
+  <view wx:if="{{submitting}}" class="submitting-overlay">
+    <view class="submitting-content">
+      <view class="submitting-spinner"></view>
+      <view class="submitting-text">正在提交评测...</view>
+    </view>
+  </view>
+
+    <!-- 退出按钮 -->
+    <view class="exit-container">
+      <button class="exit-button" bindtap="onExitConfirm">退出评测</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "AI音乐生成",
+  "navigationBarBackgroundColor": "#2BBAA5",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f8f9fa",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "usingComponents": {
+    "global-player": "/components/global-player/global-player"
+  }
+}

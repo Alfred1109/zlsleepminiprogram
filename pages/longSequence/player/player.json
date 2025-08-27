@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "长序列播放器",
+  "navigationBarBackgroundColor": "#5D9E7E",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#5D9E7E",
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
+  "usingComponents": {
+    "global-player": "/components/global-player/global-player"
+  }
+}

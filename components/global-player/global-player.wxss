@@ -1,0 +1,332 @@
+/* 统一底部播放器样式 */
+.global-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  transition: transform 0.3s ease-in-out; /* 只保留transform动画 */
+  transform: translateY(100%);
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+  /* 移除vh单位，使用rpx */
+  max-height: 1200rpx; /* 使用rpx代替vh */
+  min-height: 160rpx;
+  width: 100%;
+  overflow: hidden;
+}
+
+.global-player.show {
+  transform: translateY(0);
+}
+
+.global-player.hide {
+  transform: translateY(100%);
+}
+
+/* 播放器主体 */
+.player-main {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx 12rpx;
+  min-height: 120rpx;
+  /* 确保主体区域可以适应内容变化 */
+  flex-shrink: 0;
+}
+
+/* 音乐信息区域 */
+.track-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-right: 24rpx;
+  overflow: hidden;
+}
+
+.track-cover {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  margin-right: 20rpx;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.track-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.track-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: white;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-subtitle {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 播放控制区域 */
+.player-controls {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0; /* 防止控制区域被压缩 */
+}
+
+.player-controls .control-btn {
+  margin-left: 12rpx; /* 用margin代替gap */
+}
+
+.player-controls .control-btn:first-child {
+  margin-left: 0; /* 第一个按钮不需要左边距 */
+}
+
+.control-btn {
+  width: 56rpx; /* 稍微减小尺寸 */
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.play-btn {
+  width: 64rpx; /* 稍微减小但保持突出 */
+  height: 64rpx;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.close-btn {
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.timer-btn .timer-icon {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.3s ease;
+}
+
+.timer-btn .timer-icon.active {
+  color: #FFD700; /* 激活时显示金色 */
+}
+
+.timer-countdown {
+  color: #FFD700;
+  font-weight: 500;
+}
+
+.iconfont {
+  font-size: 32rpx;
+  color: white;
+}
+
+.play-btn .iconfont {
+  font-size: 36rpx;
+}
+
+.close-btn .iconfont {
+  font-size: 24rpx;
+}
+
+/* 波形可视化区域 */
+.waveform-section {
+  padding: 0 32rpx;
+  margin-bottom: 12rpx;
+  height: 60rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+/* 进度条区域 */
+.progress-container {
+  padding: 0 32rpx 24rpx;
+}
+
+.progress-track {
+  position: relative;
+  height: 6rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3rpx;
+  margin-bottom: 12rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+  border-radius: 3rpx;
+  transition: width 0.1s ease;
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24rpx;
+  height: 24rpx;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+/* 时间信息 */
+.time-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.current-time,
+.total-time {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 动画效果 */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* 定时器选择器 */
+.timer-selector {
+  border-top: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
+  transform-origin: top;
+  overflow: hidden;
+  /* 确保定时器面板能够正确计算高度 */
+  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+  /* 默认收缩状态 */
+  max-height: 0;
+  padding: 0 32rpx;
+  opacity: 0;
+  /* 确保在收缩状态下完全不可见 */
+  visibility: hidden;
+}
+
+/* 展开状态 */
+.timer-selector.timer-expanded {
+  max-height: 500rpx;
+  padding: 24rpx 32rpx;
+  opacity: 1;
+  visibility: visible;
+  animation: timerExpand 0.3s ease-out;
+}
+
+/* 收缩状态 */
+.timer-selector.timer-collapsed {
+  max-height: 0;
+  padding: 0 32rpx;
+  opacity: 0;
+  animation: timerCollapse 0.3s ease-in;
+}
+
+/* 定时器面板展开动画 */
+@keyframes timerExpand {
+  from {
+    opacity: 0;
+    transform: translateY(-20rpx);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 500rpx;
+  }
+}
+
+/* 定时器面板收缩动画 */
+@keyframes timerCollapse {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 500rpx;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20rpx);
+    max-height: 0;
+  }
+}
+
+.timer-options {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.timer-option {
+  flex: 1;
+  min-width: 46%; /* 使用百分比代替calc */
+  margin: 0 2% 16rpx 0; /* 用margin代替gap */
+  padding: 16rpx 24rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+}
+
+.timer-option:nth-child(2n) {
+  margin-right: 0; /* 每行最后一个不需要右边距 */
+}
+
+.timer-option:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.timer-option.selected {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #FFD700;
+}
+
+.timer-option.cancel {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.3);
+  flex-basis: 100%;
+}
+
+.timer-option .timer-text {
+  font-size: 26rpx;
+  color: white;
+  font-weight: 500;
+}
+
+.timer-option.cancel .timer-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 移除@media查询，小程序不支持 */

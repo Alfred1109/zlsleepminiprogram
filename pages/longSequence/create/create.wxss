@@ -1,0 +1,413 @@
+/* pages/longSequence/create/create.wxss */
+/* 长序列音乐创建页面样式 */
+/* 全局样式通过 app.wxss 导入，无需重复导入 */
+
+.container {
+  min-height: 1334rpx;
+  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  padding: 30rpx 20rpx;
+  box-sizing: border-box;
+}
+
+/* 页面标题 */
+.page-header {
+  text-align: center;
+  margin-bottom: 40rpx;
+  padding: 40rpx 30rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20rpx;
+  color: white;
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.2);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.header-title {
+  font-size: 48rpx;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 16rpx;
+}
+
+.header-subtitle {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  border-top: 4rpx solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+.loading-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 28rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 生成进度 */
+.generation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 40rpx;
+  color: #ffffff;
+}
+
+.generation-header {
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.generation-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+}
+
+.generation-subtitle {
+  font-size: 26rpx;
+  opacity: 0.8;
+}
+
+.progress-section {
+  width: 100%;
+  margin-bottom: 60rpx;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-bottom: 16rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2BBAA5, #93D3AE);
+  border-radius: 6rpx;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.generation-tips {
+  width: 100%;
+}
+
+.tip-item {
+  font-size: 26rpx;
+  opacity: 0.8;
+  margin-bottom: 16rpx;
+  line-height: 1.5;
+}
+
+/* 主要内容 */
+.main-content {
+  flex: 1;
+}
+
+/* 区块样式 */
+.section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.section-title {
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.title-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.title-desc {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 60rpx 30rpx;
+}
+
+.empty-icon {
+  width: 120rpx;
+  height: 120rpx;
+  margin-bottom: 30rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #333333;
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 40rpx;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  color: #ffffff;
+  border: none;
+  border-radius: 50rpx;
+  padding: 24rpx 48rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* 评测记录列表 */
+.assessment-list {
+  padding: 0 30rpx 20rpx;
+}
+
+.assessment-item {
+  position: relative;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.assessment-item.selected {
+  background: #e3f2fd;
+  border-color: #4A90E2;
+}
+
+.assessment-item:last-child {
+  margin-bottom: 0;
+}
+
+.assessment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.assessment-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.assessment-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.assessment-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-score {
+  font-size: 26rpx;
+}
+
+.score-label {
+  color: #666666;
+}
+
+.score-value {
+  color: #333333;
+  font-weight: bold;
+}
+
+.result-level {
+  font-size: 24rpx;
+  font-weight: bold;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.selected-mark {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: #4A90E2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+/* 时长选择 */
+.duration-options {
+  padding: 20rpx 30rpx 30rpx;
+  display: flex;
+  flex-direction: column;
+  /* gap: 16rpx; removed for compatibility */
+}
+
+.duration-item {
+  position: relative;
+  padding: 24rpx 30rpx;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.duration-item.selected {
+  background: #e3f2fd;
+  border-color: #4A90E2;
+}
+
+.duration-label {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.duration-desc {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.duration-check {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 32rpx;
+  height: 32rpx;
+  background: #4A90E2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 信息内容 */
+.info-content {
+  padding: 20rpx 30rpx 30rpx;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 20rpx;
+  margin-top: 4rpx;
+}
+
+.info-text {
+  flex: 1;
+}
+
+.info-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.info-desc {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.5;
+}
+
+/* 创建按钮区域 */
+.create-section {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.btn-create {
+  width: 100%;
+  height: 100rpx;
+  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  color: #ffffff;
+  border: none;
+  border-radius: 50rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* gap: 16rpx; removed for compatibility */
+  margin-bottom: 20rpx;
+  transition: all 0.3s ease;
+}
+
+.btn-create:disabled {
+  background: #cccccc;
+  color: #999999;
+}
+
+.btn-create:active {
+  transform: scale(0.98);
+}
+
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.create-info {
+  font-size: 24rpx;
+  color: #666666;
+}

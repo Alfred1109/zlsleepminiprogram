@@ -1,0 +1,356 @@
+/* pages/subscription/subscription.wxss */
+page {
+  background-color: #f8f9fa;
+}
+
+.container {
+  padding: 20rpx;
+  min-height: 1334rpx;
+  box-sizing: border-box;
+}
+
+/* 当前订阅状态 */
+.subscription-status {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}.status-content {
+  position: relative;
+  z-index: 2;
+}
+
+.status-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+  display: flex;
+  align-items: center;
+}
+
+.status-icon {
+  margin-right: 10rpx;
+}
+
+.status-desc {
+  font-size: 28rpx;
+  opacity: 0.9;
+  margin-bottom: 20rpx;
+}
+
+.status-info {
+  font-size: 24rpx;
+  opacity: 0.8;
+}
+
+/* 免费试用卡片 */
+.trial-card {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  position: relative;
+  overflow: hidden;
+}.trial-content {
+  position: relative;
+  z-index: 2;
+  color: #2d3436;
+}
+
+.trial-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 15rpx;
+}
+
+.trial-desc {
+  font-size: 28rpx;
+  margin-bottom: 30rpx;
+  line-height: 1.6;
+}
+
+.trial-btn {
+  background: white;
+  color: #e17055;
+  border-radius: 50rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  box-shadow: 0 10rpx 30rpx rgba(225, 112, 85, 0.3);
+}
+
+/* 试用中状态 */
+.trial-card.trial-active {
+  background: linear-gradient(135deg, #55a3ff 0%, #003d82 100%);
+  color: white;
+}
+
+.trial-card.trial-active .trial-content {
+  color: white;
+}
+
+.trial-card.trial-active .highlight {
+  color: #ffeaa7;
+  font-weight: bold;
+  font-size: 36rpx;
+}
+
+.trial-features {
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  line-height: 1.8;
+}
+
+.trial-features.expired {
+  color: #636e72;
+}
+
+.trial-expire-info {
+  font-size: 24rpx;
+  opacity: 0.8;
+  margin-top: 20rpx;
+  padding: 15rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10rpx;
+}
+
+/* 试用已结束状态 */
+.trial-card.trial-expired {
+  background: linear-gradient(135deg, #ddd6fe 0%, #a78bfa 100%);
+  color: #374151;
+}
+
+.trial-card.trial-expired .trial-content {
+  color: #374151;
+}
+
+.trial-upgrade-info {
+  font-size: 28rpx;
+  color: #7c3aed;
+  font-weight: bold;
+  margin-top: 20rpx;
+  padding: 15rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10rpx;
+  text-align: center;
+}
+
+/* 需要登录状态 */
+.trial-card.trial-login-required {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.trial-card.trial-login-required .trial-content {
+  color: white;
+}
+
+.trial-card.trial-login-required .trial-btn {
+  background: white;
+  color: #d97706;
+}
+
+/* 套餐选择 */
+.plans-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #2d3436;
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.plans-list {
+  display: flex;
+  flex-direction: column;
+  /* gap: 20rpx; removed for compatibility */
+}
+
+.plan-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  border: 4rpx solid #e9ecef;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.plan-card.selected {
+  border-color: #667eea;
+  box-shadow: 0 10rpx 40rpx rgba(102, 126, 234, 0.2);
+  transform: translateY(-5rpx);
+}
+
+.plan-badge {
+  position: absolute;
+  top: 0;
+  right: 30rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8rpx 20rpx;
+  border-radius: 0 0 15rpx 15rpx;
+  font-size: 22rpx;
+  font-weight: bold;
+}
+
+.plan-badge.discount {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.plan-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2d3436;
+}
+
+.plan-price {
+  text-align: right;
+}
+
+.price-amount {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #667eea;
+  line-height: 1;
+}
+
+.price-period {
+  font-size: 24rpx;
+  color: #636e72;
+  margin-top: 5rpx;
+}
+
+.price-discount {
+  font-size: 22rpx;
+  color: #e17055;
+  font-weight: bold;
+}
+
+.plan-features {
+  margin-top: 30rpx;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15rpx;
+  font-size: 28rpx;
+  color: #2d3436;
+}
+
+.feature-icon {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background: #00b894;
+  margin-right: 15rpx;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* 购买按钮 */
+.purchase-section {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 30rpx;
+  border-top: 1rpx solid #e9ecef;
+}
+
+.purchase-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50rpx;
+  height: 90rpx;
+  line-height: 90rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  box-shadow: 0 10rpx 30rpx rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+.purchase-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 5rpx 20rpx rgba(102, 126, 234, 0.3);
+}
+
+.purchase-btn.disabled {
+  background: #ddd;
+  color: #999;
+  box-shadow: none;
+}
+
+/* 底部链接 */
+.footer-links {
+  margin-top: 40rpx;
+  text-align: center;
+}
+
+.footer-link {
+  display: inline-block;
+  margin: 0 30rpx;
+  color: #636e72;
+  font-size: 24rpx;
+  text-decoration: underline;
+}
+
+.footer-link:active {
+  color: #667eea;
+}
+
+/* 加载状态 */
+.loading {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #636e72;
+  font-size: 28rpx;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  margin: 0 auto 20rpx;
+  border: 4rpx solid #e9ecef;
+  border-top: 4rpx solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #636e72;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  line-height: 1.6;
+}
