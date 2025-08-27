@@ -63,11 +63,8 @@ Page({
 
     this.initData();
     
-    // 初始化统一音乐管理器
+    // 统一使用音乐管理器来处理分类数据（移除重复的数据源）
     this.initUnifiedMusicManager();
-    
-    // 加载音乐分类
-    this.loadMusicCategories();
     
     // 加载推荐音乐
     this.loadRecommendedMusic();
@@ -117,45 +114,133 @@ Page({
   },
   
   /**
-   * 初始化统一音乐管理器
+   * 初始化统一音乐管理器（统一的分类数据源）
    */
   initUnifiedMusicManager: function() {
+    // 显示加载提示
+    this.setData({ isLoading: true })
+    
     unifiedMusicManager.init().then((success) => {
       if (success) {
         console.log('统一音乐管理器初始化成功')
         
-        // 更新分类数据
+        // 获取最新的分类数据
         const categories = unifiedMusicManager.getAllCategories()
-        this.setData({
-          categories: categories
-        })
         
-        console.log('分类数据已更新:', categories.length)
-        
-        // 统一音乐管理器初始化成功后，加载默认分类的推荐音乐
-        if (this.data.selectedCategory) {
-          console.log('开始加载默认分类推荐音乐:', this.data.selectedCategory)
-          this.loadCategoryRecommendations(this.data.selectedCategory);
+        // 检查分类数据是否为空或过旧
+        if (categories.length === 0 || this.isCategoryDataStale(categories)) {
+          console.log('检测到分类数据过旧或为空，强制从服务器刷新...')
+          this.forceRefreshCategoriesFromManager()
+        } else {
+          // 使用现有的分类数据
+          this.setData({
+            categories: categories,
+            isLoading: false
+          })
+          
+          console.log('分类数据已更新:', categories.length)
+          
+          // 加载默认分类的推荐音乐
+          if (this.data.selectedCategory) {
+            console.log('开始加载默认分类推荐音乐:', this.data.selectedCategory)
+            this.loadCategoryRecommendations(this.data.selectedCategory);
+          }
         }
       } else {
-        console.warn('统一音乐管理器初始化失败，使用默认分类')
-        wx.showToast({
-          title: '初始化失败，使用默认分类',
-          icon: 'none',
-          duration: 1000
-        })
-        
-        // 即使初始化失败，也尝试加载备用推荐
-        this.loadFallbackRecommendations();
+        console.warn('统一音乐管理器初始化失败，尝试强制刷新')
+        this.forceRefreshCategoriesFromManager()
       }
     }).catch((error) => {
       console.error('初始化统一音乐管理器失败:', error)
+      this.setData({ isLoading: false })
+      
+      // 尝试强制刷新作为降级方案
+      this.forceRefreshCategoriesFromManager()
+    })
+  },
+
+  /**
+   * 检查分类数据是否过旧（需要刷新）
+   */
+  isCategoryDataStale: function(categories) {
+    if (!categories || categories.length === 0) {
+      return true
+    }
+    
+    // 检查是否有数据库更新后的新分类（可以根据实际需求调整判断逻辑）
+    // 例如：检查特定分类是否存在，或者检查更新时间戳
+    
+    // 简单检查：如果分类数量少于4个，可能是旧数据
+    if (categories.length < 4) {
+      console.log('分类数量异常，可能是旧数据:', categories.length)
+      return true
+    }
+    
+    // 检查是否有特定的新分类（根据你的数据库更新内容调整）
+    const hasExpectedCategories = categories.some(cat => 
+      cat.name && cat.id && cat.name !== '未知分类'
+    )
+    
+    if (!hasExpectedCategories) {
+      console.log('分类数据格式异常，需要刷新')
+      return true
+    }
+    
+    return false
+  },
+
+  /**
+   * 通过统一管理器强制刷新分类数据
+   */
+  forceRefreshCategoriesFromManager: function() {
+    console.log('通过统一管理器强制刷新分类数据...')
+    
+    // 清理缓存并强制从服务器获取
+    unifiedMusicManager.clearCache()
+    
+    unifiedMusicManager.refreshCategories().then((success) => {
+      if (success) {
+        const categories = unifiedMusicManager.getAllCategories()
+        
+        this.setData({
+          categories: categories,
+          isLoading: false
+        })
+        
+        console.log('分类数据强制刷新成功:', categories.length)
+        
+        // 显示刷新成功提示
+        wx.showToast({
+          title: '分类数据已更新',
+          icon: 'success'
+        })
+        
+        // 重新加载推荐音乐
+        if (this.data.selectedCategory) {
+          this.loadCategoryRecommendations(this.data.selectedCategory);
+        }
+      } else {
+        // 如果还是失败，使用默认分类
+        console.warn('强制刷新也失败，使用默认分类')
+        this.setData({
+          categories: this.getDefaultCategories(),
+          isLoading: false
+        })
+        
+        this.loadFallbackRecommendations();
+      }
+    }).catch((error) => {
+      console.error('强制刷新分类失败:', error)
+      this.setData({
+        categories: this.getDefaultCategories(),
+        isLoading: false
+      })
+      
       wx.showToast({
-        title: '初始化失败',
+        title: '获取分类失败，使用默认分类',
         icon: 'none'
       })
       
-      // 初始化失败时加载备用推荐
       this.loadFallbackRecommendations();
     })
   },
@@ -806,6 +891,97 @@ Page({
         title: '清理缓存失败',
         icon: 'error'
       })
+    }
+  },
+
+  /**
+   * 强制刷新分类数据（解决缓存导致的数据不同步问题）
+   */
+  forceRefreshCategories() {
+    try {
+      wx.showLoading({ title: '正在刷新分类数据...' })
+      
+      // 1. 清理统一音乐管理器的缓存
+      unifiedMusicManager.clearCache()
+      
+      // 2. 清理其他相关缓存
+      wx.removeStorageSync('music_categories_cache')
+      wx.removeStorageSync('category_recommendations_cache')
+      
+      console.log('已清理分类相关缓存')
+      
+      // 3. 强制重新从服务器获取分类数据
+      this.loadMusicCategoriesFromServer().then(() => {
+        wx.hideLoading()
+        wx.showToast({
+          title: '分类数据已更新',
+          icon: 'success'
+        })
+        
+        // 4. 重新加载推荐音乐
+        if (this.data.selectedCategory) {
+          this.loadCategoryRecommendations(this.data.selectedCategory)
+        }
+        
+      }).catch(error => {
+        wx.hideLoading()
+        console.error('强制刷新分类失败:', error)
+        wx.showToast({
+          title: '刷新失败，请稍后重试',
+          icon: 'none'
+        })
+      })
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('强制刷新分类数据失败:', error)
+      wx.showToast({
+        title: '刷新失败',
+        icon: 'error'
+      })
+    }
+  },
+
+  /**
+   * 直接从服务器加载分类数据（绕过缓存）
+   */
+  async loadMusicCategoriesFromServer() {
+    try {
+      console.log('强制从服务器加载音乐分类...')
+      const { MusicAPI } = require('../../utils/healingApi')
+      
+      // 添加时间戳参数强制刷新
+      const timestamp = Date.now()
+      const categoriesResult = await MusicAPI.getCategories()
+      
+      if (categoriesResult.success && categoriesResult.data && categoriesResult.data.length > 0) {
+        // 使用API返回的最新分类数据
+        const categories = categoriesResult.data.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          icon: cat.icon || cat.emoji_code || '🎵',
+          description: cat.description || '音乐分类',
+          count: cat.music_count || cat.count || 0,
+          updated_at: timestamp // 添加更新时间戳
+        }))
+        
+        this.setData({
+          categories: categories
+        })
+        
+        console.log(`从服务器强制加载分类成功: ${categories.length} 个分类`)
+        
+        // 同时更新统一音乐管理器的分类数据
+        await unifiedMusicManager.refreshCategories()
+        
+        return categories
+      } else {
+        throw new Error('服务器返回的分类数据为空或格式错误')
+      }
+      
+    } catch (error) {
+      console.error('强制加载音乐分类失败:', error)
+      throw error
     }
   },
 

@@ -693,6 +693,85 @@ class UnifiedMusicManager {
       console.warn('清除缓存失败:', error)
     }
   }
+
+  /**
+   * 强制刷新分类数据（绕过缓存）
+   */
+  async forceRefreshFromServer() {
+    try {
+      console.log('强制从服务器刷新分类数据（绕过所有缓存）...')
+      
+      // 清除缓存
+      this.clearCache()
+      
+      // 直接调用服务器API，添加时间戳防止缓存
+      const timestamp = Date.now()
+      const response = await this.api.request({
+        url: `/music/categories?t=${timestamp}`,
+        method: 'GET',
+        showLoading: false
+      })
+
+      if (response && response.success && response.data) {
+        this.categories = response.data
+        this.buildCategoryMap()
+        
+        // 保存到缓存
+        await this.saveToCache()
+        
+        console.log('强制刷新分类数据成功:', this.categories.length)
+        return {
+          success: true,
+          data: this.categories,
+          message: '分类数据已从服务器更新'
+        }
+      } else {
+        console.warn('强制刷新返回数据异常:', response)
+        throw new Error('服务器返回数据异常')
+      }
+    } catch (error) {
+      console.error('强制刷新分类数据失败:', error)
+      return {
+        success: false,
+        error: error.message || '强制刷新失败',
+        message: '无法从服务器获取最新分类数据'
+      }
+    }
+  }
+
+  /**
+   * 获取缓存信息（用于调试）
+   */
+  getCacheInfo() {
+    try {
+      const cached = wx.getStorageSync(this.cacheKey)
+      if (cached && cached.timestamp) {
+        const cacheAge = Date.now() - cached.timestamp
+        const cacheAgeHours = Math.floor(cacheAge / (1000 * 60 * 60))
+        const cacheAgeMinutes = Math.floor((cacheAge % (1000 * 60 * 60)) / (1000 * 60))
+        
+        return {
+          hasCachedData: true,
+          cacheAge: cacheAge,
+          cacheAgeHuman: `${cacheAgeHours}小时${cacheAgeMinutes}分钟`,
+          cachedAt: new Date(cached.timestamp).toLocaleString(),
+          categoriesCount: cached.categories ? cached.categories.length : 0,
+          isExpired: cacheAge >= this.cacheExpiry
+        }
+      } else {
+        return {
+          hasCachedData: false,
+          message: '无缓存数据'
+        }
+      }
+    } catch (error) {
+      return {
+        hasCachedData: false,
+        error: error.message,
+        message: '读取缓存信息失败'
+      }
+    }
+  }
 }
 
 // 创建全局实例

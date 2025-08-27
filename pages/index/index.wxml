@@ -47,7 +47,10 @@
   <!-- 声音分类 -->
   <view class="section-header">
     <text class="section-title">声音分类</text>
-    <view class="section-more" bindtap="showAllCategories">查看全部</view>
+    <view class="section-actions">
+      <view class="refresh-btn" bindtap="forceRefreshCategories">🔄</view>
+      <view class="section-more" bindtap="showAllCategories">查看全部</view>
+    </view>
   </view>
   
   <!-- 三个分类一排布局 -->
