@@ -147,6 +147,28 @@ const MusicAPI = {
   },
 
   /**
+   * 刷新音频URL（获取最新的CDN访问链接）
+   */
+  refreshAudioUrl(musicId) {
+    console.log('🔄 请求刷新音频URL, musicId:', musicId)
+    
+    return get(`/music/refresh_url/${musicId}`).then(response => {
+      console.log('🔄 音频URL刷新响应:', response)
+      
+      if (response.success && response.data && response.data.url) {
+        console.log('✅ 音频URL刷新成功:', response.data.url)
+      } else {
+        console.error('❌ 音频URL刷新失败:', response.error)
+      }
+      
+      return response
+    }).catch(error => {
+      console.error('❌ 音频URL刷新请求失败:', error)
+      throw error
+    })
+  },
+
+  /**
    * 获取音乐分类（新增统一接口）
    */
   getCategories() {
@@ -358,6 +380,56 @@ const LongSequenceAPI = {
       console.warn('检查长序列文件失败:', error)
       // 如果接口不存在，返回假设存在的默认结果
       return { success: true, data: { exists: true } }
+    })
+  },
+
+  /**
+   * 删除长序列音乐
+   */
+  deleteLongSequence(sessionId) {
+    console.log('🗑️ 发送长序列删除请求, sessionId:', sessionId)
+    
+    return del(`/music/delete_long_sequence/${sessionId}`, {
+      loadingText: '正在删除长序列...'
+    }).then(response => {
+      console.log('🗑️ 长序列删除API响应:', response)
+      
+      if (response.success) {
+        console.log('✅ 长序列删除成功')
+      } else {
+        console.error('❌ 长序列删除失败:', response.error)
+      }
+      
+      if (handleSubscriptionResponse(response)) {
+        return { ...response, subscription_handled: true }
+      }
+      return response
+    }).catch(error => {
+      console.error('❌ 长序列删除请求失败:', error)
+      console.error('❌ 会话ID:', sessionId)
+      throw error
+    })
+  },
+
+  /**
+   * 刷新长序列音频URL（获取最新的CDN访问链接）
+   */
+  refreshLongSequenceUrl(sessionId) {
+    console.log('🔄 请求刷新长序列URL, sessionId:', sessionId)
+    
+    return get(`/music/refresh_long_sequence_url/${sessionId}`).then(response => {
+      console.log('🔄 长序列URL刷新响应:', response)
+      
+      if (response.success && response.data && response.data.final_file_path) {
+        console.log('✅ 长序列URL刷新成功:', response.data.final_file_path)
+      } else {
+        console.error('❌ 长序列URL刷新失败:', response.error)
+      }
+      
+      return response
+    }).catch(error => {
+      console.error('❌ 长序列URL刷新请求失败:', error)
+      throw error
     })
   }
 }

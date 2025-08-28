@@ -224,6 +224,19 @@ Component({
         } else {
           errorMsg = '音频文件不存在，请重新选择'
         }
+      } else if (error.errMsg && error.errMsg.includes('NSURLErrorDomain错误-1013')) {
+        // 针对CDN认证失败的特殊处理 - 尝试自动刷新URL
+        console.error('🔐 CDN认证失败，尝试刷新URL')
+        const currentTrack = this.data.currentTrack
+        if (currentTrack && currentTrack.url) {
+          console.error('🔍 问题URL:', currentTrack.url)
+          
+          // 尝试自动刷新URL并重新播放
+          this.handleCdnAuthError(currentTrack)
+          return // 不显示错误提示，让刷新流程处理
+        } else {
+          errorMsg = 'CDN访问权限验证失败，请重新选择音频'
+        }
       }
       
       // 对于长序列错误，提供更详细的处理选项
@@ -265,6 +278,88 @@ Component({
         progress: this.data.progress,
         currentTrack: this.data.currentTrack
       })
+    },
+
+    /**
+     * 处理CDN认证失败 - 自动刷新URL并重新播放
+     */
+    async handleCdnAuthError(currentTrack) {
+      console.log('🔄 处理CDN认证失败，尝试刷新URL:', currentTrack.id)
+      
+      try {
+        wx.showLoading({ title: '刷新播放链接...' })
+        
+        const { MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
+        let newUrl = null
+        
+        // 根据音频类型选择不同的刷新策略
+        if (currentTrack.type === 'longSequence' && currentTrack.sessionId) {
+          // 长序列音频：刷新长序列URL
+          console.log('🔄 刷新长序列URL...')
+          const result = await LongSequenceAPI.refreshLongSequenceUrl(currentTrack.sessionId)
+          if (result.success && result.data.final_file_path) {
+            newUrl = result.data.final_file_path
+          }
+        } else if (currentTrack.id) {
+          // 60秒音频：刷新音频URL
+          console.log('🔄 刷新60秒音频URL...')
+          const result = await MusicAPI.refreshAudioUrl(currentTrack.id)
+          if (result.success && result.data.url) {
+            newUrl = result.data.url
+          }
+        }
+        
+        wx.hideLoading()
+        
+        if (newUrl) {
+          console.log('✅ URL刷新成功，重新播放:', newUrl)
+          
+          // 更新track信息并重新播放
+          const updatedTrack = {
+            ...currentTrack,
+            url: newUrl
+          }
+          
+          wx.showToast({
+            title: '链接已更新',
+            icon: 'success',
+            duration: 1000
+          })
+          
+          // 延迟重新播放，给用户看到成功提示
+          setTimeout(() => {
+            this.playTrack(updatedTrack)
+          }, 1200)
+          
+        } else {
+          // 刷新失败，显示错误信息
+          console.error('❌ URL刷新失败')
+          wx.showModal({
+            title: '播放链接已失效',
+            content: '无法获取新的播放链接，请重新选择音频或稍后重试',
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        }
+        
+      } catch (error) {
+        wx.hideLoading()
+        console.error('❌ URL刷新过程出错:', error)
+        
+        wx.showModal({
+          title: '链接刷新失败',
+          content: '无法更新播放链接，请检查网络连接后重试',
+          showCancel: true,
+          confirmText: '重试',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              // 用户选择重试
+              this.handleCdnAuthError(currentTrack)
+            }
+          }
+        })
+      }
     },
 
     // 绑定全局事件

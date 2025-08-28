@@ -112,6 +112,43 @@ class MusicPlayer {
     // 错误处理
     this.audioContext.onError((err) => {
       console.error('🎵 音频事件: 播放错误', err)
+      
+      // 🔍 针对CDN认证失败进行详细分析
+      if (err.errMsg && err.errMsg.includes('NSURLErrorDomain错误-1013')) {
+        console.error('🔐 CDN认证失败详细分析:')
+        console.error('  - 错误码:', err.errCode)
+        console.error('  - 错误消息:', err.errMsg)
+        console.error('  - 当前音频源:', this.currentMusic?.src)
+        
+        // 检查URL的token过期时间
+        if (this.currentMusic?.src) {
+          const urlMatch = this.currentMusic.src.match(/[?&]e=(\d+)/)
+          if (urlMatch) {
+            const expireTime = parseInt(urlMatch[1]) * 1000
+            const now = Date.now()
+            console.error('🕐 详细时间分析:')
+            console.error('  - Token过期时间戳:', urlMatch[1])
+            console.error('  - Token过期时间:', new Date(expireTime).toLocaleString())
+            console.error('  - 当前时间:', new Date(now).toLocaleString())
+            console.error('  - 时间差:', Math.round((now - expireTime) / 1000), '秒')
+            console.error('  - Token状态:', now > expireTime ? '已过期 ❌' : '未过期 ✅')
+            
+            // 如果token过期，提供更明确的错误信息
+            if (now > expireTime) {
+              console.error('💡 解决方案: 需要重新获取有效的CDN访问链接')
+            }
+          } else {
+            console.error('⚠️ URL中未找到过期时间参数，可能是签名错误')
+          }
+          
+          // 检查URL结构
+          console.error('🔍 URL结构分析:')
+          console.error('  - 是否为CDN链接:', this.currentMusic.src.includes('cdn.medsleep.cn') ? '是' : '否')
+          console.error('  - 是否有token参数:', this.currentMusic.src.includes('token=') ? '是' : '否')
+          console.error('  - 是否有过期参数:', this.currentMusic.src.includes('e=') ? '是' : '否')
+        }
+      }
+      
       this.isPlaying = false
       this.updateGlobalState()
       this.emit('error', err)

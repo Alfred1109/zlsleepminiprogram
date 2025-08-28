@@ -692,14 +692,17 @@ Page({
 
     wx.showModal({
       title: '删除音频',
-      content: `确定要删除"${music.title || '60秒音频'}"吗？`,
+      content: `确定要删除"${music.title || '60秒音频'}"吗？\n删除后将无法恢复。`,
       confirmText: '删除',
       cancelText: '取消',
+      confirmColor: '#e64340',
       success: async (res) => {
         if (res.confirm) {
           try {
+            wx.showLoading({ title: '删除中...' })
             await MusicAPI.deleteMusic(music.id)
             
+            wx.hideLoading()
             wx.showToast({
               title: '删除成功',
               icon: 'success'
@@ -709,10 +712,20 @@ Page({
             this.loadMusicData()
 
           } catch (error) {
+            wx.hideLoading()
             console.error('删除60秒音频失败:', error)
+            
+            let errorMsg = '删除失败，请重试'
+            if (error.message && error.message.includes('权限')) {
+              errorMsg = '没有删除权限'
+            } else if (error.message && error.message.includes('网络')) {
+              errorMsg = '网络异常，请重试'
+            }
+            
             wx.showToast({
-              title: '删除失败',
-              icon: 'error'
+              title: errorMsg,
+              icon: 'error',
+              duration: 2000
             })
           }
         }
@@ -951,14 +964,20 @@ Page({
 
     wx.showModal({
       title: '删除长序列',
-      content: `确定要删除"${sequence.title || '长序列音频'}"吗？`,
+      content: `确定要删除"${sequence.title || '长序列音频'}"吗？\n删除后将无法恢复。`,
       confirmText: '删除',
       cancelText: '取消',
+      confirmColor: '#e64340',
       success: async (res) => {
         if (res.confirm) {
           try {
-            // await LongSequenceAPI.deleteLongSequence(sequence.id)
+            wx.showLoading({ title: '删除中...' })
+            
+            // 调用删除API - 使用会话ID或实际的ID
+            const deleteId = sequence.session_id || sequence.id
+            await LongSequenceAPI.deleteLongSequence(deleteId)
 
+            wx.hideLoading()
             wx.showToast({
               title: '删除成功',
               icon: 'success'
@@ -968,10 +987,20 @@ Page({
             this.loadMusicData()
 
           } catch (error) {
+            wx.hideLoading()
             console.error('删除长序列失败:', error)
+            
+            let errorMsg = '删除失败，请重试'
+            if (error.message && error.message.includes('权限')) {
+              errorMsg = '没有删除权限'
+            } else if (error.message && error.message.includes('网络')) {
+              errorMsg = '网络异常，请重试'
+            }
+            
             wx.showToast({
-              title: '删除失败',
-              icon: 'error'
+              title: errorMsg,
+              icon: 'error',
+              duration: 2000
             })
           }
         }
@@ -987,14 +1016,20 @@ Page({
 
     wx.showModal({
       title: '删除长序列',
-      content: '确定要删除这个长序列音频吗？',
+      content: `确定要删除"${sequence.title || '长序列音频'}"吗？\n删除后将无法恢复。`,
       confirmText: '删除',
       cancelText: '取消',
+      confirmColor: '#e64340',
       success: async (res) => {
         if (res.confirm) {
           try {
-            // await LongSequenceAPI.deleteLongSequence(sequence.id)
+            wx.showLoading({ title: '删除中...' })
+            
+            // 调用删除API - 使用会话ID或实际的ID
+            const deleteId = sequence.session_id || sequence.id
+            await LongSequenceAPI.deleteLongSequence(deleteId)
 
+            wx.hideLoading()
             wx.showToast({
               title: '删除成功',
               icon: 'success'
@@ -1004,10 +1039,20 @@ Page({
             this.loadMusicData()
 
           } catch (error) {
+            wx.hideLoading()
             console.error('删除长序列失败:', error)
+            
+            let errorMsg = '删除失败，请重试'
+            if (error.message && error.message.includes('权限')) {
+              errorMsg = '没有删除权限'
+            } else if (error.message && error.message.includes('网络')) {
+              errorMsg = '网络异常，请重试'
+            }
+            
             wx.showToast({
-              title: '删除失败',
-              icon: 'error'
+              title: errorMsg,
+              icon: 'error',
+              duration: 2000
             })
           }
         }

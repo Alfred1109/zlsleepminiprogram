@@ -423,16 +423,13 @@ class UnifiedMusicManager {
    */
   fixQiniuUrl(originalUrl) {
     try {
-      // 如果URL已经包含token但可能过期，尝试重新构建
-      if (originalUrl.includes('token=')) {
-        // 提取基础URL
-        const baseUrl = originalUrl.split('?')[0]
-        console.log('提取基础七牛云URL:', baseUrl)
-        return baseUrl // 先尝试不带token的访问
-      }
+      console.log('🔄 URL修复已改为通过后端刷新，不再手动处理token')
+      // 不再手动处理token，而是通过后端API重新获取
+      // 这个方法保留兼容性，但建议使用 handleCdnAuthError 进行URL刷新
       
-      // 如果是完整的七牛云URL但没有token，直接返回
+      // 如果是完整的URL，先尝试原样返回
       if (originalUrl.startsWith('http') && originalUrl.includes('medsleep.cn')) {
+        console.log('返回原始URL，让后端处理token刷新')
         return originalUrl
       }
       
