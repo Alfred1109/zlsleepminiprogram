@@ -204,6 +204,7 @@ Component({
       
       // 根据错误类型提供不同的提示
       let errorMsg = '播放出错'
+      let isLongSequenceError = false
       
       if (error.errMsg && error.errMsg.includes('no such file')) {
         errorMsg = '音频文件不存在，请重新选择'
@@ -213,13 +214,42 @@ Component({
         errorMsg = '音频格式不支持'
       } else if (error.errMsg && error.errMsg.includes('request:fail')) {
         errorMsg = '网络请求失败，请检查服务器连接'
+      } else if (error.errMsg && error.errMsg.includes('在此服务器上找不到所请求的URL')) {
+        // 针对长序列音频404错误的特殊处理
+        const currentTrack = this.data.currentTrack
+        if (currentTrack && (currentTrack.type === 'longSequence' || 
+            (currentTrack.url && currentTrack.url.includes('long_sequence')))) {
+          errorMsg = '长序列音频文件不存在，可能生成失败或已过期'
+          isLongSequenceError = true
+        } else {
+          errorMsg = '音频文件不存在，请重新选择'
+        }
       }
       
-      wx.showToast({
-        title: errorMsg,
-        icon: 'none',
-        duration: 3000
-      })
+      // 对于长序列错误，提供更详细的处理选项
+      if (isLongSequenceError) {
+        wx.showModal({
+          title: '长序列音频播放失败',
+          content: '音频文件可能生成失败或已过期，请重新生成长序列音频',
+          showCancel: true,
+          confirmText: '重新生成',
+          cancelText: '知道了',
+          success: (res) => {
+            if (res.confirm) {
+              // 跳转到长序列创建页面
+              wx.navigateTo({
+                url: '/pages/longSequence/create/create'
+              })
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none',
+          duration: 3000
+        })
+      }
       
       // 播放出错时重置状态
       this.setData({
@@ -270,6 +300,24 @@ Component({
           // 相对路径，需要添加斜杠
           const baseUrl = app.globalData.apiBaseUrl.replace('/api', '')
           fullUrl = `${baseUrl}/${fullUrl}`
+        }
+      }
+
+      // 🔍 对长序列音频进行预检查
+      if (trackInfo.type === 'longSequence' && trackInfo.sessionId) {
+        console.log('🔍 检测到长序列音频，进行文件状态预检查')
+        try {
+          // 异步检查文件状态，但不阻塞播放
+          const { LongSequenceAPI } = require('../../../utils/healingApi')
+          LongSequenceAPI.checkLongSequenceFile(trackInfo.sessionId).then(result => {
+            if (!result.success || !result.data.exists) {
+              console.warn('⚠️ 长序列文件可能不存在，但仍然尝试播放')
+            }
+          }).catch(error => {
+            console.warn('长序列文件检查失败:', error)
+          })
+        } catch (error) {
+          console.warn('长序列文件检查异常:', error)
         }
       }
 

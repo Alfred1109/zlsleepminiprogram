@@ -54,11 +54,40 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const result = await LongSequenceAPI.getLongSequenceStatus(this.data.sessionId)
+      const sessionId = this.data.sessionId
+      console.log('🎵 长序列播放器: 加载会话信息, sessionId:', sessionId)
+
+      if (!sessionId) {
+        throw new Error('会话ID无效')
+      }
+
+      console.log('🔍 调用长序列状态API...')
+      const result = await LongSequenceAPI.getLongSequenceStatus(sessionId)
+      
+      console.log('🔍 长序列状态API响应:', JSON.stringify(result, null, 2))
       
       if (result.success) {
         const sessionInfo = result.data
+        console.log('🎵 长序列会话信息解析完成:')
+        console.log('  - 状态:', sessionInfo.status)
+        console.log('  - 会话ID:', sessionInfo.session_id)
+        console.log('  - 文件路径:', sessionInfo.final_file_path)
+        console.log('  - 文件大小:', sessionInfo.final_file_size)
+        console.log('  - 时长:', sessionInfo.total_duration_minutes)
+        console.log('  - 完整数据:', JSON.stringify(sessionInfo, null, 2))
+        
         this.setData({ sessionInfo })
+
+        // 🔍 详细检查会话状态
+        if (sessionInfo.status !== 'completed') {
+          console.warn('⚠️ 长序列状态异常:', sessionInfo.status)
+          console.log('📊 状态详情:', {
+            status: sessionInfo.status,
+            created_at: sessionInfo.created_at,
+            updated_at: sessionInfo.updated_at,
+            error_message: sessionInfo.error_message
+          })
+        }
 
         // 解析ISO阶段信息
         if (sessionInfo.iso_phase_plan) {
@@ -73,11 +102,17 @@ Page({
         // 自动加载到全局播放器
         this.loadMusicToGlobalPlayer(sessionInfo)
       } else {
+        console.error('❌ 获取长序列状态失败:', result)
         throw new Error(result.error || '获取会话信息失败')
       }
 
     } catch (error) {
-      console.error('加载会话信息失败:', error)
+      console.error('❌ 加载长序列会话失败:', error)
+      console.error('❌ 错误详情:', {
+        message: error.message,
+        stack: error.stack,
+        sessionId: this.data.sessionId
+      })
       
       // 检查是否是订阅权限问题
       if (error.statusCode === 403 || error.code === 'SUBSCRIPTION_REQUIRED') {
@@ -145,11 +180,18 @@ Page({
       console.error('❌ 音乐文件路径不存在:', sessionInfo.final_file_path)
       wx.showModal({
         title: '音乐文件错误',
-        content: '音乐文件路径不存在，请联系客服或重新生成',
-        showCancel: false,
-        confirmText: '我知道了',
-        success: () => {
-          wx.navigateBack()
+        content: '音乐文件路径不存在，请重新生成长序列音频',
+        showCancel: true,
+        confirmText: '重新生成',
+        cancelText: '返回',
+        success: (res) => {
+          if (res.confirm) {
+            wx.redirectTo({
+              url: '/pages/longSequence/create/create'
+            })
+          } else {
+            wx.navigateBack()
+          }
         }
       })
       return

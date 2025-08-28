@@ -867,6 +867,43 @@ Page({
       return
     }
 
+    // 🔍 额外检查：验证长序列状态
+    try {
+      wx.showLoading({ title: '检查音频状态...' })
+      const statusResult = await LongSequenceAPI.getLongSequenceStatus(sequence.id)
+      wx.hideLoading()
+      
+      if (!statusResult.success || statusResult.data.status !== 'completed') {
+        console.warn('⚠️ 长序列状态异常:', statusResult.data?.status)
+        wx.showModal({
+          title: '音频状态异常',
+          content: statusResult.data?.status === 'failed' ? '音频生成失败，请重新生成' : '音频还在生成中，请稍后再试',
+          showCancel: true,
+          confirmText: '重新生成',
+          cancelText: '知道了',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/longSequence/create/create'
+              })
+            }
+          }
+        })
+        return
+      }
+      
+      // 状态正常，使用最新的文件路径
+      sequence.final_file_path = statusResult.data.final_file_path || sequence.final_file_path
+    } catch (error) {
+      console.error('检查长序列状态失败:', error)
+      wx.hideLoading()
+      // 状态检查失败时仍然尝试播放，但提醒用户
+      wx.showToast({
+        title: '状态检查失败，尝试直接播放',
+        icon: 'none'
+      })
+    }
+
     // 权限检查通过，播放音频
     this.playSequenceWithGlobalPlayer(sequence)
   },

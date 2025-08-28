@@ -241,6 +241,12 @@ const LongSequenceAPI = {
    * 创建30分钟长序列音乐
    */
   createLongSequence(assessmentId, durationMinutes = 30) {
+    console.log('🎶 发送长序列创建请求:', {
+      assessment_id: assessmentId,
+      duration_minutes: durationMinutes,
+      timestamp: new Date().toISOString()
+    })
+    
     return post('/music/create_long_sequence', {
       assessment_id: assessmentId,
       duration_minutes: durationMinutes
@@ -248,11 +254,34 @@ const LongSequenceAPI = {
       loadingText: '正在生成长序列音乐...',
       timeout: 120000 // 2分钟超时
     }).then(response => {
+      console.log('🎶 长序列创建API原始响应:', response)
+      
+      // 检查响应的完整性
+      if (response.success && response.data) {
+        console.log('✅ 长序列创建响应成功')
+        console.log('🔍 检查响应数据完整性:')
+        console.log('  - session_id:', response.data.session_id)
+        console.log('  - status:', response.data.status) 
+        console.log('  - final_file_path:', response.data.final_file_path)
+        console.log('  - 预计完成时间:', response.data.estimated_completion_time)
+        
+        // 验证必要字段
+        if (!response.data.session_id) {
+          console.error('❌ 响应缺少session_id字段')
+        }
+      } else {
+        console.error('❌ 长序列创建响应异常:', response)
+      }
+      
       if (handleSubscriptionResponse(response)) {
         // 如果是订阅提示，返回特殊标识
         return { ...response, subscription_handled: true }
       }
       return response
+    }).catch(error => {
+      console.error('❌ 长序列创建请求失败:', error)
+      console.error('❌ 请求参数:', { assessmentId, durationMinutes })
+      throw error
     })
   },
 
@@ -260,12 +289,44 @@ const LongSequenceAPI = {
    * 查询长序列状态
    */
   getLongSequenceStatus(sessionId) {
+    console.log('🔍 查询长序列状态, sessionId:', sessionId)
+    
     return get(`/music/long_sequence_status/${sessionId}`).then(response => {
+      console.log('🔍 长序列状态查询响应:', response)
+      
+      if (response.success && response.data) {
+        console.log('✅ 长序列状态查询成功')
+        console.log('📊 状态数据详情:')
+        console.log('  - 状态:', response.data.status)
+        console.log('  - 会话ID:', response.data.session_id) 
+        console.log('  - 创建时间:', response.data.created_at)
+        console.log('  - 更新时间:', response.data.updated_at)
+        console.log('  - 文件路径:', response.data.final_file_path)
+        console.log('  - 文件大小:', response.data.final_file_size)
+        console.log('  - 错误信息:', response.data.error_message)
+        console.log('  - 进度:', response.data.progress_percentage)
+        
+        // 🔍 状态异常检测
+        if (response.data.status === 'failed') {
+          console.error('❌ 长序列生成失败，错误信息:', response.data.error_message)
+        } else if (response.data.status === 'completed' && !response.data.final_file_path) {
+          console.error('❌ 状态为completed但缺少文件路径!')
+        } else if (response.data.status === 'generating') {
+          console.log('⏳ 长序列正在生成中，进度:', response.data.progress_percentage || 0, '%')
+        }
+      } else {
+        console.error('❌ 长序列状态查询失败:', response)
+      }
+      
       if (handleSubscriptionResponse(response)) {
         // 如果是订阅提示，返回特殊标识
         return { ...response, subscription_handled: true }
       }
       return response
+    }).catch(error => {
+      console.error('❌ 长序列状态查询请求失败:', error)
+      console.error('❌ 会话ID:', sessionId)
+      throw error
     })
   },
 
@@ -287,6 +348,17 @@ const LongSequenceAPI = {
       return Promise.reject(new Error('用户ID无效，无法获取长序列数据'))
     }
     return get(`/music/user_long_sequences/${userId}`)
+  },
+
+  /**
+   * 检查长序列音频文件是否存在
+   */
+  checkLongSequenceFile(sessionId) {
+    return get(`/music/check_long_sequence_file/${sessionId}`).catch(error => {
+      console.warn('检查长序列文件失败:', error)
+      // 如果接口不存在，返回假设存在的默认结果
+      return { success: true, data: { exists: true } }
+    })
   }
 }
 
