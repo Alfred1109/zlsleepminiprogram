@@ -20,7 +20,7 @@ class QiniuManagerUnified {
       console.log('七牛云统一管理器初始化，API地址:', this.apiBase);
     } catch (e) {
       console.error('获取API地址失败:', e);
-      this.apiBase = 'http://127.0.0.1:5000/api';
+      this.apiBase = 'https://medsleep.cn/api';
     }
   }
 
@@ -283,7 +283,7 @@ module.exports = {
   // 导出兼容旧接口的方法
   getFileUrl: (filename) => {
     console.warn('getFileUrl已废弃，请使用统一管理器API');
-    return `http://cdn.zhiruitech.com.cn/${filename}`;
+          return `https://cdn.medsleep.cn/${filename}`;
   },
   
   fetchNaturalSounds: (callback) => {
@@ -320,7 +320,7 @@ module.exports = {
   
   // 兼容旧config导出
   config: {
-    uri: 'cdn.zhiruitech.com.cn',
+    uri: 'cdn.medsleep.cn',
     bucket: 'zlhealing'
   }
 };

@@ -326,8 +326,8 @@ class UnifiedMusicManager {
 
       // 检查是否为七牛云域名（使用正确可用的域名）
       const validDomains = [
-        'zhiruitech.com.cn',
-        'cdn.zhiruitech.com.cn'
+        'medsleep.cn',
+        'cdn.medsleep.cn'
       ]
       
       const isValidDomain = validDomains.some(domain => 
@@ -399,7 +399,7 @@ class UnifiedMusicManager {
       }
       
       // 3. 尝试修复七牛云URL（如果是七牛云URL）
-      if (musicData.url && musicData.url.includes('zhiruitech.com.cn')) {
+      if (musicData.url && musicData.url.includes('medsleep.cn')) {
         console.log('尝试修复七牛云URL...')
         const fixedUrl = this.fixQiniuUrl(musicData.url)
         if (fixedUrl && this.isValidAudioUrl(fixedUrl)) {
@@ -432,7 +432,7 @@ class UnifiedMusicManager {
       }
       
       // 如果是完整的七牛云URL但没有token，直接返回
-      if (originalUrl.startsWith('http') && originalUrl.includes('zhiruitech.com.cn')) {
+      if (originalUrl.startsWith('http') && originalUrl.includes('medsleep.cn')) {
         return originalUrl
       }
       

@@ -69,8 +69,8 @@ wss://medsleep.cn
 
 ## 七牛云配置
 
-七牛云CDN域名保持不变，继续使用原有的配置：
-- `http://cdn.zhiruitech.com.cn` - 音频文件CDN
+七牛云CDN域名已更新为支持HTTPS的域名：
+- `https://cdn.medsleep.cn` - 音频文件CDN（支持HTTPS）
 
 ## 验证配置
 

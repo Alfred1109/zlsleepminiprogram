@@ -55,7 +55,7 @@ const ENV_CONFIG = {
     // 网络诊断功能已移除 - 改用API调用时优雅降级
     // ENABLE_NETWORK_DIAGNOSTIC: false, // 已废弃
     // 七牛云基础域名与目录映射（可按需调整）
-    QINIU_BASE_DOMAIN: 'http://cdn.zhiruitech.com.cn',
+    QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn',
     QINIU_CATEGORY_DIRS: {
       // 按业务分类配置目录前缀，末尾带斜杠
       sleep: 'zl-sleep/',
@@ -76,7 +76,7 @@ const ENV_CONFIG = {
     ENABLE_IP_DETECTION: false, // 生产环境不需要IP检测
     ENABLE_DEVICE_WHITELIST: true, // 生产环境启用设备白名单
     // ENABLE_NETWORK_DIAGNOSTIC: true, // 已废弃
-    QINIU_BASE_DOMAIN: 'http://cdn.zhiruitech.com.cn', // 七牛云CDN域名保持不变
+    QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn', // 七牛云CDN域名保持不变
     QINIU_CATEGORY_DIRS: {
       sleep: 'zl-sleep/',
       relax: 'zl-relax/',
@@ -96,7 +96,7 @@ const ENV_CONFIG = {
     ENABLE_IP_DETECTION: false, // 测试环境使用固定地址
     ENABLE_DEVICE_WHITELIST: false, // 测试环境禁用设备白名单
     // ENABLE_NETWORK_DIAGNOSTIC: false, // 已废弃
-    QINIU_BASE_DOMAIN: 'http://cdn.zhiruitech.com.cn', // 七牛云CDN域名保持不变
+    QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn', // 七牛云CDN域名保持不变
     QINIU_CATEGORY_DIRS: {
       sleep: 'zl-sleep/',
       relax: 'zl-relax/',
@@ -118,7 +118,7 @@ const ENV_CONFIG = {
     // 设备白名单预加载开关
     ENABLE_DEVICE_WHITELIST: false, // 本地开发禁用设备白名单
     // 七牛云基础域名与目录映射（可按需调整）
-    QINIU_BASE_DOMAIN: 'http://cdn.zhiruitech.com.cn',
+    QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn',
     QINIU_CATEGORY_DIRS: {
       // 按业务分类配置目录前缀，末尾带斜杠
       sleep: 'zl-sleep/',
@@ -239,7 +239,7 @@ function getFullConfig() {
 // 获取七牛基础域名，如未配置则返回默认CDN域名
 function getQiniuBaseDomain() {
   const cfg = getCurrentConfig()
-  return cfg.QINIU_BASE_DOMAIN || 'http://cdn.zhiruitech.com.cn'
+  return cfg.QINIU_BASE_DOMAIN || 'https://cdn.medsleep.cn'
 }
 
 // 获取七牛目录前缀，按业务分类（如 'sleep'、'relax'），末尾保证带斜杠或为空字符串

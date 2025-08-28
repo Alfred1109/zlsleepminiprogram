@@ -212,7 +212,7 @@ class MusicPlayer {
     }
 
     const app = getApp()
-    const baseUrl = app.globalData.apiBaseUrl || 'http://192.168.124.3:5000'
+    const baseUrl = app.globalData.apiBaseUrl || 'https://medsleep.cn'
     
     // 如果是长序列音频
     if (music.sessionId) {

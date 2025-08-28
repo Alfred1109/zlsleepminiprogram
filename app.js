@@ -21,7 +21,7 @@ App({
       console.log('动态API基础URL设置:', this.globalData.apiBaseUrl)
     } catch (e) {
       console.warn('API配置设置失败:', e)
-      this.globalData.apiBaseUrl = 'http://127.0.0.1:5000/api' // 兜底配置
+      this.globalData.apiBaseUrl = 'https://medsleep.cn/api' // 兜底配置
     }
 
     // 强制刷新API配置（确保真机环境使用正确的IP地址）

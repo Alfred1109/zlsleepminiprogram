@@ -158,7 +158,7 @@ class AuthService {
             apiBaseUrl = getApiBaseUrl()
           } catch (error) {
             console.error('获取API基础URL失败:', error)
-            apiBaseUrl = 'http://127.0.0.1:5000/api'
+            apiBaseUrl = 'https://medsleep.cn/api'
           }
         }
         
@@ -222,7 +222,7 @@ class AuthService {
             apiBaseUrl = getApiBaseUrl()
           } catch (error) {
             console.error('获取API基础URL失败:', error)
-            apiBaseUrl = 'http://127.0.0.1:5000/api'
+            apiBaseUrl = 'https://medsleep.cn/api'
           }
         }
         
@@ -378,7 +378,7 @@ class AuthService {
             console.log('微信登录：使用配置文件API地址:', apiBaseUrl)
           } catch (error) {
             console.error('获取API基础URL失败:', error)
-            apiBaseUrl = 'http://127.0.0.1:5000/api' // 兜底配置
+            apiBaseUrl = 'https://medsleep.cn/api' // 兜底配置
           }
         }
         
