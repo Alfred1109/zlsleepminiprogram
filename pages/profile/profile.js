@@ -461,6 +461,32 @@ Page({
     })
   },
 
+  /**
+   * 显示用户协议
+   */
+  showUserAgreement: function () {
+    wx.showModal({
+      title: '用户协议',
+      content: '欢迎使用medsleep疗愈应用！\n\n通过使用我们的服务，您同意遵守以下条款：\n\n1. 服务使用：本应用旨在为用户提供音乐疗愈和心理健康服务。\n\n2. 内容版权：应用内的音乐和内容受版权保护。\n\n3. 用户责任：请合理使用服务，不得进行违法或有害活动。\n\n4. 隐私保护：我们严格保护您的个人信息和使用数据。\n\n5. 服务变更：我们保留修改或终止服务的权利。\n\n完整版协议请访问我们的官方网站查看。',
+      showCancel: true,
+      cancelText: '关闭',
+      confirmText: '已阅读'
+    });
+  },
+
+  /**
+   * 显示隐私政策
+   */
+  showPrivacyPolicy: function () {
+    wx.showModal({
+      title: '隐私政策',
+      content: '我们深知隐私对您的重要性，并承诺保护您的个人信息。\n\n我们收集的信息：\n• 基本账户信息（昵称、头像）\n• 使用数据（播放记录、评测结果）\n• 设备信息（用于服务优化）\n\n信息使用目的：\n• 提供个性化服务体验\n• 改善产品功能和性能\n• 保障账户和服务安全\n\n信息保护措施：\n• 采用行业标准加密技术\n• 严格限制访问权限\n• 不向第三方出售个人信息\n\n您的权利：\n• 查看、修改个人信息\n• 删除账户和相关数据\n• 控制信息收集范围\n\n完整版隐私政策请访问我们的官方网站。',
+      showCancel: true,
+      cancelText: '关闭',
+      confirmText: '已阅读'
+    });
+  },
+
   showSettings: function () {
     wx.navigateTo({
       url: '/pages/settings/settings'

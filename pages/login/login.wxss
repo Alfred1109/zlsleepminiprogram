@@ -327,10 +327,18 @@
   color: #ffffff;
   text-decoration: underline;
   font-weight: bold;
+  padding: 4rpx 8rpx;
+  margin: 0 4rpx;
+  border-radius: 4rpx;
+  background: rgba(255, 255, 255, 0.1);
+  display: inline-block;
+  transition: all 0.3s ease;
 }
 
 .terms-link:active {
   opacity: 0.7;
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0.95);
 }
 
 /* 底部信息 */

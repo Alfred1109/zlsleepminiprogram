@@ -236,6 +236,24 @@
           <view class="list-item-action">▶</view>
         </view>
 
+        <view class="list-item" bindtap="showUserAgreement">
+          <view class="list-item-icon">📄</view>
+          <view class="list-item-content">
+            <view class="list-item-title">用户协议</view>
+            <view class="list-item-subtitle">服务条款与使用协议</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
+        <view class="list-item" bindtap="showPrivacyPolicy">
+          <view class="list-item-icon">🔒</view>
+          <view class="list-item-content">
+            <view class="list-item-title">隐私政策</view>
+            <view class="list-item-subtitle">隐私保护与数据安全</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
         <!-- 设备绑定 -->
         <view wx:if="{{isLoggedIn}}" class="list-item" bindtap="goToDeviceBinding">
           <view class="list-item-icon">📱</view>
