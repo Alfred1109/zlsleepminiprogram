@@ -47,10 +47,8 @@ Page({
     // 延迟检查登录状态，确保App实例已初始化
     setTimeout(() => {
       try {
-        // 强制检查登录状态
-        if (!this.checkAndRequireLogin()) {
-          return; // 如果未登录，停止页面初始化
-        }
+        // 检查登录状态（不强制登录，允许未登录用户浏览首页）
+        this.checkLoginStatus();
       } catch (error) {
         console.error('登录检查失败:', error);
         // 如果登录检查失败，继续初始化页面但标记为未登录状态
@@ -87,10 +85,8 @@ Page({
         // 检查登录状态
         this.checkLoginStatus();
         
-        // 如果已登录，刷新推荐音乐
-        if (this.data.isLoggedIn && this.data.userInfo) {
-          this.loadRecommendedMusic();
-        }
+        // 加载推荐音乐（无论是否登录都显示推荐内容）
+        this.loadRecommendedMusic();
       } catch (error) {
         console.error('检查登录状态失败:', error);
         // 如果检查失败，设置默认状态
@@ -263,53 +259,7 @@ Page({
     this.loadFallbackRecommendations();
   },
 
-  /**
-   * 检查并要求登录
-   */
-  checkAndRequireLogin: function() {
-    try {
-      const userInfo = AuthService.getCurrentUser();
-      const loggedIn = !!userInfo;
 
-      console.log('首页强制登录检查:', loggedIn ? '已登录' : '未登录');
-
-      if (!loggedIn) {
-        // 未登录，立即跳转到登录页
-        console.log('用户未登录，跳转到登录页');
-
-        wx.showModal({
-          title: '欢迎使用medsleep疗愈',
-          content: '请先登录以享受完整的个性化疗愈体验',
-          confirmText: '立即登录',
-          showCancel: false,
-        success: () => {
-          wx.redirectTo({
-            url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/index/index')
-          });
-        }
-      });
-
-      return false;
-    }
-
-      // 已登录，更新页面数据
-      this.setData({
-        isLoggedIn: true,
-        userInfo: userInfo
-      });
-
-      console.log('用户已登录:', userInfo.nickname || userInfo.username);
-      return true;
-    } catch (error) {
-      console.error('检查登录状态时发生错误:', error);
-      // 发生错误时，设置为未登录状态
-      this.setData({
-        isLoggedIn: false,
-        userInfo: null
-      });
-      return false;
-    }
-  },
 
   /**
    * 检查登录状态（不强制跳转）
@@ -547,6 +497,23 @@ Page({
    * 使用全局播放器播放推荐音频（统一方法）
    */
   playRecommendationWithGlobalPlayer: function(music) {
+    // 检查登录状态，未登录时引导用户登录
+    if (!this.data.isLoggedIn || !this.data.userInfo) {
+      wx.showModal({
+        title: '请先登录',
+        content: '播放音乐需要先登录账户，立即前往登录页面？',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' })
+          }
+        }
+      })
+      return
+    }
+    
     // 使用全局播放器播放推荐音频
     
     // 准备播放器需要的音乐数据格式
@@ -1018,31 +985,61 @@ Page({
       userInfo: this.data.userInfo
     })
     
-    if (!this.data.isLoggedIn || !this.data.userInfo) {
-      console.log('用户未登录，跳过推荐音乐加载')
-      return
-    }
-    
     try {
-      // 更安全地获取用户ID，支持多种字段名
-      const userInfo = this.data.userInfo
-      const userId = userInfo.id || userInfo.user_id || userInfo.userId
-      
-      console.log('用户信息详细:', {
-        userInfo: userInfo,
-        userId: userId,
-        availableFields: Object.keys(userInfo || {})
-      })
-      
-      if (!userId) {
-        console.warn('用户ID为空，无法加载推荐音乐:', userInfo)
-        return
+      if (this.data.isLoggedIn && this.data.userInfo) {
+        // 已登录用户，加载个性化推荐
+        const userInfo = this.data.userInfo
+        const userId = userInfo.id || userInfo.user_id || userInfo.userId
+        
+        console.log('用户信息详细:', {
+          userInfo: userInfo,
+          userId: userId,
+          availableFields: Object.keys(userInfo || {})
+        })
+        
+        if (userId) {
+          console.log('开始获取个性化推荐音乐，userId:', userId)
+          this.getPersonalizedRecommendations(userId)
+        } else {
+          console.warn('用户ID为空，加载基础推荐音乐:', userInfo)
+          this.loadBasicRecommendations()
+        }
+      } else {
+        // 未登录用户，加载基础推荐音乐
+        console.log('用户未登录，加载基础推荐音乐')
+        this.loadBasicRecommendations()
       }
-      
-      console.log('开始获取推荐音乐，userId:', userId)
-      this.getPersonalizedRecommendations(userId)
     } catch (error) {
       console.error('加载推荐音乐失败:', error)
+      // 出错时也尝试加载基础推荐
+      this.loadBasicRecommendations()
+    }
+  },
+
+  /**
+   * 加载基础推荐音乐（未登录用户使用）
+   */
+  async loadBasicRecommendations() {
+    try {
+      console.log('开始加载基础推荐音乐')
+      
+      // 使用推荐引擎的基础推荐方法
+      const recommendations = await recommendationEngine.getCategoryRecommendations(1, 6) // 默认加载睡眠分类的推荐
+      
+      this.setData({
+        recommendedMusic: recommendations
+      })
+      
+      console.log('基础推荐音乐加载完成:', {
+        count: recommendations.length,
+        recommendations: recommendations
+      })
+      
+    } catch (error) {
+      console.error('加载基础推荐音乐失败:', error)
+      
+      // 如果基础推荐也失败，则使用备用推荐
+      this.loadFallbackRecommendations()
     }
   },
   

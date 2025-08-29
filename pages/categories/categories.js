@@ -1,5 +1,6 @@
 // pages/categories/categories.js
 const { unifiedMusicManager } = require('../../utils/unifiedMusicManager')
+const AuthService = require('../../services/AuthService')
 
 Page({
   data: {
@@ -12,6 +13,29 @@ Page({
 
   onLoad: function (options) {
     console.log('Categories page loaded')
+    
+    // 检查登录状态，未登录时引导用户登录
+    if (!AuthService.getCurrentUser()) {
+      wx.showModal({
+        title: '请先登录',
+        content: '访问音乐分类需要先登录账户，立即前往登录页面？',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ 
+              url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/categories/categories')
+            })
+          } else {
+            // 用户取消登录，返回上一页
+            wx.navigateBack()
+          }
+        }
+      })
+      return
+    }
+    
     this.initCategories()
   },
 
@@ -117,6 +141,23 @@ Page({
 
   // 随机播放
   async onRandomPlay() {
+    // 检查登录状态
+    if (!AuthService.getCurrentUser()) {
+      wx.showModal({
+        title: '请先登录',
+        content: '使用智能推荐功能需要先登录账户，立即前往登录页面？',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' })
+          }
+        }
+      })
+      return
+    }
+    
     try {
       wx.showLoading({ title: '正在获取音乐...' })
       
@@ -176,6 +217,23 @@ Page({
 
   // 搜索音乐
   onSearchMusic() {
+    // 检查登录状态
+    if (!AuthService.getCurrentUser()) {
+      wx.showModal({
+        title: '请先登录',
+        content: '使用搜索音乐功能需要先登录账户，立即前往登录页面？',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' })
+          }
+        }
+      })
+      return
+    }
+    
     wx.navigateTo({
       url: '/pages/search/search'
     })
@@ -183,6 +241,23 @@ Page({
 
   // 点击分类项
   onCategoryTap(e) {
+    // 检查登录状态
+    if (!AuthService.getCurrentUser()) {
+      wx.showModal({
+        title: '请先登录',
+        content: '访问分类音乐需要先登录账户，立即前往登录页面？',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' })
+          }
+        }
+      })
+      return
+    }
+    
     const category = e.currentTarget.dataset.category
     const categoryId = category?.id || e.currentTarget.dataset.id
     
