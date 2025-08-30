@@ -15,122 +15,76 @@ const ENV_TYPES = {
 // 可以通过编译时变量或者动态检测来确定环境
 let CURRENT_ENV = ENV_TYPES.DEVELOPMENT
 
-// 动态环境检测（可选）
+// 动态环境检测 - 现在所有环境都使用统一配置，主要用于设置调试级别
 function detectEnvironment() {
-  // 可以根据域名、版本号等来自动检测环境
   const accountInfo = wx.getAccountInfoSync()
   console.log('环境检测信息:', accountInfo.miniProgram)
   
   if (accountInfo.miniProgram.envVersion === 'release') {
+    console.log('✅ 正式版环境 - 使用统一服务器配置')
     return ENV_TYPES.PRODUCTION
   } else if (accountInfo.miniProgram.envVersion === 'trial') {
+    console.log('✅ 体验版环境 - 使用统一服务器配置')
     return ENV_TYPES.TEST
   } else {
-    // 开发环境：真机调试时使用生产环境，本地调试时使用本地环境
-    // 可以通过检查是否在真机环境来决定
+    // 开发环境：本地调试和真机调试现在都使用统一的服务器配置
+    // 无论哪种调试方式都连接同一个服务器，确保100%一致性
     const systemInfo = wx.getSystemInfoSync()
     const isSimulator = systemInfo.platform === 'devtools'
     
     if (isSimulator) {
-      console.log('检测到开发工具环境，使用本地配置')
+      console.log('✅ 开发工具环境 - 使用统一服务器配置（本地调试）')
       return ENV_TYPES.LOCAL
     } else {
-      console.log('检测到真机环境，使用生产配置')
-      return ENV_TYPES.PRODUCTION
+      console.log('✅ 真机调试环境 - 使用统一服务器配置（真机调试）')
+      return ENV_TYPES.DEVELOPMENT
     }
   }
 }
 
-// 环境配置
+// 统一环境配置 - 所有环境使用相同的服务器地址，确保一致性
+// 这样无论是本地调试、真机调试、体验版还是正式版都不会出错
+const UNIFIED_CONFIG = {
+  // 核心服务器配置 - 所有环境统一
+  API_BASE_URL: 'https://medsleep.cn/api',
+  STATIC_BASE_URL: 'https://medsleep.cn',
+  QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn',
+  QINIU_CATEGORY_DIRS: {
+    sleep: 'zl-sleep/',
+    relax: 'zl-relax/',
+    focus: 'zl-focus/',
+    default: ''
+  },
+  // 网络配置 - 统一超时和重试策略
+  TIMEOUT: 15000,
+  RETRY_COUNT: 3,
+  // 功能开关 - 统一关闭以避免复杂性
+  ENABLE_IP_DETECTION: false,
+  ENABLE_DEVICE_WHITELIST: false,
+  USE_MOCK: false
+}
+
+// 环境配置 - 现在所有环境都基于统一配置，只有调试级别不同
 const ENV_CONFIG = {
   [ENV_TYPES.DEVELOPMENT]: {
-    // 真机调试时使用生产服务器，本地调试时使用本地地址
-    API_BASE_URL: 'https://medsleep.cn/api', // 真机调试使用生产服务器（443端口HTTPS）
-    // 静态资源基础URL（用于音频文件等）
-    STATIC_BASE_URL: 'https://medsleep.cn', // 真机调试使用生产服务器（443端口HTTPS）
-    // IP自动检测开关（真机调试时关闭）
-    ENABLE_IP_DETECTION: false, // 真机调试时关闭IP检测，使用生产服务器
-    // 设备白名单预加载开关
-    ENABLE_DEVICE_WHITELIST: false, // 设为true启用设备白名单预加载
-    // 网络诊断功能已移除 - 改用API调用时优雅降级
-    // ENABLE_NETWORK_DIAGNOSTIC: false, // 已废弃
-    // 七牛云基础域名与目录映射（可按需调整）
-    QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn',
-    QINIU_CATEGORY_DIRS: {
-      // 按业务分类配置目录前缀，末尾带斜杠
-      sleep: 'zl-sleep/',
-      relax: 'zl-relax/',
-      focus: 'zl-focus/',
-      default: ''
-    },
+    ...UNIFIED_CONFIG,
     DEBUG: true,
-    LOG_LEVEL: 'debug',
-    TIMEOUT: 15000, // 真机环境增加超时时间
-    RETRY_COUNT: 3, // 真机环境增加重试次数
-    USE_MOCK: false // 使用真实后台API
+    LOG_LEVEL: 'debug'
   },
   [ENV_TYPES.PRODUCTION]: {
-    API_BASE_URL: 'https://medsleep.cn/api', // 生产环境API地址（通过Nginx反向代理）
-    STATIC_BASE_URL: 'https://medsleep.cn', // 静态资源域名（通过Nginx反向代理）
-    // 生产环境开关
-    ENABLE_IP_DETECTION: false, // 生产环境不需要IP检测
-    ENABLE_DEVICE_WHITELIST: true, // 生产环境启用设备白名单
-    // ENABLE_NETWORK_DIAGNOSTIC: true, // 已废弃
-    QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn', // 七牛云CDN域名保持不变
-    QINIU_CATEGORY_DIRS: {
-      sleep: 'zl-sleep/',
-      relax: 'zl-relax/',
-      focus: 'zl-focus/',
-      default: ''
-    },
+    ...UNIFIED_CONFIG,
     DEBUG: false,
-    LOG_LEVEL: 'error',
-    TIMEOUT: 15000,
-    RETRY_COUNT: 2,
-    USE_MOCK: false
+    LOG_LEVEL: 'error'
   },
   [ENV_TYPES.TEST]: {
-    API_BASE_URL: 'https://medsleep.cn/api', // 测试环境也使用生产服务器（通过Nginx反向代理）
-    STATIC_BASE_URL: 'https://medsleep.cn', // 静态资源域名（通过Nginx反向代理）
-    // 测试环境开关
-    ENABLE_IP_DETECTION: false, // 测试环境使用固定地址
-    ENABLE_DEVICE_WHITELIST: false, // 测试环境禁用设备白名单
-    // ENABLE_NETWORK_DIAGNOSTIC: false, // 已废弃
-    QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn', // 七牛云CDN域名保持不变
-    QINIU_CATEGORY_DIRS: {
-      sleep: 'zl-sleep/',
-      relax: 'zl-relax/',
-      focus: 'zl-focus/',
-      default: ''
-    },
+    ...UNIFIED_CONFIG,
     DEBUG: true,
-    LOG_LEVEL: 'info',
-    TIMEOUT: 20000,
-    RETRY_COUNT: 1,
-    USE_MOCK: false
+    LOG_LEVEL: 'info'
   },
   [ENV_TYPES.LOCAL]: {
-    // 本地开发环境配置
-    API_BASE_URL: 'http://127.0.0.1:5000/api', // 本地开发使用本地地址
-    STATIC_BASE_URL: 'http://127.0.0.1:5000', // 本地开发使用本地地址
-    // IP自动检测开关
-    ENABLE_IP_DETECTION: true, // 本地开发启用IP检测
-    // 设备白名单预加载开关
-    ENABLE_DEVICE_WHITELIST: false, // 本地开发禁用设备白名单
-    // 七牛云基础域名与目录映射（可按需调整）
-    QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn',
-    QINIU_CATEGORY_DIRS: {
-      // 按业务分类配置目录前缀，末尾带斜杠
-      sleep: 'zl-sleep/',
-      relax: 'zl-relax/',
-      focus: 'zl-focus/',
-      default: ''
-    },
+    ...UNIFIED_CONFIG,
     DEBUG: true,
-    LOG_LEVEL: 'debug',
-    TIMEOUT: 15000, // 本地环境超时时间
-    RETRY_COUNT: 3, // 本地环境重试次数
-    USE_MOCK: false // 使用真实后台API
+    LOG_LEVEL: 'debug'
   }
 }
 
