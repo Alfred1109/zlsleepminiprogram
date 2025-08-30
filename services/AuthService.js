@@ -293,22 +293,30 @@ class AuthService {
 
   // 确保有有效token（自动刷新或要求登录）
   async ensureValidToken() {
+    console.log('🔍 检查token有效性...')
     let token = this.getAccessToken()
 
     // 没有token，抛出错误要求用户登录
     if (!token) {
+      console.log('❌ 没有找到access token')
       throw new Error('用户未登录，请先登录')
     }
     
+    console.log('🔍 检查token是否过期...')
     // token过期，尝试刷新
     if (this.isTokenExpired(token)) {
+      console.log('⏰ Token已过期，尝试刷新...')
       try {
         token = await this.refreshAccessToken()
+        console.log('✅ Token刷新成功')
       } catch (error) {
+        console.log('❌ Token刷新失败:', error.message)
         // 刷新失败，清除用户信息并要求重新登录
-        this.clearAuthData()
+        this.clearTokens()
         throw new Error('登录已过期，请重新登录')
       }
+    } else {
+      console.log('✅ Token有效，无需刷新')
     }
 
     return token
@@ -317,13 +325,29 @@ class AuthService {
   // 为请求添加认证头
   async addAuthHeader(headers = {}) {
     try {
+      console.log('🔍 开始添加认证头...')
       const token = await this.ensureValidToken()
-      if (token) {
-        return { ...headers, Authorization: `Bearer ${token}` }
+      console.log('🔍 获取到token:', {
+        hasToken: !!token,
+        tokenLength: token ? token.length : 0,
+        tokenPrefix: token ? token.substring(0, 10) + '...' : 'none'
+      })
+      
+      // 临时调试：输出完整token用于服务器端测试
+      if (token && token.length > 50) {
+        console.log('🔍 完整token（用于调试）:', token)
       }
+      
+      if (token) {
+        const authHeaders = { ...headers, Authorization: `Bearer ${token}` }
+        console.log('✅ 认证头添加成功')
+        return authHeaders
+      }
+      
+      console.warn('⚠️ 没有可用的token，使用原始headers')
       return headers
     } catch (error) {
-      console.error('添加认证头失败:', error)
+      console.error('❌ 添加认证头失败:', error.message, error)
       throw error // 让调用者决定如何处理
     }
   }

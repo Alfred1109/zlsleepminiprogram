@@ -101,8 +101,12 @@ function request(options) {
       try {
         finalHeader = await AuthService.addAuthHeader(requestHeader)
         console.log('✅ 为认证API添加了认证头:', url)
+        console.log('🔍 认证头详情:', {
+          hasAuthorization: !!finalHeader.Authorization,
+          authHeaderPrefix: finalHeader.Authorization ? finalHeader.Authorization.substring(0, 20) + '...' : 'none'
+        })
       } catch (error) {
-        console.warn('⚠️ 认证API无法获取认证头:', url, error.message)
+        console.error('❌ 认证API无法获取认证头:', url, error.message, error)
         // 认证失败时仍然使用原始header，让后端返回401
         finalHeader = requestHeader
       }

@@ -33,6 +33,9 @@ const PRIVATE_APIS = [
   '/user/',
   '/subscription/',
   
+  // 播放记录（用户特定数据）
+  '/play-records/',
+  
   // 用户特定的音乐
   '/music/user_music',
   '/music/user_long_sequences',
