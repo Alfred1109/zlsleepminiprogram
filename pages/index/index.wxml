@@ -1,45 +1,87 @@
 <!-- pages/index/index.wxml -->
 <view class="container">
-  <!-- 顶部搜索区域 -->
-  <view class="search-section">
-    <view class="search-bar">
-      <view class="search-icon"></view>
-      <input placeholder="搜索疗愈音乐、冥想声音..." bindconfirm="onSearch" />
+  <!-- 顶部Logo区域 -->
+  <view class="header-section">
+    <view class="logo-container">
+      <text class="logo-text">medsleep</text>
+      <text class="logo-subtitle">AI疗愈脑波</text>
     </view>
   </view>
 
-
-
-  <!-- 实时音乐波形区域 -->
-  <view class="brainwave-section {{isPlaying ? 'playing' : ''}}">
-    <!-- 波形可视化容器 -->
-    <view class="waveform-container">
-      <static-waveform 
-        isPlaying="{{isPlaying}}"
-        progress="{{playProgress}}"
-        theme="healing"
-        barCount="{{80}}"
-        duration="{{currentSound.duration || 180}}"
-        musicId="{{currentSound.id || playingSoundId}}"
-        musicName="{{currentSound.name || currentSound.title}}"
-        musicType="{{currentSound.category || currentSound.type}}"
-        bind:seek="onWaveformSeek"
-      />
+  <!-- 新版引导功能区 -->
+  <view class="guide-section">
+    <!-- 模块一：随机播放 -->
+    <view class="guide-card random-listen" bindtap="onRandomListen">
+      <view class="card-content">
+        <text class="card-title">随机播放</text>
+        <text class="card-desc">探索为您精选的疗愈脑波</text>
+      </view>
+      <view class="card-action">
+        <image class="play-icon" src="/images/play-white.svg" />
+      </view>
     </view>
-    
-    <!-- 当前音乐状态显示 -->
-    <view class="wave-info">
-      <view class="wave-info-item">
-        <text class="info-label">正在播放:</text>
-        <text class="info-value">{{currentSound.name || currentSound.title || (isPlaying ? '疗愈' : '暂无音乐')}}</text>
+
+    <!-- 模块二：专业评测 -->
+    <view class="guide-card assessment-card" bindtap="navigateToAssessment">
+      <view class="card-header">
+        <text class="card-title">专业评测</text>
+        <view class="card-action-button">开始评测</view>
       </view>
-      <view class="wave-info-item">
-        <text class="info-label">疗愈类型:</text>
-        <text class="info-value">{{currentSound.category || (selectedCategory ? getCategoryName(selectedCategory) : '请选择分类')}}</text>
+      <view class="card-body">
+        <view class="history-list" wx:if="{{assessmentHistory.length > 0}}">
+          <view class="history-item" wx:for="{{assessmentHistory}}" wx:key="id">
+            <view class="history-info">
+              <text class="history-name">{{item.scaleName}} · {{item.result}}</text>
+              <text class="history-date">{{item.date}}</text>
+            </view>
+            <view class="assessment-view-button" data-id="{{item.id}}" catchtap="viewAssessmentResult">
+              <text class="view-text">查看报告</text>
+            </view>
+          </view>
+        </view>
+        <view class="empty-history" wx:else>
+          <image class="empty-icon" src="/images/empty-assessment.svg" />
+          <text>暂无评测记录</text>
+        </view>
       </view>
-      <view class="wave-info-item">
-        <text class="info-label">播放状态:</text>
-        <text class="info-value">{{isPlaying ? '播放中' : '待机'}}</text>
+    </view>
+
+    <!-- 模块三：自定义脑波 -->
+    <view class="guide-card brainwave-card" bindtap="navigateToGenerator">
+      <view class="card-header">
+        <text class="card-title">AI生成脑波</text>
+        <view class="card-action-button">立即生成</view>
+      </view>
+      <view class="card-body">
+
+        <view class="history-list" wx:if="{{brainwaveHistory.length > 0}}">
+          <view class="history-item" wx:for="{{brainwaveHistory}}" wx:key="id">
+            <view class="history-info">
+              <text class="history-name">{{item.name}}</text>
+              <view class="history-meta">
+                <text class="history-date">{{item.date}}</text>
+                <text class="history-type {{item.type === '60s_generated' ? 'type-60s' : 'type-long'}}">
+                  {{item.type === '60s_generated' ? '60秒定制' : '长序列'}}
+                </text>
+              </view>
+            </view>
+            <view class="play-button" data-music="{{item}}" catchtap="playHistoryBrainwave">
+              <image class="play-icon-small" src="/images/play.svg" />
+            </view>
+          </view>
+        </view>
+        <view class="empty-history" wx:else>
+          <image class="empty-icon" src="/images/empty-music.svg" />
+          <text>暂无生成记录</text>
+          <view style="margin-top: 20rpx; padding: 20rpx; background: rgba(255,255,255,0.1); border-radius: 8rpx; font-size: 20rpx;">
+            <view style="display: flex; flex-direction: column; gap: 8rpx;">
+              <text>🔍 调试信息:</text>
+              <text>登录状态: {{isLoggedIn ? '✅ 已登录' : '❌ 未登录'}}</text>
+              <text>用户ID: {{userInfo.id || userInfo.user_id || '无'}}</text>
+              <text>脑波数据: {{brainwaveHistory.length}}条</text>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
@@ -70,7 +112,7 @@
 
 
 
-  <!-- 分类推荐音频区域 -->
+  <!-- 分类推荐脑波区域 -->
   <view class="category-recommendations" wx:if="{{selectedCategory && categoryRecommendations.length > 0}}">
     <view class="section-header">
       <text class="section-title">{{getCategoryName(selectedCategory)}} · 推荐</text>
@@ -83,7 +125,7 @@
             bindtap="onRecommendationTap"
             data-music="{{item}}">
         
-        <!-- 音频封面 -->
+        <!-- 脑波封面 -->
         <view class="music-cover-vertical">
           <image 
             class="cover-image-vertical" 
@@ -92,7 +134,7 @@
           />
         </view>
         
-        <!-- 音频信息 -->
+        <!-- 脑波信息 -->
         <view class="music-info-vertical">
           <text class="music-title-vertical">{{item.title}}</text>
           <text class="music-duration-vertical" wx:if="{{item.duration}}">{{formatDuration(item.duration)}}</text>
@@ -115,7 +157,7 @@
     <view class="tip-icon">💡</view>
     <view class="tip-content">
       <text class="tip-title">开始您的疗愈之旅</text>
-      <text class="tip-desc">选择一个分类，查看推荐音频并开始播放</text>
+      <text class="tip-desc">选择一个分类，查看推荐脑波并开始播放</text>
     </view>
   </view>
 </view>

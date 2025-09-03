@@ -29,8 +29,8 @@ function detectEnvironment() {
   } else {
     // 开发环境：本地调试和真机调试现在都使用统一的服务器配置
     // 无论哪种调试方式都连接同一个服务器，确保100%一致性
-    const systemInfo = wx.getSystemInfoSync()
-    const isSimulator = systemInfo.platform === 'devtools'
+    const deviceInfo = wx.getDeviceInfo()
+    const isSimulator = deviceInfo.platform === 'devtools'
     
     if (isSimulator) {
       console.log('✅ 开发工具环境 - 使用统一服务器配置（本地调试）')

@@ -34,8 +34,8 @@ Page({
    */
   detectDevEnvironment() {
     try {
-      const systemInfo = wx.getSystemInfoSync()
-      const isDevTools = systemInfo.platform === 'devtools'
+      const deviceInfo = wx.getDeviceInfo()
+      const isDevTools = deviceInfo.platform === 'devtools'
       
       if (isDevTools) {
         console.log('检测到开发工具环境，自动填入测试账号')

@@ -11,20 +11,8 @@ Page({
   data: {
     isLoggedIn: false,
     userInfo: null,
-    brainwaveInfo: {
-      baseFreq: null,
-      beatFreq: null,
-      currentTime: 0,
-      totalTime: 0
-    },
-    selectedMood: 'sleep',
-    selectedDuration: 30, // 恢复这个变量，代码中还在使用
     selectedCategory: 1,
     sounds: [],
-    isPlaying: false,
-    playingSoundId: null,
-    currentSound: {},
-    playProgress: 0, // 播放进度 0-100
     
     // 推荐音乐相关
     recommendedMusic: [],
@@ -33,14 +21,14 @@ Page({
     // 分类推荐音频
     categoryRecommendations: [],
     categories: [],
-    // 移除脑波类型定义，现在使用音乐实时分析
-    audioContext: null,
-    brainwavePlayer: null,
-    defaultImageUrl: '/assets/images/default-image.png', // 添加默认图片路径
     
     // 全局播放器相关
     showGlobalPlayer: false,
-    isLoading: false
+    isLoading: false,
+
+    // 新增：引导功能区数据
+    assessmentHistory: [],
+    brainwaveHistory: []
   },
   
   onLoad: function () {
@@ -76,6 +64,9 @@ Page({
     // 导入七牛云统一管理器
     const { qiniuManagerUnified } = require('../../utils/qiniuManagerUnified');
     this.qiniuManager = qiniuManagerUnified;
+
+    // 加载引导区历史数据
+    this.loadHistoryData();
   },
   
   onShow: function() {
@@ -87,6 +78,9 @@ Page({
         
         // 加载推荐音乐（无论是否登录都显示推荐内容）
         this.loadRecommendedMusic();
+        
+        // 重新加载历史数据（登录状态可能有变化）
+        this.loadHistoryData();
       } catch (error) {
         console.error('检查登录状态失败:', error);
         // 如果检查失败，设置默认状态
@@ -108,6 +102,611 @@ Page({
     // 页面卸载时，停止所有音频
     this.stopAllAudio();
   },
+
+  /**
+   * 新增：加载历史数据（评测与脑波）
+   */
+  loadHistoryData: function() {
+    console.log('🔍 开始加载历史数据，当前状态:', {
+      isLoggedIn: this.data.isLoggedIn,
+      userInfo: this.data.userInfo,
+      hasUserInfo: !!this.data.userInfo
+    });
+    
+    // 检查用户登录状态
+    if (!this.data.isLoggedIn || !this.data.userInfo) {
+      console.log('❌ 用户未登录，显示空状态');
+      // 未登录时显示空状态
+      this.setData({
+        assessmentHistory: [],
+        brainwaveHistory: []
+      });
+      return;
+    }
+
+    const userId = this.data.userInfo.id || this.data.userInfo.user_id;
+    console.log('👤 用户ID:', userId, '完整用户信息:', this.data.userInfo);
+    
+    if (!userId) {
+      console.warn('❌ 用户ID为空，无法加载历史数据');
+      return;
+    }
+
+    console.log('✅ 开始并行加载历史数据，userId:', userId);
+    
+    // 并行加载评测历史和脑波历史
+    Promise.all([
+      this.loadAssessmentHistory(userId),
+      this.loadBrainwaveHistory(userId)
+    ]).catch(error => {
+      console.error('加载历史数据失败:', error);
+    });
+  },
+
+  /**
+   * 加载评测历史
+   */
+  async loadAssessmentHistory(userId) {
+    try {
+      const { AssessmentAPI } = require('../../utils/healingApi');
+      const result = await AssessmentAPI.getHistory(userId);
+      
+      if (result.success && result.data) {
+        // 转换数据格式，只显示最近3条已完成的评测
+        const recentAssessments = result.data
+          .filter(item => item.status === 'completed')
+          .sort((a, b) => {
+            // 按完成时间倒序排列
+            const dateA = new Date(a.completed_at || a.created_at || 0);
+            const dateB = new Date(b.completed_at || b.created_at || 0);
+            return dateB - dateA;
+          })
+          .slice(0, 3)
+          .map(item => ({
+            id: item.id || item.assessment_id,
+            date: this.formatDate(item.completed_at || item.created_at),
+            result: this.getAssessmentResultText(item.result || item.score),
+            scaleName: item.scale_name || '心理评测',
+            rawData: item // 保存原始数据用于跳转
+          }));
+
+        this.setData({
+          assessmentHistory: recentAssessments
+        });
+        
+        console.log('评测历史加载成功:', {
+          总数: result.data.length,
+          已完成: result.data.filter(item => item.status === 'completed').length,
+          显示: recentAssessments.length
+        });
+      } else {
+        console.warn('评测历史加载失败:', result.error);
+        this.setData({ assessmentHistory: [] });
+      }
+    } catch (error) {
+      console.error('加载评测历史异常:', error);
+      this.setData({ assessmentHistory: [] });
+    }
+  },
+
+  /**
+   * 加载脑波历史（包含60秒音频和长序列）
+   */
+  async loadBrainwaveHistory(userId) {
+    try {
+      console.log('🧠 开始加载脑波历史，userId:', userId);
+      const { MusicAPI, LongSequenceAPI } = require('../../utils/healingApi');
+      
+      console.log('📡 调用API获取用户音频数据...');
+      
+      // 并行获取两种类型的音频数据
+      const [userMusicResult, longSequenceResult] = await Promise.allSettled([
+        MusicAPI.getUserMusic(userId),
+        LongSequenceAPI.getUserLongSequences(userId)
+      ]);
+      
+      console.log('📡 API调用完成，结果状态:', {
+        userMusicStatus: userMusicResult.status,
+        longSequenceStatus: longSequenceResult.status
+      });
+      
+      let allBrainwaves = [];
+      
+      // 处理60秒生成的音频
+      if (userMusicResult.status === 'fulfilled' && userMusicResult.value) {
+        console.log('🎵 60秒音频API响应完整信息:', userMusicResult.value);
+        
+        if (userMusicResult.value.success && userMusicResult.value.data) {
+          console.log('🎵 ===== 60秒音频原始数据 =====');
+          console.log('数据条数:', userMusicResult.value.data.length);
+          console.log('完整数据:', userMusicResult.value.data);
+          
+          // 简单处理：不过滤，直接展示前3条
+          const recentUserMusic = userMusicResult.value.data
+            .slice(0, 3) // 直接取前3条，先不过滤
+            .map(item => ({
+              id: item.id,
+              name: this.generate60sAudioName(item),
+              date: this.formatDate(item.updated_at || item.created_at),
+              duration: item.duration_seconds || 60,
+              url: item.file_path || item.audio_url || item.url || 'no-url',
+              image: '/images/default-music-cover.svg',
+              type: '60s_generated',
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+              rawData: item
+            }));
+          
+          console.log('🎵 ===== 处理后的60秒音频 =====');
+          console.log('处理后数据:', recentUserMusic);
+          allBrainwaves.push(...recentUserMusic);
+        } else {
+          console.warn('🎵 60秒音频API响应格式异常:', {
+            success: userMusicResult.value.success,
+            hasData: !!userMusicResult.value.data,
+            keys: Object.keys(userMusicResult.value)
+          });
+        }
+      } else if (userMusicResult.status === 'rejected') {
+        console.warn('🎵 获取60秒音频失败:', userMusicResult.reason);
+      } else {
+        console.warn('🎵 60秒音频API调用异常:', userMusicResult);
+      }
+      
+      // 处理长序列脑波（30分钟）
+      if (longSequenceResult.status === 'fulfilled' && longSequenceResult.value.success && longSequenceResult.value.data) {
+        const recentLongSequences = longSequenceResult.value.data
+          .filter(item => item.status === 'completed' && item.final_file_path)
+          .map(item => ({
+            id: item.session_id,
+            name: this.getBrainwaveDisplayName(item),
+            date: this.formatDate(item.updated_at || item.created_at),
+            duration: item.duration_minutes ? item.duration_minutes * 60 : 1800,
+            url: item.final_file_path,
+            image: '/images/default-music-cover.svg',
+            type: 'long_sequence',
+            rawData: item
+          }));
+        allBrainwaves.push(...recentLongSequences);
+      } else if (longSequenceResult.status === 'rejected') {
+        console.warn('获取长序列脑波失败:', longSequenceResult.reason);
+      }
+      
+      // 按创建时间排序，取最近的3条
+      allBrainwaves.sort((a, b) => {
+        const dateA = new Date(a.rawData.updated_at || a.rawData.created_at || 0);
+        const dateB = new Date(b.rawData.updated_at || b.rawData.created_at || 0);
+        return dateB - dateA;
+      });
+      
+      const recentBrainwaves = allBrainwaves.slice(0, 3);
+      
+      console.log('🔥 ===== 最终设置到界面的数据 =====');
+      console.log('allBrainwaves总数:', allBrainwaves.length);
+      console.log('recentBrainwaves数量:', recentBrainwaves.length);
+      console.log('recentBrainwaves内容:', recentBrainwaves);
+      
+      this.setData({
+        brainwaveHistory: recentBrainwaves
+      });
+      
+      console.log('🔥 数据已设置到界面，当前brainwaveHistory:', this.data.brainwaveHistory);
+      
+      console.log('脑波历史加载成功:', {
+        总计: allBrainwaves.length,
+        显示: recentBrainwaves.length,
+        '60秒音频': allBrainwaves.filter(item => item.type === '60s_generated').length,
+        '长序列脑波': allBrainwaves.filter(item => item.type === 'long_sequence').length
+      });
+      
+    } catch (error) {
+      console.error('加载脑波历史异常:', error);
+      this.setData({ brainwaveHistory: [] });
+    }
+  },
+
+  /**
+   * 格式化日期显示
+   */
+  formatDate: function(dateString) {
+    if (!dateString) return '未知日期';
+    
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = now - date;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        return '今天';
+      } else if (diffDays === 1) {
+        return '昨天';
+      } else if (diffDays < 7) {
+        return `${diffDays}天前`;
+      } else {
+        return date.toLocaleDateString('zh-CN', { 
+          month: 'numeric', 
+          day: 'numeric' 
+        });
+      }
+    } catch (error) {
+      console.warn('日期格式化失败:', dateString, error);
+      return '未知日期';
+    }
+  },
+
+  /**
+   * 获取评测结果文本
+   */
+  getAssessmentResultText: function(result) {
+    if (!result) return '评测完成';
+    
+    // 如果是数字分数，转换为文字描述
+    if (typeof result === 'number') {
+      if (result >= 80) return '状态良好';
+      else if (result >= 60) return '轻度压力';
+      else if (result >= 40) return '中度压力';
+      else return '需要关注';
+    }
+    
+    // 如果已经是文字描述，直接返回
+    return result.toString();
+  },
+
+  /**
+   * 生成60秒音频显示名称
+   */
+  generate60sAudioName: function(item) {
+    console.log(`🏷️ 为音频${item.id}生成名称，包含字段:`, {
+      assessment_info: item.assessment_info,
+      assessment_id: item.assessment_id,
+      title: item.title,
+      id: item.id,
+      allKeys: Object.keys(item)
+    });
+    
+    // 检查是否有评测信息
+    if (item.assessment_info) {
+      const assessmentInfo = item.assessment_info;
+      const scaleName = assessmentInfo.scale_name || assessmentInfo.scaleName || '心理评测';
+      const result = this.getAssessmentResultText(assessmentInfo.total_score, scaleName);
+      const generatedName = `${scaleName} · ${result}`;
+      console.log(`🏷️ 使用评测信息生成名称: ${generatedName}`);
+      return generatedName;
+    }
+    
+    // 检查是否有评测ID关联的信息
+    if (item.assessment_id) {
+      const generatedName = `评测脑波 #${item.assessment_id}`;
+      console.log(`🏷️ 使用评测ID生成名称: ${generatedName}`);
+      return generatedName;
+    }
+    
+    // 如果有标题就使用标题
+    if (item.title && item.title !== '60秒定制音乐') {
+      console.log(`🏷️ 使用标题作为名称: ${item.title}`);
+      return item.title;
+    }
+    
+    // 默认名称
+    const defaultName = `60秒疗愈脑波 #${item.id}`;
+    console.log(`🏷️ 使用默认名称: ${defaultName}`);
+    return defaultName;
+  },
+
+  /**
+   * 获取脑波显示名称
+   */
+  getBrainwaveDisplayName: function(item) {
+    // 如果有明确的标题或名称，直接使用
+    if (item.title && item.title !== '60秒定制音乐') return item.title;
+    if (item.name && item.name !== '60秒定制音乐') return item.name;
+    
+    // 根据评测结果推断脑波类型
+    const assessmentResult = item.assessment_result;
+    if (assessmentResult) {
+      if (assessmentResult.includes('焦虑') || assessmentResult.includes('压力')) {
+        return '放松-α波';
+      } else if (assessmentResult.includes('睡眠') || assessmentResult.includes('失眠')) {
+        return '助眠-δ波';
+      } else if (assessmentResult.includes('专注') || assessmentResult.includes('注意力')) {
+        return '专注-β波';
+      } else if (assessmentResult.includes('放松') || assessmentResult.includes('冥想')) {
+        return '冥想-θ波';
+      }
+    }
+    
+    // 根据音乐参数推断类型
+    if (item.generation_params) {
+      const params = item.generation_params;
+      if (params.style) {
+        switch (params.style.toLowerCase()) {
+          case 'sleep':
+          case 'sleeping':
+            return '助眠音乐';
+          case 'relax':
+          case 'relaxing':
+            return '放松音乐';
+          case 'focus':
+          case 'concentration':
+            return '专注音乐';
+          case 'meditation':
+            return '冥想音乐';
+          default:
+            return '定制音乐';
+        }
+      }
+    }
+    
+    // 根据长度推断类型
+    const duration = item.duration_seconds || item.duration_minutes * 60 || 0;
+    if (duration <= 120) {
+      return '60秒定制音乐';
+    } else if (duration >= 1800) {
+      return '长序列脑波';
+    }
+    
+    // 最后的默认名称
+    const id = item.session_id || item.id || 'unknown';
+    return `定制音乐-${id.toString().substring(0, 8)}`;
+  },
+
+  // --- 新增：引导功能区事件处理 ---
+
+  /**
+   * 智能随机试听
+   */
+  async onRandomListen() {
+    try {
+      wx.showLoading({ title: '正在为您智能推荐...' });
+      
+      let recommendedMusic = null;
+      
+      // 如果用户已登录，尝试个性化推荐
+      if (this.data.isLoggedIn && this.data.userInfo) {
+        const userId = this.data.userInfo.id || this.data.userInfo.user_id;
+        if (userId) {
+          recommendedMusic = await this.getSmartRecommendation(userId);
+        }
+      }
+      
+      // 如果个性化推荐失败，使用基于时间的智能推荐
+      if (!recommendedMusic) {
+        recommendedMusic = await this.getTimeBasedRecommendation();
+      }
+      
+      // 如果还没有推荐，随机选择一个分类
+      if (!recommendedMusic) {
+        recommendedMusic = await this.getRandomCategoryMusic();
+      }
+      
+      wx.hideLoading();
+      
+      if (recommendedMusic) {
+        wx.showToast({
+          title: '为您智能推荐音乐',
+          icon: 'none'
+        });
+        this.playRecommendationWithGlobalPlayer(recommendedMusic);
+      } else {
+        wx.showToast({
+          title: '暂无可推荐的音乐',
+          icon: 'none'
+        });
+      }
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('智能推荐失败:', error);
+      wx.showToast({
+        title: '推荐失败，请稍后重试',
+        icon: 'none'
+      });
+    }
+  },
+
+  /**
+   * 获取个性化智能推荐
+   */
+  async getSmartRecommendation(userId) {
+    try {
+      const { recommendationEngine } = require('../../utils/recommendationEngine');
+      const recommendations = await recommendationEngine.getPersonalizedRecommendations(userId, 1);
+      
+      if (recommendations && recommendations.length > 0) {
+        return recommendations[0];
+      }
+    } catch (error) {
+      console.warn('个性化推荐失败:', error);
+    }
+    return null;
+  },
+
+  /**
+   * 基于时间的智能推荐
+   */
+  async getTimeBasedRecommendation() {
+    try {
+      const hour = new Date().getHours();
+      let categoryId = 1; // 默认自然音
+      let categoryName = '自然音';
+      
+      // 根据时间推荐不同类型的音乐
+      if (hour >= 22 || hour <= 6) {
+        // 夜间：推荐助眠音乐
+        categoryId = 1; // 自然音
+        categoryName = '助眠自然音';
+      } else if (hour >= 7 && hour <= 11) {
+        // 上午：推荐专注音乐
+        categoryId = 2; // 白噪音
+        categoryName = '专注白噪音';
+      } else if (hour >= 12 && hour <= 14) {
+        // 午休：推荐放松音乐
+        categoryId = 1; // 自然音
+        categoryName = '午休自然音';
+      } else if (hour >= 15 && hour <= 18) {
+        // 下午：推荐AI音乐
+        categoryId = 4; // AI音乐
+        categoryName = '下午AI音乐';
+      } else {
+        // 晚间：推荐疗愈资源
+        categoryId = 5; // 疗愈资源
+        categoryName = '晚间疗愈资源';
+      }
+      
+      // 获取该分类的推荐音乐
+      const categoryRecommendations = await this.getCategorySmartRecommendation(categoryId);
+      if (categoryRecommendations && categoryRecommendations.length > 0) {
+        const music = categoryRecommendations[0];
+        music.recommendationReason = `${categoryName} - 根据当前时间为您推荐`;
+        return music;
+      }
+    } catch (error) {
+      console.warn('基于时间的推荐失败:', error);
+    }
+    return null;
+  },
+
+  /**
+   * 获取分类智能推荐
+   */
+  async getCategorySmartRecommendation(categoryId) {
+    try {
+      const { recommendationEngine } = require('../../utils/recommendationEngine');
+      return await recommendationEngine.getCategoryRecommendations(categoryId, 1);
+    } catch (error) {
+      console.warn('分类推荐失败:', error);
+      return null;
+    }
+  },
+
+  /**
+   * 随机分类音乐（最后的备选方案）
+   */
+  async getRandomCategoryMusic() {
+    try {
+      const categories = this.data.categories;
+      if (categories.length === 0) return null;
+      
+      // 随机选择一个分类
+      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+      const categoryRecommendations = await this.getCategorySmartRecommendation(randomCategory.id);
+      
+      if (categoryRecommendations && categoryRecommendations.length > 0) {
+        const music = categoryRecommendations[0];
+        music.recommendationReason = `随机推荐 - ${randomCategory.name}`;
+        return music;
+      }
+    } catch (error) {
+      console.warn('随机分类推荐失败:', error);
+    }
+    return null;
+  },
+
+  /**
+   * 跳转到评测页面
+   */
+  navigateToAssessment: function() {
+    wx.navigateTo({
+      url: '/pages/assessment/scales/scales'
+    });
+  },
+  
+  /**
+   * 查看历史评测报告
+   */
+  viewAssessmentResult: function(e) {
+    const assessmentId = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/assessment/result/result?id=${assessmentId}`
+    });
+  },
+
+  /**
+   * 跳转到脑波生成页面
+   */
+  navigateToGenerator: function() {
+    // 假设脑波生成页面路径为 /pages/generator/index
+    wx.navigateTo({
+      url: '/pages/longSequence/create/create'
+    });
+  },
+
+  /**
+   * 播放历史脑波
+   */
+  playHistoryBrainwave: function(e) {
+    const music = e.currentTarget.dataset.music;
+    
+    // 检查登录状态
+    if (!this.data.isLoggedIn || !this.data.userInfo) {
+      wx.showModal({
+        title: '请先登录',
+        content: '播放脑波需要先登录账户',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' })
+          }
+        }
+      })
+      return
+    }
+
+    // 检查音频URL
+    if (!music.url) {
+      wx.showToast({
+        title: '脑波文件不存在',
+        icon: 'error'
+      });
+      return;
+    }
+
+    console.log('🎵 播放历史脑波:', music);
+
+    // 构建播放器数据
+    const trackInfo = {
+      name: music.name || '未知脑波',
+      url: music.url,
+      image: music.image || '/images/default-music-cover.svg',
+      category: music.type === '60s_generated' ? '60秒脑波' : '长序列脑波',
+      type: music.type || 'brainwave',
+      id: music.id,
+      duration: music.duration || 60
+    };
+
+    // 如果是相对路径，转换为完整URL
+    if (trackInfo.url && trackInfo.url.startsWith('/')) {
+      const app = getApp();
+      const baseUrl = app.globalData.apiBaseUrl ? app.globalData.apiBaseUrl.replace('/api', '') : 'https://medsleep.cn';
+      trackInfo.url = `${baseUrl}${trackInfo.url}`;
+    }
+
+    console.log('🎵 构建的播放信息:', trackInfo);
+
+    // 显示全局播放器
+    this.setData({
+      showGlobalPlayer: true
+    });
+
+    // 使用全局播放器播放
+    setTimeout(() => {
+      const globalPlayer = this.selectComponent('#globalPlayer');
+      if (globalPlayer && globalPlayer.playTrack) {
+        globalPlayer.playTrack(trackInfo);
+      } else {
+        console.warn('全局播放器组件未找到');
+        wx.showToast({
+          title: '播放器初始化失败',
+          icon: 'none'
+        });
+      }
+    }, 100);
+  },
+
+
   
   /**
    * 初始化统一音乐管理器（添加调试信息）
@@ -501,7 +1100,7 @@ Page({
     if (!this.data.isLoggedIn || !this.data.userInfo) {
       wx.showModal({
         title: '请先登录',
-        content: '播放音乐需要先登录账户，立即前往登录页面？',
+        content: '播放脑波需要先登录账户，立即前往登录页面？',
         showCancel: true,
         cancelText: '取消',
         confirmText: '去登录',
@@ -518,10 +1117,10 @@ Page({
     
     // 准备播放器需要的音乐数据格式
     const trackInfo = {
-      name: music.title || music.name || '未知音乐',
+      name: music.title || music.name || '未知脑波',
       url: music.path || music.audioUrl || 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
       image: music.image || '/images/default-music-cover.svg',
-      category: music.category || '推荐音乐',
+      category: music.category || '推荐脑波',
       type: music.type || 'music',
       id: music.id || 'temp_' + Date.now(),
       duration: music.duration || 180
@@ -678,21 +1277,21 @@ Page({
       console.error('统一管理器获取音乐失败:', error)
       
       // 根据错误类型提供不同的提示和处理
-      let errorMessage = '获取音乐失败'
+      let errorMessage = '获取脑波失败'
       let showModal = false
       let modalTitle = '提示'
       let showSwitchButton = false
       
       if (error.message) {
         if (error.message.includes('没有音乐资源') || error.message.includes('暂无可用内容')) {
-          // 分类中没有音乐资源
+          // 分类中没有脑波资源
           errorMessage = error.message
           modalTitle = '分类暂无内容'
           showModal = true
           showSwitchButton = true
         } else if (error.message.includes('音频正在更新中')) {
           errorMessage = error.message
-          modalTitle = '音频更新中'
+          modalTitle = '脑波更新中'
           showModal = true
           showSwitchButton = true
         } else if (error.message.includes('网络连接不稳定')) {
@@ -701,8 +1300,8 @@ Page({
           showModal = true
           showSwitchButton = false
         } else if (error.message.includes('音频URL无效') || error.message.includes('音频暂时无法访问')) {
-          errorMessage = '音频文件暂时无法访问，请稍后再试'
-          modalTitle = '音频加载失败'
+          errorMessage = '脑波文件暂时无法访问，请稍后再试'
+          modalTitle = '脑波加载失败'
           showModal = true
           showSwitchButton = true
         } else {
@@ -1093,7 +1692,7 @@ Page({
   showMyMusicLibrary: function() {
     wx.switchTab({
       url: '/pages/music/library/library'
-    })
+    });
   },
   
 
@@ -1657,15 +2256,7 @@ Page({
     });
   },
   
-  onSearch: function (e) {
-    const keyword = e.detail.value;
-    if (!keyword) return;
-    
-    const results = soundData.searchSounds(keyword);
-    this.setData({
-      sounds: results
-    });
-  },
+
   
   loadSoundData: function() {
     // 不再需要预加载静态声音数据
@@ -1673,15 +2264,7 @@ Page({
     console.log('统一音乐管理器已接管音乐数据加载');
   },
   
-  // 搜索功能
-  onSearch: function(e) {
-    const keyword = e.detail.value;
-    if (keyword && keyword.trim()) {
-      wx.navigateTo({
-        url: `/pages/search/search?keyword=${encodeURIComponent(keyword.trim())}`
-      });
-    }
-  },
+
   
   // 所有旧的波形方法已删除，现在使用 brainwave-realtime 组件
   
@@ -1823,26 +2406,24 @@ Page({
   onCloseGlobalPlayer() {
     this.setData({ 
       showGlobalPlayer: false,
-      isPlaying: false,
-      playProgress: 0
     })
     console.log('关闭全局播放器')
   },
 
-  // 静态波形点击跳转处理
-  onWaveformSeek(e) {
-    const { progress } = e.detail
-    console.log('首页波形跳转请求:', progress + '%')
+  // 静态波形点击跳转处理 - 已废弃
+  // onWaveformSeek(e) {
+  //   const { progress } = e.detail
+  //   console.log('首页波形跳转请求:', progress + '%')
     
-    // 触发全局播放器的跳转事件
-    this.triggerEvent('seek', { progress })
+  //   // 触发全局播放器的跳转事件
+  //   this.triggerEvent('seek', { progress })
     
-    // 或者通过全局播放器组件引用直接调用
-    const globalPlayer = this.selectComponent('#global-player')
-    if (globalPlayer) {
-      globalPlayer.seekToProgress(progress)
-    }
-  },
+  //   // 或者通过全局播放器组件引用直接调用
+  //   const globalPlayer = this.selectComponent('#global-player')
+  //   if (globalPlayer) {
+  //     globalPlayer.seekToProgress(progress)
+  //   }
+  // },
 
   onExpandGlobalPlayer(e) {
     const { track } = e.detail

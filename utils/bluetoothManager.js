@@ -326,8 +326,8 @@ class BluetoothManager {
    */
   _isDeveloperTools() {
     try {
-      const systemInfo = wx.getSystemInfoSync();
-      return systemInfo.platform === 'devtools';
+      const deviceInfo = wx.getDeviceInfo();
+      return deviceInfo.platform === 'devtools';
     } catch (e) {
       console.error('环境检测失败:', e);
       return false;

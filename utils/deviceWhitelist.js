@@ -141,19 +141,19 @@ class DeviceWhitelistManager {
   verifyCurrentDevice(macAddress, deviceName) {
     try {
       // 获取当前设备信息
-      const systemInfo = wx.getSystemInfoSync()
-      const deviceInfo = {
-        platform: systemInfo.platform,
-        system: systemInfo.system,
-        model: systemInfo.model,
-        brand: systemInfo.brand,
-        version: systemInfo.version
+      const deviceInfo = wx.getDeviceInfo()
+      const currentDeviceInfo = {
+        platform: deviceInfo.platform,
+        system: deviceInfo.system,
+        model: deviceInfo.model,
+        brand: deviceInfo.brand,
+        version: deviceInfo.version
       }
       
-      console.log('当前设备信息:', deviceInfo)
+      console.log('当前设备信息:', currentDeviceInfo)
       
       // 判断是否为当前设备的几种情况：
-      const isCurrentDevice = this._checkIfCurrentDevice(macAddress, deviceName, deviceInfo)
+      const isCurrentDevice = this._checkIfCurrentDevice(macAddress, deviceName, currentDeviceInfo)
       
       if (isCurrentDevice) {
         return {
