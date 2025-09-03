@@ -339,17 +339,17 @@
         <view class="selector-close" bindtap="closeSelectors">×</view>
       </view>
       <view class="selector-content">
-        <view 
-          wx:for="{{themeOptions}}" 
-          wx:key="value"
-          class="selector-item {{settings.theme === item.value ? 'selected' : ''}}"
-          data-value="{{item.value}}"
-          bindtap="selectTheme"
-        >
-          <view class="item-icon">{{item.icon}}</view>
-          <text class="item-label">{{item.label}}</text>
-          <view wx:if="{{settings.theme === item.value}}" class="check-icon">✓</view>
-        </view>
+        <block wx:for="{{themeOptions}}" wx:key="value">
+          <view wx:if="{{settings.theme === item.value}}" class="selector-item selected" data-value="{{item.value}}" bindtap="selectTheme">
+            <view class="item-icon">{{item.icon}}</view>
+            <text class="item-label">{{item.label}}</text>
+            <view class="check-icon">✓</view>
+          </view>
+          <view wx:else class="selector-item" data-value="{{item.value}}" bindtap="selectTheme">
+            <view class="item-icon">{{item.icon}}</view>
+            <text class="item-label">{{item.label}}</text>
+          </view>
+        </block>
       </view>
     </view>
   </view>
@@ -363,19 +363,21 @@
         <view class="selector-close" bindtap="closeSelectors">×</view>
       </view>
       <view class="selector-content">
-        <view 
-          wx:for="{{qualityOptions}}" 
-          wx:key="value"
-          class="selector-item {{audioSettings.quality === item.value ? 'selected' : ''}}"
-          data-value="{{item.value}}"
-          bindtap="selectQuality"
-        >
-          <view class="item-info">
-            <text class="item-label">{{item.label}}</text>
-            <text class="item-desc">{{item.desc}}</text>
+        <block wx:for="{{qualityOptions}}" wx:key="value">
+          <view wx:if="{{audioSettings.quality === item.value}}" class="selector-item selected" data-value="{{item.value}}" bindtap="selectQuality">
+            <view class="item-info">
+              <text class="item-label">{{item.label}}</text>
+              <text class="item-desc">{{item.desc}}</text>
+            </view>
+            <view class="check-icon">✓</view>
           </view>
-          <view wx:if="{{audioSettings.quality === item.value}}" class="check-icon">✓</view>
-        </view>
+          <view wx:else class="selector-item" data-value="{{item.value}}" bindtap="selectQuality">
+            <view class="item-info">
+              <text class="item-label">{{item.label}}</text>
+              <text class="item-desc">{{item.desc}}</text>
+            </view>
+          </view>
+        </block>
       </view>
     </view>
   </view>
@@ -389,16 +391,15 @@
         <view class="selector-close" bindtap="closeSelectors">×</view>
       </view>
       <view class="selector-content">
-        <view 
-          wx:for="{{sleepOptions}}" 
-          wx:key="value"
-          class="selector-item {{settings.autoSleep === item.value ? 'selected' : ''}}"
-          data-value="{{item.value}}"
-          bindtap="selectSleep"
-        >
-          <text class="item-label">{{item.label}}</text>
-          <view wx:if="{{settings.autoSleep === item.value}}" class="check-icon">✓</view>
-        </view>
+        <block wx:for="{{sleepOptions}}" wx:key="value">
+          <view wx:if="{{settings.autoSleep === item.value}}" class="selector-item selected" data-value="{{item.value}}" bindtap="selectSleep">
+            <text class="item-label">{{item.label}}</text>
+            <view class="check-icon">✓</view>
+          </view>
+          <view wx:else class="selector-item" data-value="{{item.value}}" bindtap="selectSleep">
+            <text class="item-label">{{item.label}}</text>
+          </view>
+        </block>
       </view>
     </view>
   </view>
@@ -412,16 +413,15 @@
         <view class="selector-close" bindtap="closeSelectors">×</view>
       </view>
       <view class="selector-content">
-        <view 
-          wx:for="{{cacheOptions}}" 
-          wx:key="value"
-          class="selector-item {{settings.cacheLimit === item.value ? 'selected' : ''}}"
-          data-value="{{item.value}}"
-          bindtap="selectCache"
-        >
-          <text class="item-label">{{item.label}}</text>
-          <view wx:if="{{settings.cacheLimit === item.value}}" class="check-icon">✓</view>
-        </view>
+        <block wx:for="{{cacheOptions}}" wx:key="value">
+          <view wx:if="{{settings.cacheLimit === item.value}}" class="selector-item selected" data-value="{{item.value}}" bindtap="selectCache">
+            <text class="item-label">{{item.label}}</text>
+            <view class="check-icon">✓</view>
+          </view>
+          <view wx:else class="selector-item" data-value="{{item.value}}" bindtap="selectCache">
+            <text class="item-label">{{item.label}}</text>
+          </view>
+        </block>
       </view>
     </view>
   </view>

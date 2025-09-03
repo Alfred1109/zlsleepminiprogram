@@ -99,12 +99,18 @@ function getCurrentConfig() {
 function getApiBaseUrl() {
   const config = getCurrentConfig()
   let baseUrl = config.API_BASE_URL
-  
-  console.log('当前API配置:', {
-    env: config,
-    baseUrl: baseUrl,
-    timestamp: new Date().toLocaleString()
-  })
+
+  // 避免高频日志：仅在baseUrl变化时输出一次
+  try {
+    if (!global.__lastLoggedBaseUrl || global.__lastLoggedBaseUrl !== baseUrl) {
+      if (config.DEBUG) {
+        console.log('当前API基础地址:', baseUrl)
+      }
+      global.__lastLoggedBaseUrl = baseUrl
+    }
+  } catch (_) {
+    // 忽略日志记录错误
+  }
 
   // 可以从本地存储中获取自定义API地址（用于调试）
   try {

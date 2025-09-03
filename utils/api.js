@@ -16,6 +16,34 @@ let API_CONFIG = {
   retryCount: getRetryCount()
 }
 
+// 401 登录提示节流
+let __isShowingLoginModal = false
+let __lastLoginModalAt = 0
+
+function showLoginModalThrottled() {
+  const now = Date.now()
+  if (__isShowingLoginModal || now - __lastLoginModalAt < 3000) {
+    return
+  }
+  __isShowingLoginModal = true
+  __lastLoginModalAt = now
+  wx.showModal({
+    title: '请先登录',
+    content: '需要登录后才能使用此功能',
+    showCancel: true,
+    cancelText: '取消',
+    confirmText: '去登录',
+    success: (modalRes) => {
+      if (modalRes.confirm) {
+        wx.navigateTo({ url: '/pages/login/login' })
+      }
+    },
+    complete: () => {
+      setTimeout(() => { __isShowingLoginModal = false }, 500)
+    }
+  })
+}
+
 // 强制刷新API配置
 function refreshApiConfig() {
   API_CONFIG = {
@@ -54,16 +82,14 @@ function request(options) {
     refreshApiConfig()
     
     // 详细的URL检查和调试
-    console.log('🔍 API请求详细调试:', {
-      传入的url: url,
-      url类型: typeof url,
-      url长度: url ? url.length : 'undefined',
-      baseUrl: API_CONFIG.baseUrl,
-      baseUrl类型: typeof API_CONFIG.baseUrl,
-      method: method,
-      data: data,
-      getApiBaseUrl结果: getApiBaseUrl()
-    })
+    if (isDebug()) {
+      // 避免输出庞大的data对象，仅输出关键信息
+      console.log('🔍 API请求:', {
+        url,
+        baseUrl: API_CONFIG.baseUrl,
+        method
+      })
+    }
 
     // 构建完整URL前的检查
     if (!url) {
@@ -148,20 +174,9 @@ function request(options) {
         } else {
           // 检查是否是认证错误
           if (res.statusCode === 401) {
-            // 401 统一交给 AuthService 处理退出并重定向
-            AuthService.logout()
-            wx.showModal({
-              title: '请先登录',
-              content: '需要登录后才能使用此功能',
-              showCancel: true,
-              cancelText: '取消',
-              confirmText: '去登录',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
-                  wx.navigateTo({ url: '/pages/login/login' })
-                }
-              }
-            })
+            // 401 统一交给 AuthService 处理退出并重定向（加节流，防止多次弹窗导致卡死）
+            try { AuthService.logout() } catch (_) {}
+            showLoginModalThrottled()
             reject({
               statusCode: 401,
               error: '需要登录',

@@ -394,47 +394,77 @@ Page({
     })
   },
 
+  // 过滤器缓存
+  _lastFilterParams: null,
+  _lastFilterResult: null,
+
   /**
-   * 应用筛选条件
+   * 应用筛选条件（优化版：一次遍历完成所有过滤，带缓存）
    */
   applyFilters: function() {
-    let filtered = [...this.data.history]
-
-    // 应用搜索关键词筛选
-    if (this.data.searchKeyword) {
-      const keyword = this.data.searchKeyword.toLowerCase()
-      filtered = filtered.filter(item => 
-        (item.soundName && item.soundName.toLowerCase().includes(keyword)) ||
-        (item.category && item.category.toLowerCase().includes(keyword))
-      )
+    const currentParams = {
+      keyword: this.data.searchKeyword,
+      category: this.data.filterCategory,
+      date: this.data.filterDate,
+      historyLength: this.data.history.length
     }
 
-    // 应用分类筛选
-    if (this.data.filterCategory) {
-      filtered = filtered.filter(item => item.category === this.data.filterCategory)
+    // 检查缓存
+    if (this._lastFilterParams && 
+        this._lastFilterResult &&
+        JSON.stringify(currentParams) === JSON.stringify(this._lastFilterParams)) {
+      this.setData({ filteredHistory: this._lastFilterResult })
+      return
     }
 
-    // 应用日期筛选
+    // 预处理日期筛选条件
+    let dateFilter = null
     if (this.data.filterDate) {
       const now = new Date()
-      filtered = filtered.filter(item => {
-        if (!item.date) return false
-        
-        const itemDate = new Date(item.date)
-        switch (this.data.filterDate) {
-          case 'today':
-            return this.isSameDay(itemDate, now)
-          case 'week':
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-            return itemDate >= weekAgo
-          case 'month':
-            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-            return itemDate >= monthAgo
-          default:
-            return true
-        }
-      })
+      switch (this.data.filterDate) {
+        case 'today':
+          dateFilter = (itemDate) => this.isSameDay(itemDate, now)
+          break
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+          dateFilter = (itemDate) => itemDate >= weekAgo
+          break
+        case 'month':
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          dateFilter = (itemDate) => itemDate >= monthAgo
+          break
+      }
     }
+
+    const keyword = this.data.searchKeyword ? this.data.searchKeyword.toLowerCase() : null
+
+    // 一次性遍历完成所有筛选
+    const filtered = this.data.history.filter(item => {
+      // 搜索关键词筛选
+      if (keyword) {
+        const matchKeyword = (item.soundName && item.soundName.toLowerCase().includes(keyword)) ||
+                           (item.category && item.category.toLowerCase().includes(keyword))
+        if (!matchKeyword) return false
+      }
+
+      // 分类筛选
+      if (this.data.filterCategory && item.category !== this.data.filterCategory) {
+        return false
+      }
+
+      // 日期筛选
+      if (dateFilter) {
+        if (!item.date) return false
+        const itemDate = new Date(item.date)
+        if (!dateFilter(itemDate)) return false
+      }
+
+      return true
+    })
+
+    // 更新缓存
+    this._lastFilterParams = currentParams
+    this._lastFilterResult = filtered
 
     this.setData({
       filteredHistory: filtered

@@ -148,7 +148,7 @@
     <text class="tip-text">
       显示 {{filteredFavorites.length}} / {{favorites.length}} 项
       {{searchKeyword ? '包含"' + searchKeyword + '"的' : ''}}
-      {{filterType !== 'all' ? typeOptions.find(opt => opt.value === filterType).label : ''}}
+      {{filterType !== 'all' ? typeLabelMap[filterType] : ''}}
       收藏
     </text>
   </view>

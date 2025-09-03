@@ -263,11 +263,8 @@ const LongSequenceAPI = {
    * 创建30分钟长序列音乐
    */
   createLongSequence(assessmentId, durationMinutes = 30) {
-    console.log('🎶 发送长序列创建请求:', {
-      assessment_id: assessmentId,
-      duration_minutes: durationMinutes,
-      timestamp: new Date().toISOString()
-    })
+    // 避免打印大对象，仅打印简要信息
+    console.log('🎶 发送长序列创建请求:', assessmentId, durationMinutes)
     
     return post('/music/create_long_sequence', {
       assessment_id: assessmentId,
@@ -276,16 +273,14 @@ const LongSequenceAPI = {
       loadingText: '正在生成长序列音乐...',
       timeout: 120000 // 2分钟超时
     }).then(response => {
-      console.log('🎶 长序列创建API原始响应:', response)
+      // 避免打印完整响应对象
+      console.log('🎶 长序列创建API响应 success:', response?.success)
       
       // 检查响应的完整性
       if (response.success && response.data) {
         console.log('✅ 长序列创建响应成功')
-        console.log('🔍 检查响应数据完整性:')
-        console.log('  - session_id:', response.data.session_id)
-        console.log('  - status:', response.data.status) 
-        console.log('  - final_file_path:', response.data.final_file_path)
-        console.log('  - 预计完成时间:', response.data.estimated_completion_time)
+        // 仅输出关键字段存在性
+        console.log('🔍 响应关键字段:', !!response.data.session_id, response.data.status)
         
         // 验证必要字段
         if (!response.data.session_id) {
@@ -311,22 +306,16 @@ const LongSequenceAPI = {
    * 查询长序列状态
    */
   getLongSequenceStatus(sessionId) {
-    console.log('🔍 查询长序列状态, sessionId:', sessionId)
+    console.log('🔍 查询长序列状态')
     
     return get(`/music/long_sequence_status/${sessionId}`).then(response => {
-      console.log('🔍 长序列状态查询响应:', response)
+      // 避免打印完整响应对象
+      console.log('🔍 长序列状态 success:', response?.success)
       
       if (response.success && response.data) {
         console.log('✅ 长序列状态查询成功')
-        console.log('📊 状态数据详情:')
-        console.log('  - 状态:', response.data.status)
-        console.log('  - 会话ID:', response.data.session_id) 
-        console.log('  - 创建时间:', response.data.created_at)
-        console.log('  - 更新时间:', response.data.updated_at)
-        console.log('  - 文件路径:', response.data.final_file_path)
-        console.log('  - 文件大小:', response.data.final_file_size)
-        console.log('  - 错误信息:', response.data.error_message)
-        console.log('  - 进度:', response.data.progress_percentage)
+        // 仅输出关键状态
+        console.log('📊 状态:', response.data.status, '进度:', response.data.progress_percentage)
         
         // 🔍 状态异常检测
         if (response.data.status === 'failed') {
@@ -646,6 +635,107 @@ const UserAPI = {
       })
     } else {
       return Promise.reject(new Error('用户未登录'))
+    }
+  },
+
+  /**
+   * 获取用户下载列表
+   */
+  async getUserDownloads() {
+    try {
+      const response = await request({
+        url: '/user/downloads',
+        method: 'GET'
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '获取下载列表失败')
+    }
+  },
+
+  /**
+   * 获取用户收藏列表
+   */
+  async getUserFavorites() {
+    try {
+      const response = await request({
+        url: '/user/favorites',
+        method: 'GET'
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '获取收藏列表失败')
+    }
+  },
+
+  /**
+   * 添加到收藏
+   */
+  async addToFavorites(itemId, itemType = 'music') {
+    try {
+      const response = await request({
+        url: '/user/favorites',
+        method: 'POST',
+        data: {
+          item_id: itemId,
+          item_type: itemType
+        }
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '添加收藏失败')
+    }
+  },
+
+  /**
+   * 从收藏中移除
+   */
+  async removeFromFavorites(itemId) {
+    try {
+      const response = await request({
+        url: `/user/favorites/${itemId}`,
+        method: 'DELETE'
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '移除收藏失败')
+    }
+  },
+
+  /**
+   * 获取播放历史
+   */
+  async getPlayHistory() {
+    try {
+      const response = await request({
+        url: '/user/play-history',
+        method: 'GET'
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '获取播放历史失败')
+    }
+  },
+
+  /**
+   * 记录播放历史
+   */
+  async recordPlayHistory(itemId, itemType = 'music', duration = 0) {
+    try {
+      const response = await request({
+        url: '/user/play-history',
+        method: 'POST',
+        data: {
+          item_id: itemId,
+          item_type: itemType,
+          play_duration: duration
+        }
+      })
+      return response
+    } catch (error) {
+      console.warn('记录播放历史失败:', error.message)
+      // 播放历史记录失败不应该影响用户体验，所以只警告不抛出错误
+      return { success: false, error: error.message }
     }
   }
 }

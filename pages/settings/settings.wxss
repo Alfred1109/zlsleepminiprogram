@@ -5,6 +5,8 @@
   background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
   min-height: 100vh;
   padding-bottom: 100rpx;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 页面头部 */
@@ -30,7 +32,8 @@
 /* 设置内容 */
 .settings-content {
   flex: 1;
-  height: calc(100vh - 140rpx);
+  /* 使用flex撑满，不使用calc避免WXSS兼容问题 */
+  height: 0;
 }
 
 /* 设置区块 */
@@ -219,7 +222,6 @@
   left: 0;
   right: 0;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
   padding: 20rpx 30rpx;
   border-top: 1rpx solid rgba(43, 186, 165, 0.1);
   z-index: 100;

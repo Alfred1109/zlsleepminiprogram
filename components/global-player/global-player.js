@@ -90,34 +90,47 @@ Component({
       const { globalPlayer } = this.data
       if (!globalPlayer) return
 
-      // 绑定事件监听器
-      globalPlayer.on('play', this.onGlobalPlayerPlay.bind(this))
-      globalPlayer.on('pause', this.onGlobalPlayerPause.bind(this))
-      globalPlayer.on('stop', this.onGlobalPlayerStop.bind(this))
-      globalPlayer.on('ended', this.onGlobalPlayerEnded.bind(this))
-      globalPlayer.on('timeUpdate', this.onGlobalPlayerTimeUpdate.bind(this))
-      globalPlayer.on('error', this.onGlobalPlayerError.bind(this))
+      // 为解绑保存同一引用，避免重复绑定导致泄漏
+      if (!this._handlers) {
+        this._handlers = {
+          play: this.onGlobalPlayerPlay.bind(this),
+          pause: this.onGlobalPlayerPause.bind(this),
+          stop: this.onGlobalPlayerStop.bind(this),
+          ended: this.onGlobalPlayerEnded.bind(this),
+          timeUpdate: this.onGlobalPlayerTimeUpdate.bind(this),
+          error: this.onGlobalPlayerError.bind(this)
+        }
+      }
+
+      const h = this._handlers
+      globalPlayer.on('play', h.play)
+      globalPlayer.on('pause', h.pause)
+      globalPlayer.on('stop', h.stop)
+      globalPlayer.on('ended', h.ended)
+      globalPlayer.on('timeUpdate', h.timeUpdate)
+      globalPlayer.on('error', h.error)
     },
 
     // 解绑全局播放器事件
     unbindGlobalPlayerEvents() {
       const { globalPlayer } = this.data
-      if (!globalPlayer) return
+      if (!globalPlayer || !this._handlers) return
 
-      globalPlayer.off('play', this.onGlobalPlayerPlay)
-      globalPlayer.off('pause', this.onGlobalPlayerPause)
-      globalPlayer.off('stop', this.onGlobalPlayerStop)
-      globalPlayer.off('ended', this.onGlobalPlayerEnded)
-      globalPlayer.off('timeUpdate', this.onGlobalPlayerTimeUpdate)
-      globalPlayer.off('error', this.onGlobalPlayerError)
+      const h = this._handlers
+      globalPlayer.off('play', h.play)
+      globalPlayer.off('pause', h.pause)
+      globalPlayer.off('stop', h.stop)
+      globalPlayer.off('ended', h.ended)
+      globalPlayer.off('timeUpdate', h.timeUpdate)
+      globalPlayer.off('error', h.error)
     },
 
     // 全局播放器事件处理
     onGlobalPlayerPlay() {
       console.log('🎵 全局播放器事件: 开始播放')
       this.setData({ isPlaying: true })
-      this.startProgressTimer()
-      console.log('🎵 播放状态更新: isPlaying = true, 进度计时器已启动')
+      // 使用底层timeUpdate事件，不再启动额外计时器，避免重复setData
+      console.log('🎵 播放状态更新: isPlaying = true')
       this.triggerEvent('playStateChange', { 
         isPlaying: true,
         currentTime: this.data.currentTime,
@@ -130,7 +143,6 @@ Component({
     onGlobalPlayerPause() {
       console.log('全局播放器暂停')
       this.setData({ isPlaying: false })
-      this.stopProgressTimer()
       this.triggerEvent('playStateChange', { 
         isPlaying: false,
         currentTime: this.data.currentTime,
@@ -147,7 +159,6 @@ Component({
         currentTime: 0,
         progress: 0
       })
-      this.stopProgressTimer()
       this.triggerEvent('playStateChange', { 
         isPlaying: false,
         currentTime: 0,
@@ -178,23 +189,35 @@ Component({
 
     onGlobalPlayerTimeUpdate(data) {
       if (this.data.isDragging) return
-      
+
+      const now = Date.now()
+      if (!this._lastTimeUpdateAt) this._lastTimeUpdateAt = 0
+
       const currentTime = data.currentTime || 0
       const duration = data.duration || 0
       const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
-      this.setData({
-        currentTime,
-        duration,
-        progress
-      })
-      
-      // 触发进度更新事件给首页静态波形
+      // 节流：仅当秒数变化或超过300ms时更新，避免高频setData
+      const secondChanged = Math.floor(currentTime) !== Math.floor(this.data.currentTime || 0)
+      const timeOk = (now - this._lastTimeUpdateAt) >= 300
+      if (!secondChanged && !timeOk) return
+      this._lastTimeUpdateAt = now
+
+      // 仅在数值变化时更新，减少无效setData
+      const newData = {}
+      if (this.data.currentTime !== currentTime) newData.currentTime = currentTime
+      if (this.data.duration !== duration) newData.duration = duration
+      const safeProgress = Math.max(0, Math.min(100, progress))
+      if (this.data.progress !== safeProgress) newData.progress = safeProgress
+      if (Object.keys(newData).length) {
+        this.setData(newData)
+      }
+
       this.triggerEvent('playStateChange', { 
         isPlaying: this.data.isPlaying,
         currentTime,
         duration,
-        progress,
+        progress: safeProgress,
         currentTrack: this.data.currentTrack
       })
     },
@@ -871,11 +894,12 @@ Component({
 
     // 清理资源
     cleanup() {
-      this.stopProgressTimer()
       this.stopTimer() // 清理定时器
       
       // 解绑全局播放器事件
       this.unbindGlobalPlayerEvents()
+      this._handlers = null
+      this._lastTimeUpdateAt = 0
       
       // 清理全局事件
       if (app.globalData) {

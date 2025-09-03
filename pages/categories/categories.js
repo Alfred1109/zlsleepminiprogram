@@ -11,6 +11,28 @@ Page({
     isPlaying: false
   },
 
+  // 缓存过滤后的分类，避免重复filter操作
+  _filteredCategoriesCache: null,
+  _lastCategoriesData: null,
+
+  /**
+   * 高效获取过滤后的分类（带缓存）
+   */
+  getFilteredCategories(allCategories) {
+    // 检查是否可以使用缓存
+    if (this._filteredCategoriesCache && 
+        this._lastCategoriesData && 
+        JSON.stringify(allCategories) === JSON.stringify(this._lastCategoriesData)) {
+      return this._filteredCategoriesCache
+    }
+
+    // 执行过滤操作并缓存结果
+    const filtered = allCategories.filter(cat => cat.id !== 4)
+    this._filteredCategoriesCache = filtered
+    this._lastCategoriesData = allCategories
+    return filtered
+  },
+
   onLoad: function (options) {
     console.log('Categories page loaded')
     
@@ -55,8 +77,8 @@ Page({
       
       if (success) {
         const allCategories = unifiedMusicManager.getAllCategories()
-        // 过滤掉冥想疗愈分类（AI生成音频，单独收费，不在分类列表显示）
-        const categories = allCategories.filter(cat => cat.id !== 4)
+        // 使用缓存方法避免重复filter操作
+        const categories = this.getFilteredCategories(allCategories)
         this.setData({
           categories: categories,
           loading: false
@@ -84,8 +106,8 @@ Page({
     try {
       // 获取当前分类（可能来自缓存）
       const allCategories = unifiedMusicManager.getAllCategories()
-      // 过滤掉冥想疗愈分类（AI生成音频，单独收费，不在分类列表显示）
-      const categories = allCategories.filter(cat => cat.id !== 4)
+      // 使用缓存方法避免重复filter操作
+      const categories = this.getFilteredCategories(allCategories)
       
       if (categories.length > 0) {
         this.setData({ categories })
@@ -95,7 +117,7 @@ Page({
       unifiedMusicManager.refreshCategories().then(updated => {
         if (updated) {
           const allNewCategories = unifiedMusicManager.getAllCategories()
-          const newCategories = allNewCategories.filter(cat => cat.id !== 4)
+          const newCategories = this.getFilteredCategories(allNewCategories)
           this.setData({ categories: newCategories })
           console.log('分类数据已更新')
         }

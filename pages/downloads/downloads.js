@@ -1,6 +1,8 @@
 // pages/downloads/downloads.js
 const app = getApp()
 const AuthService = require('../../services/AuthService')
+const { downloadManager } = require('../../utils/downloadManager')
+const { UserAPI } = require('../../utils/healingApi')
 
 Page({
   data: {
@@ -35,7 +37,9 @@ Page({
     // 批量操作
     isSelectMode: false,
     selectedItems: [],
-    selectAll: false
+    selectedItemsMap: {},
+    selectAll: false,
+    statusLabelMap: { all: '全部', downloaded: '已下载', downloading: '下载中', failed: '失败' }
   },
 
   onLoad() {
@@ -80,21 +84,17 @@ Page({
         return
       }
 
-      // 从本地存储加载下载数据
-      const storedDownloads = wx.getStorageSync('userDownloads') || []
+      // 使用真实的API获取用户下载列表
+      const response = await UserAPI.getUserDownloads()
       
-      // 如果没有本地数据，生成模拟数据
-      let downloads = storedDownloads
-      if (downloads.length === 0) {
-        downloads = this.generateMockDownloads()
+      if (response.success && response.data) {
+        const downloads = response.data
+        // 处理下载数据
+        this.processDownloadData(downloads)
+        this.applyFilters()
+      } else {
+        throw new Error(response.error || '获取下载列表失败')
       }
-
-      // 更新下载状态 - 检查文件是否实际存在
-      downloads = await this.updateDownloadStatus(downloads)
-
-      // 处理下载数据
-      this.processDownloadData(downloads)
-      this.applyFilters()
 
     } catch (error) {
       console.error('加载下载失败:', error)
@@ -109,95 +109,9 @@ Page({
     }
   },
 
-  /**
-   * 生成模拟下载数据
-   */
-  generateMockDownloads() {
-    const mockData = [
-      {
-        id: 'dl_1',
-        title: '深度放松冥想音乐',
-        subtitle: '舒缓 | 冥想类',
-        cover: '/assets/images/sounds/meditation.jpg',
-        fileSize: 15.6, // MB
-        duration: 360,
-        status: 'downloaded', // downloaded, downloading, failed
-        progress: 100,
-        downloadTime: Date.now() - 86400000, // 1天前
-        localPath: 'tmp/music_1.mp3',
-        url: 'https://example.com/music/meditation.mp3',
-        fileType: 'audio'
-      },
-      {
-        id: 'dl_2',
-        title: '个性化长序列音乐',
-        subtitle: '基于心率变异性生成',
-        cover: '/assets/images/sounds/nature.jpg',
-        fileSize: 42.3,
-        duration: 1800,
-        status: 'downloading',
-        progress: 67,
-        downloadTime: Date.now() - 3600000, // 1小时前
-        localPath: '',
-        url: 'https://example.com/sequence/long_123.mp3',
-        fileType: 'audio'
-      },
-      {
-        id: 'dl_3',
-        title: '自然白噪音',
-        subtitle: '自然 | 白噪音类',
-        cover: '/assets/images/sounds/rain.jpg',
-        fileSize: 18.9,
-        duration: 420,
-        status: 'failed',
-        progress: 0,
-        downloadTime: Date.now() - 172800000, // 2天前
-        localPath: '',
-        url: 'https://example.com/music/whitenoise.mp3',
-        fileType: 'audio',
-        error: '网络连接超时'
-      },
-      {
-        id: 'dl_4',
-        title: '专注力训练音频',
-        subtitle: '认知 | 训练类',
-        cover: '/assets/images/sounds/focus.jpg',
-        fileSize: 25.1,
-        duration: 600,
-        status: 'downloaded',
-        progress: 100,
-        downloadTime: Date.now() - 259200000, // 3天前
-        localPath: 'tmp/music_4.mp3',
-        url: 'https://example.com/music/focus.mp3',
-        fileType: 'audio'
-      }
-    ]
-    
-    return mockData
-  },
 
-  /**
-   * 更新下载状态
-   */
-  async updateDownloadStatus(downloads) {
-    // 这里应该检查本地文件是否存在，更新实际状态
-    // 由于小程序的限制，这里只是模拟状态更新
-    
-    for (let download of downloads) {
-      if (download.status === 'downloading') {
-        // 模拟下载进度更新
-        if (download.progress < 100) {
-          download.progress = Math.min(100, download.progress + Math.random() * 10)
-          if (download.progress >= 100) {
-            download.status = 'downloaded'
-            download.localPath = `tmp/${download.id}.mp3`
-          }
-        }
-      }
-    }
-    
-    return downloads
-  },
+
+
 
   /**
    * 处理下载数据并生成统计信息
@@ -217,9 +131,6 @@ Page({
       loading: false,
       isEmpty: downloads.length === 0
     })
-
-    // 保存到本地存储
-    wx.setStorageSync('userDownloads', downloads)
   },
 
   /**
@@ -410,16 +321,56 @@ Page({
   /**
    * 开始下载
    */
-  startDownload(item) {
-    // 更新状态为下载中
+  async startDownload(item) {
+    try {
+      // 使用真实的下载管理器
+      await downloadManager.startDownload(item, {
+        onProgress: (progress) => {
+          // 更新进度
+          this.updateDownloadProgress(item.id, progress)
+        }
+      })
+
+      wx.showToast({
+        title: '开始下载',
+        icon: 'success'
+      })
+
+      // 重新加载下载列表
+      this.loadDownloads()
+    } catch (error) {
+      console.error('开始下载失败:', error)
+      wx.showToast({
+        title: '下载失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 更新下载进度（替代高频定时器）
+   */
+  updateDownloadProgress(downloadId, progress) {
+    // 使用节流，避免过于频繁的setData调用
+    if (!this._progressUpdateThrottle) {
+      this._progressUpdateThrottle = {}
+    }
+    
+    // 限制每个下载任务最多每2秒更新一次进度
+    const now = Date.now()
+    const lastUpdate = this._progressUpdateThrottle[downloadId] || 0
+    if (now - lastUpdate < 2000 && progress < 100) {
+      return // 跳过过于频繁的更新
+    }
+    
+    this._progressUpdateThrottle[downloadId] = now
+
     const downloads = this.data.downloads.map(download => {
-      if (download.id === item.id) {
+      if (download.id === downloadId) {
         return {
           ...download,
-          status: 'downloading',
-          progress: 0,
-          error: '',
-          downloadTime: Date.now()
+          progress: progress,
+          status: progress >= 100 ? 'downloaded' : 'downloading'
         }
       }
       return download
@@ -427,74 +378,30 @@ Page({
 
     this.processDownloadData(downloads)
     this.applyFilters()
-
-    // 模拟下载过程
-    this.simulateDownload(item.id)
-
-    wx.showToast({
-      title: '开始下载',
-      icon: 'success'
-    })
-  },
-
-  /**
-   * 模拟下载过程
-   */
-  simulateDownload(downloadId) {
-    const interval = setInterval(() => {
-      const downloads = this.data.downloads.map(download => {
-        if (download.id === downloadId && download.status === 'downloading') {
-          const newProgress = Math.min(100, download.progress + Math.random() * 15 + 5)
-          return {
-            ...download,
-            progress: newProgress,
-            status: newProgress >= 100 ? 'downloaded' : 'downloading',
-            localPath: newProgress >= 100 ? `tmp/${downloadId}.mp3` : ''
-          }
-        }
-        return download
-      })
-
-      this.processDownloadData(downloads)
-      this.applyFilters()
-
-      // 检查是否下载完成
-      const targetDownload = downloads.find(d => d.id === downloadId)
-      if (!targetDownload || targetDownload.status !== 'downloading') {
-        clearInterval(interval)
-        if (targetDownload && targetDownload.status === 'downloaded') {
-          wx.showToast({
-            title: '下载完成',
-            icon: 'success'
-          })
-        }
-      }
-    }, 1000)
   },
 
   /**
    * 取消下载
    */
   cancelDownload(item) {
-    const downloads = this.data.downloads.map(download => {
-      if (download.id === item.id) {
-        return {
-          ...download,
-          status: 'failed',
-          progress: 0,
-          error: '用户取消下载'
-        }
-      }
-      return download
-    })
+    try {
+      // 使用真实的下载管理器取消下载
+      downloadManager.cancelDownload(item.id)
+      
+      // 重新加载下载列表
+      this.loadDownloads()
 
-    this.processDownloadData(downloads)
-    this.applyFilters()
-
-    wx.showToast({
-      title: '已取消下载',
-      icon: 'none'
-    })
+      wx.showToast({
+        title: '已取消下载',
+        icon: 'none'
+      })
+    } catch (error) {
+      console.error('取消下载失败:', error)
+      wx.showToast({
+        title: '取消失败',
+        icon: 'none'
+      })
+    }
   },
 
   /**
@@ -560,19 +467,14 @@ Page({
    */
   onSelectItem(e) {
     const itemId = e.currentTarget.dataset.id
-    const selectedItems = [...this.data.selectedItems]
-    const index = selectedItems.indexOf(itemId)
-    
-    if (index > -1) {
-      selectedItems.splice(index, 1)
+    const map = { ...(this.data.selectedItemsMap || {}) }
+    if (map[itemId]) {
+      delete map[itemId]
     } else {
-      selectedItems.push(itemId)
+      map[itemId] = true
     }
-    
-    this.setData({
-      selectedItems: selectedItems,
-      selectAll: selectedItems.length === this.data.filteredDownloads.length
-    })
+    const selectedItems = Object.keys(map)
+    this.setData({ selectedItems, selectedItemsMap: map, selectAll: selectedItems.length === this.data.filteredDownloads.length })
   },
 
   /**

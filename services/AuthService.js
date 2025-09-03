@@ -325,18 +325,11 @@ class AuthService {
   // 为请求添加认证头
   async addAuthHeader(headers = {}) {
     try {
-      console.log('🔍 开始添加认证头...')
+      // 避免过度日志
       const token = await this.ensureValidToken()
-      console.log('🔍 获取到token:', {
-        hasToken: !!token,
-        tokenLength: token ? token.length : 0,
-        tokenPrefix: token ? token.substring(0, 10) + '...' : 'none'
-      })
+      // 仅在需要时打印简要信息
       
-      // 临时调试：输出完整token用于服务器端测试
-      if (token && token.length > 50) {
-        console.log('🔍 完整token（用于调试）:', token)
-      }
+      // 不再打印完整token，避免控制台卡顿与安全风险
       
       if (token) {
         const authHeaders = { ...headers, Authorization: `Bearer ${token}` }

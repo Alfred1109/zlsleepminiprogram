@@ -210,10 +210,7 @@ Page({
         LongSequenceAPI.getUserLongSequences(userId)
       ]);
       
-      console.log('📡 API调用完成，结果状态:', {
-        userMusicStatus: userMusicResult.status,
-        longSequenceStatus: longSequenceResult.status
-      });
+      console.log('📡 API调用完成，结果状态:', userMusicResult.status, longSequenceResult.status);
       
       let allBrainwaves = [];
       
@@ -223,7 +220,7 @@ Page({
         
         if (userMusicResult.value.success && userMusicResult.value.data) {
           console.log('🎵 ===== 60秒音频原始数据 =====');
-          console.log('数据条数:', userMusicResult.value.data.length);
+          console.log('🎵 60秒音频条数:', userMusicResult.value.data.length);
           console.log('完整数据:', userMusicResult.value.data);
           
           // 简单处理：不过滤，直接展示前3条
@@ -243,6 +240,7 @@ Page({
             }));
           
           console.log('🎵 ===== 处理后的60秒音频 =====');
+          console.log('🎵 处理后60秒音频数量:', recentUserMusic.length);
           console.log('处理后数据:', recentUserMusic);
           allBrainwaves.push(...recentUserMusic);
         } else {
@@ -287,8 +285,7 @@ Page({
       const recentBrainwaves = allBrainwaves.slice(0, 3);
       
       console.log('🔥 ===== 最终设置到界面的数据 =====');
-      console.log('allBrainwaves总数:', allBrainwaves.length);
-      console.log('recentBrainwaves数量:', recentBrainwaves.length);
+      console.log('🔥 数据统计 all:', allBrainwaves.length, 'recent:', recentBrainwaves.length);
       console.log('recentBrainwaves内容:', recentBrainwaves);
       
       this.setData({
@@ -1385,15 +1382,8 @@ Page({
       let categories = []
       
       if (categoriesResult.success && categoriesResult.data && categoriesResult.data.length > 0) {
-        // 使用API返回的分类数据，过滤掉冥想疗愈分类（AI生成音频，单独收费）
-        const filteredCategories = this.filterCategories(categoriesResult.data)
-        categories = filteredCategories.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          icon: cat.icon || cat.emoji_code || '🎵',
-          description: cat.description || '音乐分类',
-          count: cat.music_count || cat.count || 0
-        }))
+        // 使用高效处理方法（filter+map一体化，带缓存）
+        categories = this.processCategories(categoriesResult.data)
         // 从 API 加载分类成功
       } else {
         // API失败时使用默认分类
@@ -1516,14 +1506,9 @@ Page({
       const categoriesResult = await MusicAPI.getCategories()
       
       if (categoriesResult.success && categoriesResult.data && categoriesResult.data.length > 0) {
-        // 使用API返回的最新分类数据，过滤掉冥想疗愈分类（AI生成音频，单独收费）
-        const filteredCategories = this.filterCategories(categoriesResult.data)
-        const categories = filteredCategories.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          icon: cat.icon || cat.emoji_code || '🎵',
-          description: cat.description || '音乐分类',
-          count: cat.music_count || cat.count || 0,
+        // 使用高效处理方法（filter+map一体化，带缓存）
+        const categories = this.processCategories(categoriesResult.data).map(cat => ({
+          ...cat,
           updated_at: timestamp // 添加更新时间戳
         }))
         
@@ -1559,6 +1544,39 @@ Page({
     if (!categories || !Array.isArray(categories)) return []
     // 过滤掉冥想疗愈分类（ID=4，AI生成音频，单独收费）
     return categories.filter(cat => cat.id !== 4)
+  },
+
+  // 分类处理缓存
+  _lastRawCategories: null,
+  _lastProcessedCategories: null,
+
+  /**
+   * 高效处理分类数据（filter + map 一体化，带缓存）
+   */
+  processCategories(rawCategories) {
+    // 检查缓存
+    if (this._lastRawCategories && 
+        this._lastProcessedCategories &&
+        JSON.stringify(rawCategories) === JSON.stringify(this._lastRawCategories)) {
+      return this._lastProcessedCategories
+    }
+
+    // 一次性完成filter+map，避免两次遍历
+    const processed = rawCategories
+      .filter(cat => cat.id !== 4) // 过滤不需要的分类
+      .map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        icon: cat.icon || cat.emoji_code || '🎵',
+        description: cat.description || '音乐分类',
+        count: cat.music_count || cat.count || 0
+      }))
+
+    // 更新缓存
+    this._lastRawCategories = rawCategories
+    this._lastProcessedCategories = processed
+    
+    return processed
   },
 
   getDefaultCategories() {

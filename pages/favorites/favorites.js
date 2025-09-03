@@ -2,6 +2,7 @@
 const app = getApp()
 const api = require('../../utils/api')
 const AuthService = require('../../services/AuthService')
+const { UserAPI } = require('../../utils/healingApi')
 
 Page({
   data: {
@@ -30,7 +31,8 @@ Page({
       { value: 'music', label: '音乐', icon: '🎵' },
       { value: 'assessment', label: '评测', icon: '📊' },
       { value: 'sequence', label: '长序列', icon: '🎼' }
-    ]
+    ],
+    typeLabelMap: { all: '全部', music: '音乐', assessment: '评测', sequence: '长序列' }
   },
 
   onLoad() {
@@ -75,25 +77,17 @@ Page({
         return
       }
 
-      // 从本地存储加载收藏数据
-      const storedFavorites = wx.getStorageSync('userFavorites') || []
+      // 使用真实的API获取用户收藏列表
+      const response = await UserAPI.getUserFavorites()
       
-      // 如果没有本地数据，尝试从服务器获取
-      let favorites = storedFavorites
-      if (favorites.length === 0) {
-        // 这里可以调用API获取服务器端的收藏数据
-        // const result = await api.request({
-        //   url: '/user/favorites',
-        //   method: 'GET',
-        //   showLoading: false
-        // })
-        // favorites = result.success ? result.data : []
-        favorites = this.generateMockFavorites() // 暂时使用模拟数据
+      if (response.success && response.data) {
+        const favorites = response.data
+        // 处理收藏数据
+        this.processFavoritesData(favorites)
+        this.applyFilters()
+      } else {
+        throw new Error(response.error || '获取收藏列表失败')
       }
-
-      // 处理收藏数据
-      this.processFavoritesData(favorites)
-      this.applyFilters()
 
     } catch (error) {
       console.error('加载收藏失败:', error)
@@ -108,66 +102,7 @@ Page({
     }
   },
 
-  /**
-   * 生成模拟收藏数据
-   */
-  generateMockFavorites() {
-    const mockData = [
-      {
-        id: 'fav_1',
-        type: 'music',
-        title: '深度放松冥想音乐',
-        subtitle: '舒缓 | 冥想类',
-        cover: '/assets/images/sounds/meditation.jpg',
-        duration: 360,
-        favoriteTime: Date.now() - 86400000, // 1天前
-        metadata: {
-          category: '冥想',
-          tags: ['放松', '冥想', '深度睡眠']
-        }
-      },
-      {
-        id: 'fav_2',
-        type: 'assessment',
-        title: '睡眠质量评测',
-        subtitle: '评测结果：轻度失眠',
-        cover: '/images/assessment.svg',
-        favoriteTime: Date.now() - 172800000, // 2天前
-        metadata: {
-          score: 65,
-          level: '轻度失眠'
-        }
-      },
-      {
-        id: 'fav_3',
-        type: 'sequence',
-        title: '个性化长序列音乐',
-        subtitle: '基于心率变异性生成',
-        cover: '/assets/images/sounds/nature.jpg',
-        duration: 1800,
-        favoriteTime: Date.now() - 259200000, // 3天前
-        metadata: {
-          sessionId: 'seq_123',
-          hrv_data: '已关联'
-        }
-      },
-      {
-        id: 'fav_4',
-        type: 'music',
-        title: '自然白噪音',
-        subtitle: '自然 | 白噪音类',
-        cover: '/assets/images/sounds/rain.jpg',
-        duration: 420,
-        favoriteTime: Date.now() - 345600000, // 4天前
-        metadata: {
-          category: '自然',
-          tags: ['白噪音', '雨声', '专注']
-        }
-      }
-    ]
-    
-    return mockData
-  },
+
 
   /**
    * 处理收藏数据并生成统计信息

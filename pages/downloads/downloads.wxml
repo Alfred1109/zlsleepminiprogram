@@ -126,7 +126,7 @@
       >
         <!-- 选择框 -->
         <view wx:if="{{isSelectMode}}" class="item-selector" data-id="{{item.id}}" catchtap="onSelectItem">
-          <text class="selector-icon">{{selectedItems.includes(item.id) ? '☑️' : '☐'}}</text>
+          <text class="selector-icon">{{selectedItemsMap[item.id] ? '☑️' : '☐'}}</text>
         </view>
 
         <view class="item-cover">
@@ -202,7 +202,7 @@
     <text class="tip-text">
       显示 {{filteredDownloads.length}} / {{downloads.length}} 项
       {{searchKeyword ? '包含"' + searchKeyword + '"的' : ''}}
-      {{filterStatus !== 'all' ? statusOptions.find(opt => opt.value === filterStatus).label : ''}}
+      {{filterStatus !== 'all' ? statusLabelMap[filterStatus] : ''}}
       下载
     </text>
   </view>
