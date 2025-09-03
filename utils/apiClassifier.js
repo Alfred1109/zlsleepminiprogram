@@ -33,6 +33,12 @@ const PRIVATE_APIS = [
   '/user/',
   '/subscription/',
   
+  // 用户收藏和下载（新增）
+  '/api/favorites',
+  '/api/downloads',
+  '/favorites',
+  '/downloads',
+  
   // 播放记录（用户特定数据）
   '/play-records/',
   
@@ -68,9 +74,12 @@ function requiresAuth(url) {
   // 移除查询参数
   const cleanUrl = url.split('?')[0]
   
+  console.log(`🔍 API分类检查: ${url} -> ${cleanUrl}`)
+  
   // 检查是否为公开API
   for (const publicPath of PUBLIC_APIS) {
     if (cleanUrl.includes(publicPath)) {
+      console.log(`✅ 匹配到公开API: ${publicPath}`)
       return false
     }
   }
@@ -78,12 +87,14 @@ function requiresAuth(url) {
   // 检查是否为需要认证的API
   for (const privatePath of PRIVATE_APIS) {
     if (cleanUrl.includes(privatePath)) {
+      console.log(`✅ 匹配到私有API: ${privatePath}`)
       return true
     }
   }
   
   // 默认需要认证（安全优先）
   console.warn(`未分类的API: ${url}，默认需要认证`)
+  console.warn(`可用的私有API路径:`, PRIVATE_APIS.slice(0, 10)) // 只显示前10个避免日志过长
   return true
 }
 

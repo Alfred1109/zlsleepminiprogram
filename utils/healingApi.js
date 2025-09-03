@@ -641,29 +641,50 @@ const UserAPI = {
   /**
    * 获取用户下载列表
    */
-  async getUserDownloads() {
+  async getUserDownloads(params = {}) {
     try {
-      const response = await request({
-        url: '/user/downloads',
-        method: 'GET'
-      })
+      // GET /api/downloads/
+      const response = await get('/downloads/', params)
       return response
     } catch (error) {
+      if (error && (error.statusCode === 404 || error.code === 'HTTP_ERROR')) {
+        return { success: true, data: [] }
+      }
       throw new Error(error.message || '获取下载列表失败')
     }
+  },
+
+  // 下载统计 GET /api/downloads/stats
+  async getDownloadsStats() {
+    try {
+      return await get('/downloads/stats/')
+    } catch (error) {
+      return { success: false, error: error.message || '获取下载统计失败' }
+    }
+  },
+
+  // 生成安全下载链接 GET /api/downloads/url/<music_id>
+  async getSecureDownloadUrl(musicId, quality = 'standard') {
+    return get(`/downloads/url/${musicId}/`, { quality })
+  },
+
+  // 删除下载记录 DELETE /api/downloads/<download_id>
+  async deleteDownloadRecord(downloadId) {
+    return del(`/downloads/${downloadId}/`)
   },
 
   /**
    * 获取用户收藏列表
    */
-  async getUserFavorites() {
+  async getUserFavorites(params = {}) {
     try {
-      const response = await request({
-        url: '/user/favorites',
-        method: 'GET'
-      })
+      // GET /api/favorites/
+      const response = await get('/favorites/', params)
       return response
     } catch (error) {
+      if (error && (error.statusCode === 404 || error.code === 'HTTP_ERROR')) {
+        return { success: true, data: [] }
+      }
       throw new Error(error.message || '获取收藏列表失败')
     }
   },
@@ -671,17 +692,14 @@ const UserAPI = {
   /**
    * 添加到收藏
    */
-  async addToFavorites(itemId, itemType = 'music') {
+  async addToFavorites(itemId, itemType = 'music', itemData = {}) {
     try {
-      const response = await request({
-        url: '/user/favorites',
-        method: 'POST',
-        data: {
-          item_id: itemId,
-          item_type: itemType
-        }
+      // POST /api/favorites/
+      return await post('/favorites/', {
+        item_id: itemId,
+        item_type: itemType,
+        item_data: itemData
       })
-      return response
     } catch (error) {
       throw new Error(error.message || '添加收藏失败')
     }
@@ -690,16 +708,29 @@ const UserAPI = {
   /**
    * 从收藏中移除
    */
-  async removeFromFavorites(itemId) {
+  async removeFromFavorites(itemIdOrFavoriteId, isItemId = true) {
     try {
-      const response = await request({
-        url: `/user/favorites/${itemId}`,
-        method: 'DELETE'
-      })
-      return response
+      // 优先按项目ID删除 /api/favorites/item/<item_id>
+      const url = isItemId ? `/favorites/item/${itemIdOrFavoriteId}/` : `/favorites/${itemIdOrFavoriteId}/`
+      return await del(url)
     } catch (error) {
       throw new Error(error.message || '移除收藏失败')
     }
+  },
+
+  // 检查是否已收藏 GET /api/favorites/check/<item_id>
+  async checkFavorite(itemId) {
+    return get(`/favorites/check/${itemId}/`)
+  },
+
+  // 收藏统计 GET /api/favorites/stats
+  async getFavoritesStats() {
+    try { return await get('/favorites/stats/') } catch (e) { return { success: false, error: e.message } }
+  },
+
+  // 批量同步收藏 PUT /api/favorites/sync
+  async syncFavorites(payload) {
+    return post('/favorites/sync/', payload, { method: 'PUT' })
   },
 
   /**

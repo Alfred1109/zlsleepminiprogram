@@ -60,7 +60,19 @@ Page({
       this.setData({ loading: true, isEmpty: false })
 
       // 检查登录状态
-      if (!AuthService.isLoggedIn()) {
+      const isLoggedIn = AuthService.isLoggedIn()
+      const currentUser = AuthService.getCurrentUser()
+      const token = AuthService.getAccessToken()
+      
+      console.log('🔍 收藏页面认证状态检查:', {
+        isLoggedIn,
+        hasUser: !!currentUser,
+        hasToken: !!token,
+        tokenPrefix: token ? token.substring(0, 20) + '...' : 'none'
+      })
+      
+      if (!isLoggedIn) {
+        console.log('❌ 用户未登录，显示登录提示')
         wx.showModal({
           title: '需要登录',
           content: '请先登录后查看收藏',
@@ -76,6 +88,13 @@ Page({
         })
         return
       }
+      
+      console.log('✅ 认证检查通过，开始调用API')
+      
+      // 临时添加：测试token服务器端有效性
+      console.log('🧪 测试token服务器端有效性...')
+      const tokenTest = await AuthService.testTokenValidity()
+      console.log('🔍 Token服务器验证结果:', tokenTest)
 
       // 使用真实的API获取用户收藏列表
       const response = await UserAPI.getUserFavorites()

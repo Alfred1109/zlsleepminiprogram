@@ -67,7 +67,19 @@ Page({
       this.setData({ loading: true, isEmpty: false })
 
       // 检查登录状态
-      if (!AuthService.isLoggedIn()) {
+      const isLoggedIn = AuthService.isLoggedIn()
+      const currentUser = AuthService.getCurrentUser()
+      const token = AuthService.getAccessToken()
+      
+      console.log('🔍 下载页面认证状态检查:', {
+        isLoggedIn,
+        hasUser: !!currentUser,
+        hasToken: !!token,
+        tokenPrefix: token ? token.substring(0, 20) + '...' : 'none'
+      })
+      
+      if (!isLoggedIn) {
+        console.log('❌ 用户未登录，显示登录提示')
         wx.showModal({
           title: '需要登录',
           content: '请先登录后查看下载',
@@ -83,6 +95,8 @@ Page({
         })
         return
       }
+      
+      console.log('✅ 认证检查通过，开始调用API')
 
       // 使用真实的API获取用户下载列表
       const response = await UserAPI.getUserDownloads()

@@ -161,7 +161,7 @@
 
   <!-- 筛选后无结果 -->
   <view wx:elif="{{(filterCategory || filterDate || searchKeyword) && filteredHistory.length === 0}}" class="empty-state">
-    <image class="empty-image" src="/assets/images/empty-history.png" mode="aspectFit"/>
+    <image class="empty-image" src="/images/empty-music.svg" mode="aspectFit"/>
     <text class="empty-text">未找到匹配的记录</text>
     <text class="empty-subtitle">尝试调整筛选条件或搜索关键词</text>
     <button class="btn-reset-filter" bindtap="clearAllFilters">清除筛选条件</button>
@@ -169,7 +169,7 @@
 
   <!-- 空状态 -->
   <view wx:else class="empty-state">
-    <image class="empty-image" src="/assets/images/empty-history.png" mode="aspectFit"/>
+    <image class="empty-image" src="/images/empty-music.svg" mode="aspectFit"/>
     <text class="empty-text">暂无播放历史</text>
     <text class="empty-subtitle">开始播放音乐，记录将显示在这里</text>
     <button class="btn-explore" bindtap="goToHome">去首页听音乐</button>

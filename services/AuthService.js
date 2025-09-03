@@ -97,7 +97,21 @@ class AuthService {
       
       const payload = JSON.parse(this.base64Decode(parts[1]))
       const exp = payload.exp * 1000 // JWT使用秒，转为毫秒
-      return Date.now() >= exp
+      const now = Date.now()
+      const isExpired = now >= exp
+      
+      // 添加详细的token过期调试信息
+      console.log('🔍 Token过期检查详情:', {
+        tokenPayload: payload,
+        expTimestamp: exp,
+        currentTimestamp: now,
+        expTime: new Date(exp).toLocaleString(),
+        currentTime: new Date(now).toLocaleString(),
+        timeDiff: (exp - now) / 1000 / 60, // 分钟差
+        isExpired: isExpired
+      })
+      
+      return isExpired
     } catch (error) {
       console.error('检查token过期失败:', error)
       return true
@@ -292,8 +306,8 @@ class AuthService {
 
 
   // 确保有有效token（自动刷新或要求登录）
-  async ensureValidToken() {
-    console.log('🔍 检查token有效性...')
+  async ensureValidToken(forceRefresh = false) {
+    console.log('🔍 检查token有效性...', { forceRefresh })
     let token = this.getAccessToken()
 
     // 没有token，抛出错误要求用户登录
@@ -303,9 +317,13 @@ class AuthService {
     }
     
     console.log('🔍 检查token是否过期...')
-    // token过期，尝试刷新
-    if (this.isTokenExpired(token)) {
-      console.log('⏰ Token已过期，尝试刷新...')
+    // token过期或强制刷新，尝试刷新
+    if (this.isTokenExpired(token) || forceRefresh) {
+      if (forceRefresh) {
+        console.log('🔄 强制刷新token...')
+      } else {
+        console.log('⏰ Token已过期，尝试刷新...')
+      }
       try {
         token = await this.refreshAccessToken()
         console.log('✅ Token刷新成功')
@@ -329,7 +347,12 @@ class AuthService {
       const token = await this.ensureValidToken()
       // 仅在需要时打印简要信息
       
-      // 不再打印完整token，避免控制台卡顿与安全风险
+      // 临时调试：检查token完整性
+      console.log('🔍 Token调试信息:', {
+        tokenLength: token ? token.length : 0,
+        tokenStart: token ? token.substring(0, 50) : 'none',
+        tokenEnd: token ? token.substring(token.length - 20) : 'none'
+      })
       
       if (token) {
         const authHeaders = { ...headers, Authorization: `Bearer ${token}` }
@@ -462,6 +485,62 @@ class AuthService {
     } catch (error) {
       console.error('保存认证响应失败:', error)
       throw error
+    }
+  }
+
+  // 测试token服务器端有效性（发起一个简单的API请求）
+  async testTokenValidity() {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return { valid: false, reason: 'no_token' }
+      }
+      
+      // 获取API基础URL
+      const app = getApp()
+      let apiBaseUrl = app.globalData.apiBaseUrl
+      
+      if (!apiBaseUrl) {
+        try {
+          const { getApiBaseUrl } = require('../utils/config')
+          apiBaseUrl = getApiBaseUrl()
+        } catch (error) {
+          console.error('获取API基础URL失败:', error)
+          apiBaseUrl = 'https://medsleep.cn/api'
+        }
+      }
+      
+      // 发起一个简单的测试请求（比如获取用户信息）
+      const response = await new Promise((resolve, reject) => {
+        wx.request({
+          url: `${apiBaseUrl}/user/profile`,
+          method: 'GET',
+          header: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json' 
+          },
+          timeout: 5000,
+          success: resolve,
+          fail: reject
+        })
+      })
+      
+      console.log('🔍 Token服务器验证结果:', {
+        statusCode: response.statusCode,
+        success: response.statusCode === 200
+      })
+      
+      if (response.statusCode === 200) {
+        return { valid: true, reason: 'server_verified' }
+      } else if (response.statusCode === 401) {
+        return { valid: false, reason: 'server_rejected' }
+      } else {
+        return { valid: false, reason: `http_error_${response.statusCode}` }
+      }
+      
+    } catch (error) {
+      console.error('Token服务器验证失败:', error)
+      return { valid: false, reason: 'network_error' }
     }
   }
 

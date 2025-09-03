@@ -164,6 +164,16 @@
       </view>
 
       <view class="list-container">
+        <!-- 设备绑定 -->
+        <view wx:if="{{isLoggedIn}}" class="list-item" bindtap="goToDeviceBinding">
+          <view class="list-item-icon">📱</view>
+          <view class="list-item-content">
+            <view class="list-item-title">设备绑定</view>
+            <view class="list-item-subtitle">绑定智能设备与蓝牙音响</view>
+          </view>
+          <view class="list-item-action">▶</view>
+        </view>
+
         <view class="list-item" bindtap="goToFavorites">
           <view class="list-item-icon">❤️</view>
           <view class="list-item-content">
@@ -250,16 +260,6 @@
           <view class="list-item-content">
             <view class="list-item-title">隐私政策</view>
             <view class="list-item-subtitle">隐私保护与数据安全</view>
-          </view>
-          <view class="list-item-action">▶</view>
-        </view>
-
-        <!-- 设备绑定 -->
-        <view wx:if="{{isLoggedIn}}" class="list-item" bindtap="goToDeviceBinding">
-          <view class="list-item-icon">📱</view>
-          <view class="list-item-content">
-            <view class="list-item-title">设备绑定</view>
-            <view class="list-item-subtitle">绑定智能设备与蓝牙音响</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>

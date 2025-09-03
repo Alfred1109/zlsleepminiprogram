@@ -174,6 +174,51 @@ function request(options) {
         } else {
           // 检查是否是认证错误
           if (res.statusCode === 401) {
+            console.log('⚠️ 收到401错误，尝试token刷新处理')
+            
+            // 对于需要认证的API，尝试刷新token后重试一次
+            if (requiresAuth(url)) {
+              // 使用Promise处理async逻辑避免await语法错误
+              AuthService.ensureValidToken(true).then(newToken => {
+                console.log('🔄 401错误：token刷新成功，重试请求')
+                
+                // 使用新token重新发起请求
+                const newHeaders = { ...finalHeader, Authorization: `Bearer ${newToken}` }
+                return networkManager.request({
+                  url: fullUrl,
+                  method: method,
+                  data: data,
+                  header: newHeaders,
+                  timeout: timeout
+                })
+              }).then(retryResponse => {
+                console.log('✅ 401错误处理：token刷新后重试成功')
+                if (showLoading) wx.hideLoading()
+                
+                if (retryResponse.statusCode >= 200 && retryResponse.statusCode < 300) {
+                  const standardResponse = responseInterceptor(retryResponse.data, { 
+                    debug: isDebug(),
+                    autoFormat: true 
+                  })
+                  resolve(standardResponse)
+                } else {
+                  // 重试后仍然失败，执行原有的401处理逻辑
+                  throw new Error('重试后仍然401')
+                }
+              }).catch(refreshError => {
+                console.log('❌ 401错误处理：token刷新失败或重试失败:', refreshError.message)
+                // token刷新失败，清理认证信息并引导用户重新登录
+                try { AuthService.logout() } catch (_) {}
+                showLoginModalThrottled()
+                reject({
+                  statusCode: 401,
+                  error: '需要登录',
+                  message: '请先登录账户'
+                })
+              })
+              return // 避免执行后续的401处理逻辑
+            }
+            
             // 401 统一交给 AuthService 处理退出并重定向（加节流，防止多次弹窗导致卡死）
             try { AuthService.logout() } catch (_) {}
             showLoginModalThrottled()
