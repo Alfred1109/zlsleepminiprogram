@@ -1,0 +1,155 @@
+<!-- pages/favorites/favorites.wxml -->
+<view class="page-container">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-content">
+      <text class="page-title">我的收藏</text>
+      <text class="page-subtitle">共 {{stats.total}} 项收藏</text>
+    </view>
+    
+    <!-- 快捷筛选按钮 -->
+    <view class="header-actions">
+      <view class="action-btn" bindtap="toggleFilter">
+        <text class="action-icon">🔍</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-section">
+    <view class="search-box">
+      <view class="search-input-wrapper">
+        <input
+          class="search-input"
+          type="text"
+          placeholder="搜索收藏内容..."
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+          confirm-type="search"
+        />
+        <view wx:if="{{searchKeyword}}" class="search-clear" bindtap="clearSearch">
+          <text class="clear-icon">×</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选面板 -->
+  <view wx:if="{{showFilter}}" class="filter-panel">
+    <view class="filter-overlay" bindtap="toggleFilter"></view>
+    <view class="filter-content">
+      <view class="filter-header">
+        <text class="filter-title">筛选类型</text>
+        <view class="filter-close" bindtap="toggleFilter">×</view>
+      </view>
+      <view class="filter-options">
+        <view 
+          wx:for="{{typeOptions}}" 
+          wx:key="value"
+          class="filter-option {{filterType === item.value ? 'active' : ''}}"
+          data-type="{{item.value}}"
+          bindtap="selectFilterType"
+        >
+          <text class="option-icon">{{item.icon}}</text>
+          <text class="option-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view wx:if="{{!isEmpty && !loading}}" class="stats-section">
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-number">{{stats.musicCount}}</text>
+        <text class="stat-label">音乐</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.assessmentCount}}</text>
+        <text class="stat-label">评测</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.sequenceCount}}</text>
+        <text class="stat-label">长序列</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 收藏列表 -->
+  <view class="content-section">
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:elif="{{isEmpty}}" class="empty-container">
+      <view class="empty-icon">💔</view>
+      <text class="empty-title">还没有收藏</text>
+      <text class="empty-subtitle">在播放页面点击爱心收藏喜欢的内容</text>
+      <button class="btn-explore" bindtap="onExplore">去探索</button>
+    </view>
+
+    <!-- 收藏列表 -->
+    <view wx:else class="favorites-list">
+      <view 
+        wx:for="{{filteredFavorites}}" 
+        wx:key="id"
+        class="favorite-item"
+        data-item="{{item}}"
+        bindtap="onItemTap"
+      >
+        <view class="item-cover">
+          <image class="cover-image" src="{{item.cover}}" mode="aspectFill" />
+          <view class="item-type-badge">
+            <text class="type-icon">
+              {{item.type === 'music' ? '🎵' : (item.type === 'assessment' ? '📊' : '🎼')}}
+            </text>
+          </view>
+        </view>
+
+        <view class="item-content">
+          <view class="item-main">
+            <text class="item-title">{{item.title}}</text>
+            <text class="item-subtitle">{{item.subtitle}}</text>
+          </view>
+          
+          <view class="item-meta">
+            <text class="favorite-time">{{formatFavoriteTime(item.favoriteTime)}}</text>
+            <text wx:if="{{item.duration}}" class="item-duration">
+              {{formatDuration(item.duration)}}
+            </text>
+          </view>
+        </view>
+
+        <view class="item-actions">
+          <view 
+            class="action-btn remove-btn"
+            data-item="{{item}}"
+            catchtap="onRemoveFavorite"
+          >
+            <text class="action-icon">💔</text>
+          </view>
+          <view 
+            class="action-btn share-btn"
+            data-item="{{item}}"
+            catchtap="onShareItem"
+          >
+            <text class="action-icon">📤</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选结果提示 -->
+  <view wx:if="{{filteredFavorites.length < favorites.length && !loading}}" class="filter-tip">
+    <text class="tip-text">
+      显示 {{filteredFavorites.length}} / {{favorites.length}} 项
+      {{searchKeyword ? '包含"' + searchKeyword + '"的' : ''}}
+      {{filterType !== 'all' ? typeOptions.find(opt => opt.value === filterType).label : ''}}
+      收藏
+    </text>
+  </view>
+</view>

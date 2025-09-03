@@ -1,0 +1,428 @@
+<!-- pages/settings/settings.wxml -->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">个性化设置</text>
+    <text class="page-subtitle">自定义您的使用体验</text>
+  </view>
+
+  <!-- 设置内容 -->
+  <scroll-view class="settings-content" scroll-y="true">
+    
+    <!-- 基础设置 -->
+    <view class="setting-section">
+      <view class="section-header">
+        <view class="section-icon">🎨</view>
+        <text class="section-title">外观设置</text>
+      </view>
+
+      <!-- 主题设置 -->
+      <view class="setting-item" bindtap="showThemeSelector">
+        <view class="setting-label">
+          <text class="label-text">主题模式</text>
+          <text class="label-desc">选择您喜欢的界面风格</text>
+        </view>
+        <view class="setting-value">
+          <block wx:for="{{themeOptions}}" wx:key="value">
+            <text wx:if="{{settings.theme === item.value}}" class="current-value">
+              <text class="value-icon">{{item.icon}}</text>
+              {{item.label}}
+            </text>
+          </block>
+          <view class="arrow-icon">›</view>
+        </view>
+      </view>
+
+      <!-- 音量设置 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">默认音量</text>
+          <text class="label-desc">设置播放的默认音量</text>
+        </view>
+        <view class="setting-control">
+          <slider 
+            class="volume-slider"
+            min="0" 
+            max="100" 
+            value="{{settings.volume * 100}}"
+            activeColor="#2BBAA5"
+            backgroundColor="#f0f0f0"
+            block-size="20"
+            bindchange="onVolumeChange"
+          />
+          <text class="volume-text">{{volumePercent}}%</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 播放设置 -->
+    <view class="setting-section">
+      <view class="section-header">
+        <view class="section-icon">🎵</view>
+        <text class="section-title">播放设置</text>
+      </view>
+
+      <!-- 音质设置 -->
+      <view class="setting-item" bindtap="showQualitySelector">
+        <view class="setting-label">
+          <text class="label-text">音频品质</text>
+          <text class="label-desc">更高品质需要更多流量</text>
+        </view>
+        <view class="setting-value">
+          <block wx:for="{{qualityOptions}}" wx:key="value">
+            <text wx:if="{{audioSettings.quality === item.value}}" class="current-value">
+              {{item.label}}
+            </text>
+          </block>
+          <view class="arrow-icon">›</view>
+        </view>
+      </view>
+
+      <!-- 自动播放 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">自动播放</text>
+          <text class="label-desc">启动时自动播放推荐音乐</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{settings.autoPlay}}"
+            color="#2BBAA5"
+            data-key="autoPlay"
+            bindchange="onSettingChange"
+          />
+        </view>
+      </view>
+
+      <!-- 淡入淡出 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">淡入淡出</text>
+          <text class="label-desc">音乐切换时的过渡效果</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{audioSettings.enableFadeInOut}}"
+            color="#2BBAA5"
+            data-key="enableFadeInOut"
+            bindchange="onAudioSettingChange"
+          />
+        </view>
+      </view>
+
+      <!-- 淡入淡出时间 -->
+      <view wx:if="{{audioSettings.enableFadeInOut}}" class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">过渡时间</text>
+          <text class="label-desc">{{audioSettings.crossfadeTime}}秒</text>
+        </view>
+        <view class="setting-control">
+          <slider 
+            class="time-slider"
+            min="1" 
+            max="10" 
+            value="{{audioSettings.crossfadeTime}}"
+            activeColor="#2BBAA5"
+            backgroundColor="#f0f0f0"
+            block-size="16"
+            step="1"
+            bindchange="onCrossfadeTimeChange"
+          />
+        </view>
+      </view>
+
+      <!-- 后台播放 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">后台播放</text>
+          <text class="label-desc">允许在后台继续播放音乐</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{audioSettings.backgroundPlay}}"
+            color="#2BBAA5"
+            data-key="backgroundPlay"
+            bindchange="onAudioSettingChange"
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 功能设置 -->
+    <view class="setting-section">
+      <view class="section-header">
+        <view class="section-icon">⚙️</view>
+        <text class="section-title">功能设置</text>
+      </view>
+
+      <!-- 定时休眠 -->
+      <view class="setting-item" bindtap="showSleepSelector">
+        <view class="setting-label">
+          <text class="label-text">定时休眠</text>
+          <text class="label-desc">自动停止播放的时间</text>
+        </view>
+        <view class="setting-value">
+          <text class="current-value">
+            {{settings.autoSleep === 0 ? '不自动休眠' : settings.autoSleep + '分钟'}}
+          </text>
+          <view class="arrow-icon">›</view>
+        </view>
+      </view>
+
+      <!-- 震动反馈 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">震动反馈</text>
+          <text class="label-desc">操作时提供触觉反馈</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{settings.vibrationEnabled}}"
+            color="#2BBAA5"
+            data-key="vibrationEnabled"
+            bindchange="onSettingChange"
+          />
+        </view>
+      </view>
+
+      <!-- 推送通知 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">推送通知</text>
+          <text class="label-desc">接收应用通知消息</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{settings.notificationEnabled}}"
+            color="#2BBAA5"
+            data-key="notificationEnabled"
+            bindchange="onSettingChange"
+          />
+        </view>
+      </view>
+
+      <!-- WiFi下载 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">仅WiFi下载</text>
+          <text class="label-desc">仅在WiFi环境下自动下载</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{settings.downloadOnlyWifi}}"
+            color="#2BBAA5"
+            data-key="downloadOnlyWifi"
+            bindchange="onSettingChange"
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 存储设置 -->
+    <view class="setting-section">
+      <view class="section-header">
+        <view class="section-icon">💾</view>
+        <text class="section-title">存储管理</text>
+      </view>
+
+      <!-- 缓存大小设置 -->
+      <view class="setting-item" bindtap="showCacheSelector">
+        <view class="setting-label">
+          <text class="label-text">缓存大小限制</text>
+          <text class="label-desc">本地缓存的最大容量</text>
+        </view>
+        <view class="setting-value">
+          <text class="current-value">{{settings.cacheLimit}}MB</text>
+          <view class="arrow-icon">›</view>
+        </view>
+      </view>
+
+      <!-- 缓存使用情况 -->
+      <view class="setting-item cache-info">
+        <view class="setting-label">
+          <text class="label-text">当前缓存</text>
+          <text class="label-desc">{{cacheInfo.fileCount}}个文件，{{cacheInfo.used}}MB / {{cacheInfo.total}}MB</text>
+        </view>
+        <view class="cache-progress">
+          <view class="progress-bar">
+            <view 
+              class="progress-fill" 
+              style="width: {{cacheUsagePercent}}%"
+            ></view>
+          </view>
+          <button class="clear-cache-btn" bindtap="clearCache">清理</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 隐私设置 -->
+    <view class="setting-section">
+      <view class="section-header">
+        <view class="section-icon">🔐</view>
+        <text class="section-title">隐私设置</text>
+      </view>
+
+      <!-- 数据收集 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">数据收集</text>
+          <text class="label-desc">帮助改善产品体验</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{privacySettings.dataCollection}}"
+            color="#2BBAA5"
+            data-key="dataCollection"
+            bindchange="onPrivacySettingChange"
+          />
+        </view>
+      </view>
+
+      <!-- 个性化推荐 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">个性化推荐</text>
+          <text class="label-desc">基于使用习惯推荐内容</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{privacySettings.personalizedRecommendation}}"
+            color="#2BBAA5"
+            data-key="personalizedRecommendation"
+            bindchange="onPrivacySettingChange"
+          />
+        </view>
+      </view>
+
+      <!-- 崩溃报告 -->
+      <view class="setting-item">
+        <view class="setting-label">
+          <text class="label-text">崩溃报告</text>
+          <text class="label-desc">自动发送崩溃日志</text>
+        </view>
+        <view class="setting-control">
+          <switch 
+            checked="{{privacySettings.crashReporting}}"
+            color="#2BBAA5"
+            data-key="crashReporting"
+            bindchange="onPrivacySettingChange"
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-section">
+      <button class="reset-btn" bindtap="resetSettings">
+        <view class="btn-icon">🔄</view>
+        恢复默认设置
+      </button>
+    </view>
+
+    <!-- 底部间距 -->
+    <view class="bottom-spacing"></view>
+  </scroll-view>
+
+  <!-- 保存按钮 -->
+  <view wx:if="{{hasChanges}}" class="save-bar">
+    <button class="save-btn" bindtap="saveSettings" loading="{{saving}}">
+      {{saving ? '保存中...' : '保存设置'}}
+    </button>
+  </view>
+
+  <!-- 主题选择器 -->
+  <view wx:if="{{showThemeSelector}}" class="selector-modal">
+    <view class="selector-overlay" bindtap="closeSelectors"></view>
+    <view class="selector-container">
+      <view class="selector-header">
+        <text class="selector-title">选择主题</text>
+        <view class="selector-close" bindtap="closeSelectors">×</view>
+      </view>
+      <view class="selector-content">
+        <view 
+          wx:for="{{themeOptions}}" 
+          wx:key="value"
+          class="selector-item {{settings.theme === item.value ? 'selected' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="selectTheme"
+        >
+          <view class="item-icon">{{item.icon}}</view>
+          <text class="item-label">{{item.label}}</text>
+          <view wx:if="{{settings.theme === item.value}}" class="check-icon">✓</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 音质选择器 -->
+  <view wx:if="{{showQualitySelector}}" class="selector-modal">
+    <view class="selector-overlay" bindtap="closeSelectors"></view>
+    <view class="selector-container">
+      <view class="selector-header">
+        <text class="selector-title">选择音质</text>
+        <view class="selector-close" bindtap="closeSelectors">×</view>
+      </view>
+      <view class="selector-content">
+        <view 
+          wx:for="{{qualityOptions}}" 
+          wx:key="value"
+          class="selector-item {{audioSettings.quality === item.value ? 'selected' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="selectQuality"
+        >
+          <view class="item-info">
+            <text class="item-label">{{item.label}}</text>
+            <text class="item-desc">{{item.desc}}</text>
+          </view>
+          <view wx:if="{{audioSettings.quality === item.value}}" class="check-icon">✓</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 休眠时间选择器 -->
+  <view wx:if="{{showSleepSelector}}" class="selector-modal">
+    <view class="selector-overlay" bindtap="closeSelectors"></view>
+    <view class="selector-container">
+      <view class="selector-header">
+        <text class="selector-title">定时休眠</text>
+        <view class="selector-close" bindtap="closeSelectors">×</view>
+      </view>
+      <view class="selector-content">
+        <view 
+          wx:for="{{sleepOptions}}" 
+          wx:key="value"
+          class="selector-item {{settings.autoSleep === item.value ? 'selected' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="selectSleep"
+        >
+          <text class="item-label">{{item.label}}</text>
+          <view wx:if="{{settings.autoSleep === item.value}}" class="check-icon">✓</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 缓存大小选择器 -->
+  <view wx:if="{{showCacheSelector}}" class="selector-modal">
+    <view class="selector-overlay" bindtap="closeSelectors"></view>
+    <view class="selector-container">
+      <view class="selector-header">
+        <text class="selector-title">缓存大小</text>
+        <view class="selector-close" bindtap="closeSelectors">×</view>
+      </view>
+      <view class="selector-content">
+        <view 
+          wx:for="{{cacheOptions}}" 
+          wx:key="value"
+          class="selector-item {{settings.cacheLimit === item.value ? 'selected' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="selectCache"
+        >
+          <text class="item-label">{{item.label}}</text>
+          <view wx:if="{{settings.cacheLimit === item.value}}" class="check-icon">✓</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

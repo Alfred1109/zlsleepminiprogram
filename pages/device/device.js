@@ -454,19 +454,49 @@ Page({
 
   // 设备播放控制
   toggleDevicePlayback(device) {
-    // 这里可以实现设备播放控制逻辑
-    wx.showToast({
-      title: '功能开发中',
-      icon: 'none'
-    })
+    // 跳转到设备控制页面进行详细控制
+    this.goToDeviceControl(device)
   },
 
   // 音量调节
   adjustDeviceVolume(device) {
-    // 这里可以实现音量调节逻辑
-    wx.showToast({
-      title: '功能开发中',
-      icon: 'none'
+    // 跳转到设备控制页面进行详细控制
+    this.goToDeviceControl(device)
+  },
+
+  // 跳转到设备控制页面
+  goToDeviceControl(device) {
+    if (!device) {
+      wx.showToast({
+        title: '设备信息无效',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 检查设备连接状态
+    if (device.status !== '已连接') {
+      wx.showModal({
+        title: '设备未连接',
+        content: '设备需要先连接才能进行控制，是否前往连接？',
+        confirmText: '去连接',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            // 这里可以添加设备连接逻辑
+            wx.showToast({
+              title: '请在设备列表中连接设备',
+              icon: 'none'
+            })
+          }
+        }
+      })
+      return
+    }
+
+    // 跳转到控制页面，传递设备信息
+    wx.navigateTo({
+      url: `/pages/device/control/control?deviceId=${device.deviceId}&deviceName=${encodeURIComponent(device.name || '智能设备')}`
     })
   },
 

@@ -33,6 +33,16 @@ App({
       console.warn('API配置刷新失败:', e)
     }
 
+    // 初始化设置管理器
+    try {
+      const { settingsManager } = require('./utils/settingsManager')
+      await settingsManager.init()
+      this.globalData.settingsManager = settingsManager
+      console.log('设置管理器初始化完成')
+    } catch (e) {
+      console.warn('设置管理器初始化失败:', e)
+    }
+
     // 初始化认证系统
     this.globalData.bus = bus
     this.initAuth()

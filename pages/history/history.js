@@ -6,10 +6,31 @@ const api = require('../../utils/api')
 Page({
   data: {
     history: [],
+    filteredHistory: [], // 筛选后的历史记录
     loading: true,
     error: null,
     userInfo: null,
-    isEmpty: false
+    isEmpty: false,
+    refresherTriggered: false,
+    
+    // 搜索相关
+    searchKeyword: '',
+    
+    // 筛选相关
+    showFilter: false,
+    filterCategory: '',
+    filterDate: '',
+    filterDateText: '',
+    categoryOptions: [],
+    
+    // 统计相关
+    showStats: false,
+    stats: {
+      totalCount: 0,
+      totalDuration: '',
+      topCategory: '',
+      avgDuration: ''
+    }
   },
 
   onLoad: function () {
@@ -70,24 +91,31 @@ Page({
   loadPlayHistory: function() {
     this.setData({ 
       loading: true, 
-      error: null 
+      error: null,
+      refresherTriggered: false
     })
 
     api.request({
       url: '/play-records/recent',
       method: 'GET',
       data: {
-        limit: 50,  // 最近50条记录
-        days: 30    // 最近30天
+        limit: 100,  // 增加到100条记录
+        days: 90     // 增加到90天
       },
       showLoading: false
     }).then((result) => {
       if (result.success) {
+        const historyData = result.data || []
+        
         this.setData({
-          history: result.data || [],
-          isEmpty: (result.data || []).length === 0,
+          history: historyData,
+          isEmpty: historyData.length === 0,
           loading: false
         })
+        
+        // 处理数据并更新相关状态
+        this.processHistoryData(historyData)
+        this.applyFilters()
       } else {
         throw new Error(result.error || '获取播放历史失败')
       }
@@ -96,7 +124,8 @@ Page({
       this.setData({
         loading: false,
         error: error.message || '加载播放历史失败',
-        isEmpty: true
+        isEmpty: true,
+        refresherTriggered: false
       })
       
       wx.showToast({
@@ -104,6 +133,91 @@ Page({
         icon: 'none'
       })
     })
+  },
+
+  /**
+   * 处理历史数据（提取分类选项、计算统计信息等）
+   */
+  processHistoryData: function(historyData) {
+    // 提取分类选项
+    const categorySet = new Set()
+    let totalPlayTime = 0
+    const categoryCount = {}
+
+    historyData.forEach(item => {
+      if (item.category) {
+        categorySet.add(item.category)
+        categoryCount[item.category] = (categoryCount[item.category] || 0) + 1
+      }
+      
+      // 解析播放时长（假设格式为 "2分30秒" 或 "30秒"）
+      if (item.duration) {
+        const duration = this.parseDuration(item.duration)
+        totalPlayTime += duration
+      }
+    })
+
+    // 找出最常听的分类
+    let topCategory = '暂无'
+    let maxCount = 0
+    Object.keys(categoryCount).forEach(category => {
+      if (categoryCount[category] > maxCount) {
+        maxCount = categoryCount[category]
+        topCategory = category
+      }
+    })
+
+    // 计算统计信息
+    const stats = {
+      totalCount: historyData.length,
+      totalDuration: this.formatDuration(totalPlayTime),
+      topCategory: topCategory,
+      avgDuration: historyData.length > 0 ? this.formatDuration(Math.floor(totalPlayTime / historyData.length)) : '0秒'
+    }
+
+    this.setData({
+      categoryOptions: Array.from(categorySet),
+      stats: stats
+    })
+  },
+
+  /**
+   * 解析时长字符串为秒数
+   */
+  parseDuration: function(durationStr) {
+    if (!durationStr || typeof durationStr !== 'string') return 0
+    
+    let totalSeconds = 0
+    
+    // 匹配 "2分30秒" 格式
+    const minuteMatch = durationStr.match(/(\d+)分/)
+    const secondMatch = durationStr.match(/(\d+)秒/)
+    
+    if (minuteMatch) {
+      totalSeconds += parseInt(minuteMatch[1]) * 60
+    }
+    if (secondMatch) {
+      totalSeconds += parseInt(secondMatch[1])
+    }
+    
+    return totalSeconds
+  },
+
+  /**
+   * 格式化时长为可读字符串
+   */
+  formatDuration: function(seconds) {
+    if (seconds < 60) {
+      return `${seconds}秒`
+    } else if (seconds < 3600) {
+      const minutes = Math.floor(seconds / 60)
+      const remainingSeconds = seconds % 60
+      return remainingSeconds > 0 ? `${minutes}分${remainingSeconds}秒` : `${minutes}分钟`
+    } else {
+      const hours = Math.floor(seconds / 3600)
+      const minutes = Math.floor((seconds % 3600) / 60)
+      return minutes > 0 ? `${hours}小时${minutes}分钟` : `${hours}小时`
+    }
   },
 
   /**
@@ -278,5 +392,180 @@ Page({
     wx.switchTab({
       url: '/pages/index/index'
     })
+  },
+
+  /**
+   * 应用筛选条件
+   */
+  applyFilters: function() {
+    let filtered = [...this.data.history]
+
+    // 应用搜索关键词筛选
+    if (this.data.searchKeyword) {
+      const keyword = this.data.searchKeyword.toLowerCase()
+      filtered = filtered.filter(item => 
+        (item.soundName && item.soundName.toLowerCase().includes(keyword)) ||
+        (item.category && item.category.toLowerCase().includes(keyword))
+      )
+    }
+
+    // 应用分类筛选
+    if (this.data.filterCategory) {
+      filtered = filtered.filter(item => item.category === this.data.filterCategory)
+    }
+
+    // 应用日期筛选
+    if (this.data.filterDate) {
+      const now = new Date()
+      filtered = filtered.filter(item => {
+        if (!item.date) return false
+        
+        const itemDate = new Date(item.date)
+        switch (this.data.filterDate) {
+          case 'today':
+            return this.isSameDay(itemDate, now)
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+            return itemDate >= weekAgo
+          case 'month':
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+            return itemDate >= monthAgo
+          default:
+            return true
+        }
+      })
+    }
+
+    this.setData({
+      filteredHistory: filtered
+    })
+  },
+
+  /**
+   * 判断是否是同一天
+   */
+  isSameDay: function(date1, date2) {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate()
+  },
+
+  /**
+   * 搜索输入处理
+   */
+  onSearchInput: function(e) {
+    this.setData({
+      searchKeyword: e.detail.value
+    })
+    this.applyFilters()
+  },
+
+  /**
+   * 清除搜索
+   */
+  clearSearch: function() {
+    this.setData({
+      searchKeyword: ''
+    })
+    this.applyFilters()
+  },
+
+  /**
+   * 切换统计显示
+   */
+  toggleStats: function() {
+    this.setData({
+      showStats: !this.data.showStats
+    })
+  },
+
+  /**
+   * 切换筛选器显示
+   */
+  toggleFilter: function() {
+    this.setData({
+      showFilter: !this.data.showFilter
+    })
+  },
+
+  /**
+   * 选择筛选分类
+   */
+  selectFilterCategory: function(e) {
+    const category = e.currentTarget.dataset.category
+    this.setData({
+      filterCategory: category
+    })
+  },
+
+  /**
+   * 选择筛选日期
+   */
+  selectFilterDate: function(e) {
+    const date = e.currentTarget.dataset.date
+    let dateText = ''
+    
+    switch (date) {
+      case 'today':
+        dateText = '今天'
+        break
+      case 'week':
+        dateText = '本周'
+        break
+      case 'month':
+        dateText = '本月'
+        break
+      default:
+        dateText = ''
+    }
+    
+    this.setData({
+      filterDate: date,
+      filterDateText: dateText
+    })
+  },
+
+  /**
+   * 重置筛选条件
+   */
+  resetFilter: function() {
+    this.setData({
+      filterCategory: '',
+      filterDate: '',
+      filterDateText: ''
+    })
+  },
+
+  /**
+   * 应用筛选（关闭筛选面板并应用筛选）
+   */
+  applyFilter: function() {
+    this.applyFilters()
+    this.setData({
+      showFilter: false
+    })
+  },
+
+  /**
+   * 清除所有筛选条件
+   */
+  clearAllFilters: function() {
+    this.setData({
+      searchKeyword: '',
+      filterCategory: '',
+      filterDate: '',
+      filterDateText: '',
+      showFilter: false
+    })
+    this.applyFilters()
+  },
+
+  /**
+   * 下拉刷新
+   */
+  onPullDownRefresh: function() {
+    console.log('下拉刷新播放历史')
+    this.setData({ refresherTriggered: true })
+    this.loadPlayHistory()
   }
 })

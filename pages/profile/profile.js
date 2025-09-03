@@ -361,8 +361,30 @@ Page({
    */
   loadSettings() {
     try {
-      const settings = wx.getStorageSync('appSettings') || this.data.settings
+      // 加载基础设置
+      const appSettings = wx.getStorageSync('appSettings') || {}
+      const audioSettings = wx.getStorageSync('audioSettings') || {}
+      const privacySettings = wx.getStorageSync('privacySettings') || {}
+      
+      // 合并默认设置
+      const settings = {
+        theme: 'auto',
+        volume: 0.7,
+        autoSleep: 30,
+        vibrationEnabled: true,
+        notificationEnabled: true,
+        autoPlay: false,
+        downloadOnlyWifi: true,
+        cacheLimit: 500,
+        ...appSettings
+      }
+      
       this.setData({ settings })
+      
+      // 应用主题设置
+      this.applyThemeSettings(settings.theme)
+      
+      console.log('设置加载完成:', settings)
     } catch (error) {
       console.error('加载设置失败:', error)
     }
@@ -384,6 +406,38 @@ Page({
         title: '保存失败',
         icon: 'error'
       })
+    }
+  },
+
+  /**
+   * 应用主题设置
+   */
+  applyThemeSettings(theme) {
+    try {
+      let actualTheme = theme
+      
+      if (theme === 'auto') {
+        // 获取系统主题
+        const systemInfo = wx.getSystemInfoSync()
+        actualTheme = systemInfo.theme || 'light'
+      }
+
+      // 更新导航栏颜色
+      if (actualTheme === 'dark') {
+        wx.setNavigationBarColor({
+          frontColor: '#ffffff',
+          backgroundColor: '#1a1a1a'
+        })
+      } else {
+        wx.setNavigationBarColor({
+          frontColor: '#ffffff',
+          backgroundColor: '#4A90E2'
+        })
+      }
+
+      console.log('主题设置应用完成:', actualTheme)
+    } catch (error) {
+      console.error('应用主题设置失败:', error)
     }
   },
 
@@ -637,23 +691,38 @@ Page({
   },
 
   showHistory() {
-    wx.showToast({
-      title: '功能开发中，敬请期待',
-      icon: 'none'
+    // 检查登录状态
+    if (!this.data.isLoggedIn) {
+      this.showLoginTip()
+      return
+    }
+    
+    wx.navigateTo({
+      url: '/pages/history/history'
     });
   },
 
   goToDownloads() {
-    wx.showToast({
-      title: '功能开发中，敬请期待',
-      icon: 'none'
+    // 检查登录状态
+    if (!this.data.isLoggedIn) {
+      this.showLoginTip()
+      return
+    }
+
+    wx.navigateTo({
+      url: '/pages/downloads/downloads'
     });
   },
 
   goToFavorites() {
-    wx.showToast({
-      title: '功能开发中，敬请期待',
-      icon: 'none'
+    // 检查登录状态
+    if (!this.data.isLoggedIn) {
+      this.showLoginTip()
+      return
+    }
+
+    wx.navigateTo({
+      url: '/pages/favorites/favorites'
     });
   },
 

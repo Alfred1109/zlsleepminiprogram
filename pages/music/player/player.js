@@ -16,10 +16,16 @@ Page({
     progress: 0,
     loading: false,
     isFavorite: false,
+    isDownloaded: false,
     // 全局播放器相关
     showGlobalPlayer: true,
     globalPlayer: null,
-    waveformData: [] // Add this for real waveform data
+    waveformData: [], // Add this for real waveform data
+    
+    // 播放列表相关
+    showPlaylistModal: false,
+    playlist: [],
+    currentIndex: 0
   },
 
   onLoad(options) {
@@ -38,6 +44,8 @@ Page({
 
   onShow() {
     this.updatePlayerState()
+    this.checkFavoriteStatus()
+    this.checkDownloadStatus()
   },
 
   onUnload() {
@@ -352,10 +360,74 @@ Page({
    * 显示播放列表
    */
   onShowPlaylist() {
-    wx.showToast({
-      title: '播放列表功能开发中',
-      icon: 'none'
+    // 获取全局播放器实例
+    const { getGlobalPlayer } = require('../../../utils/musicPlayer')
+    const globalPlayer = getGlobalPlayer()
+    const state = globalPlayer.getState()
+    
+    // 如果有播放列表，显示列表
+    if (state.playlist && state.playlist.length > 0) {
+      this.setData({
+        showPlaylistModal: true,
+        playlist: state.playlist,
+        currentIndex: state.currentIndex
+      })
+    } else {
+      // 创建包含当前音乐的播放列表
+      const currentMusic = this.data.musicData
+      if (currentMusic) {
+        this.setData({
+          showPlaylistModal: true,
+          playlist: [currentMusic],
+          currentIndex: 0
+        })
+      } else {
+        wx.showToast({
+          title: '暂无播放列表',
+          icon: 'none'
+        })
+      }
+    }
+  },
+
+  /**
+   * 关闭播放列表弹窗
+   */
+  closePlaylistModal() {
+    this.setData({
+      showPlaylistModal: false
     })
+  },
+
+  /**
+   * 选择播放列表中的音乐
+   */
+  selectPlaylistMusic(e) {
+    const index = e.currentTarget.dataset.index
+    const music = this.data.playlist[index]
+    
+    if (music) {
+      // 使用全局播放器播放选中的音乐
+      const { getGlobalPlayer } = require('../../../utils/musicPlayer')
+      const globalPlayer = getGlobalPlayer()
+      
+      // 设置播放列表和当前索引
+      globalPlayer.setPlaylist(this.data.playlist, index)
+      globalPlayer.play(music)
+      
+      // 更新界面
+      this.setData({
+        currentIndex: index,
+        showPlaylistModal: false
+      })
+      
+      // 如果是不同的音乐，更新页面数据
+      if (music.id !== this.data.musicData?.id) {
+        this.setData({
+          musicData: music
+        })
+      }
+    }
   },
 
   /**
@@ -643,18 +715,200 @@ Page({
   },
 
   /**
+   * 检查收藏状态
+   */
+  checkFavoriteStatus() {
+    if (this.data.musicData && this.data.musicData.id) {
+      const isFavorited = favoritesManager.isFavorited(this.data.musicData.id)
+      this.setData({ isFavorite: isFavorited })
+    }
+  },
+
+  /**
+   * 检查下载状态
+   */
+  checkDownloadStatus() {
+    if (this.data.musicData && this.data.musicData.id) {
+      const isDownloaded = downloadManager.isDownloaded(this.data.musicData.id)
+      this.setData({ isDownloaded: isDownloaded })
+    }
+  },
+
+  /**
    * 切换收藏状态
    */
-  onToggleFavorite() {
-    // 这里可以实现收藏/取消收藏的逻辑
-    this.setData({
-      isFavorite: !this.data.isFavorite
-    })
-    
-    wx.showToast({
-      title: this.data.isFavorite ? '已收藏' : '已取消收藏',
-      icon: 'success'
-    })
+  async onToggleFavorite() {
+    try {
+      if (!this.data.musicData) {
+        wx.showToast({
+          title: '暂无音乐信息',
+          icon: 'none'
+        })
+        return
+      }
+
+      const result = await favoritesManager.toggleFavorite({
+        id: this.data.musicData.id,
+        type: 'music',
+        title: this.data.musicData.title || this.data.musicData.name,
+        subtitle: this.data.musicData.category || this.data.musicData.mood,
+        cover: this.data.musicData.image || this.data.musicData.cover,
+        duration: this.data.musicData.duration,
+        category: this.data.musicData.category,
+        tags: this.data.musicData.tags,
+        metadata: {
+          ...this.data.musicData,
+          mood: this.data.musicData.mood,
+          genre: this.data.musicData.genre
+        }
+      })
+
+      this.setData({ isFavorite: result.isFavorited })
+      
+      wx.showToast({
+        title: result.action === 'added' ? '已添加收藏' : '已取消收藏',
+        icon: 'success'
+      })
+
+    } catch (error) {
+      console.error('收藏操作失败:', error)
+      wx.showToast({
+        title: error.message || '操作失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 下载音乐
+   */
+  async onDownload() {
+    try {
+      if (!this.data.musicData) {
+        wx.showToast({
+          title: '暂无音乐信息',
+          icon: 'none'
+        })
+        return
+      }
+
+      // 检查是否已下载
+      if (this.data.isDownloaded) {
+        wx.showActionSheet({
+          itemList: ['播放本地文件', '重新下载', '删除下载'],
+          success: (res) => {
+            switch (res.tapIndex) {
+              case 0:
+                this.playLocalFile()
+                break
+              case 1:
+                this.redownloadFile()
+                break
+              case 2:
+                this.deleteDownload()
+                break
+            }
+          }
+        })
+        return
+      }
+
+      // 开始下载
+      wx.showLoading({ title: '准备下载...' })
+
+      const downloadItem = await downloadManager.startDownload({
+        id: this.data.musicData.id,
+        title: this.data.musicData.title || this.data.musicData.name,
+        subtitle: this.data.musicData.category || this.data.musicData.mood,
+        cover: this.data.musicData.image || this.data.musicData.cover,
+        duration: this.data.musicData.duration,
+        url: this.data.musicData.url || this.data.musicData.downloadUrl,
+        fileSize: this.data.musicData.fileSize || 0,
+        fileType: 'audio',
+        category: this.data.musicData.category,
+        metadata: {
+          ...this.data.musicData
+        }
+      })
+
+      wx.hideLoading()
+      this.setData({ isDownloaded: downloadItem.status === 'downloaded' })
+      
+      wx.showToast({
+        title: downloadItem.status === 'downloading' ? '开始下载' : '下载完成',
+        icon: 'success'
+      })
+
+    } catch (error) {
+      wx.hideLoading()
+      console.error('下载失败:', error)
+      wx.showToast({
+        title: error.message || '下载失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 播放本地文件
+   */
+  playLocalFile() {
+    const downloadItem = downloadManager.getDownloadItem(this.data.musicData.id)
+    if (downloadItem && downloadItem.localPath) {
+      // 这里可以设置播放本地文件的逻辑
+      wx.showToast({
+        title: '正在播放本地文件',
+        icon: 'success'
+      })
+    }
+  },
+
+  /**
+   * 重新下载
+   */
+  async redownloadFile() {
+    try {
+      wx.showLoading({ title: '重新下载中...' })
+      await downloadManager.retryDownload(this.data.musicData.id)
+      wx.hideLoading()
+      wx.showToast({
+        title: '重新下载中',
+        icon: 'success'
+      })
+    } catch (error) {
+      wx.hideLoading()
+      wx.showToast({
+        title: '重新下载失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 删除下载
+   */
+  async deleteDownload() {
+    try {
+      wx.showModal({
+        title: '删除下载',
+        content: '确定要删除这个下载文件吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            await downloadManager.deleteDownload(this.data.musicData.id)
+            this.setData({ isDownloaded: false })
+            wx.showToast({
+              title: '下载已删除',
+              icon: 'success'
+            })
+          }
+        }
+      })
+    } catch (error) {
+      wx.showToast({
+        title: '删除失败',
+        icon: 'none'
+      })
+    }
   },
 
   /**

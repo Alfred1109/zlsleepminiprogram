@@ -625,11 +625,11 @@ class UnifiedMusicManager {
         count: 1
       },
       {
-        id: 4,
-        name: 'AI音乐(默认)',
-        code: 'ai_music',
-        description: 'AI生成的个性化音乐', 
-        icon: '🤖',
+        id: 3,
+        name: '抑郁疗愈(默认)',
+        code: 'brainwave',
+        description: '不同频率的脑波音频',
+        icon: '🧠',
         type: 'audio_file',
         count: 1
       },
@@ -642,6 +642,7 @@ class UnifiedMusicManager {
         type: 'audio_file',
         count: 1
       }
+      // 注意：移除了ID=4的AI音乐分类（单独收费，不在UI中显示）
     ]
     this.buildCategoryMap()
   }

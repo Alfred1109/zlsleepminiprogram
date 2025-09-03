@@ -54,12 +54,14 @@ Page({
       const success = await unifiedMusicManager.init()
       
       if (success) {
-        const categories = unifiedMusicManager.getAllCategories()
+        const allCategories = unifiedMusicManager.getAllCategories()
+        // 过滤掉冥想疗愈分类（AI生成音频，单独收费，不在分类列表显示）
+        const categories = allCategories.filter(cat => cat.id !== 4)
         this.setData({
           categories: categories,
           loading: false
         })
-        console.log('分类初始化成功:', categories.length)
+        console.log('分类初始化成功:', categories.length, '(AI音乐分类已过滤)')
       } else {
         throw new Error('统一音乐管理器初始化失败')
       }
@@ -81,7 +83,9 @@ Page({
   async refreshCategories() {
     try {
       // 获取当前分类（可能来自缓存）
-      const categories = unifiedMusicManager.getAllCategories()
+      const allCategories = unifiedMusicManager.getAllCategories()
+      // 过滤掉冥想疗愈分类（AI生成音频，单独收费，不在分类列表显示）
+      const categories = allCategories.filter(cat => cat.id !== 4)
       
       if (categories.length > 0) {
         this.setData({ categories })
@@ -90,7 +94,8 @@ Page({
       // 尝试从服务器更新（不阻塞UI）
       unifiedMusicManager.refreshCategories().then(updated => {
         if (updated) {
-          const newCategories = unifiedMusicManager.getAllCategories()
+          const allNewCategories = unifiedMusicManager.getAllCategories()
+          const newCategories = allNewCategories.filter(cat => cat.id !== 4)
           this.setData({ categories: newCategories })
           console.log('分类数据已更新')
         }
@@ -121,10 +126,10 @@ Page({
         count: 1 // 设置为有内容，避免显示为空分类
       },
       {
-        id: 4,
-        name: 'AI音乐',
-        description: 'AI生成的个性化音乐',
-        icon: '🤖',
+        id: 3,
+        name: '抑郁疗愈',
+        description: '不同频率的脑波音频，促进特定脑波状态',
+        icon: '🧠',
         count: 1 // 设置为有内容，避免显示为空分类
       },
       {
@@ -134,6 +139,7 @@ Page({
         icon: '💚',
         count: 1 // 设置为有内容，避免显示为空分类
       }
+      // 注意：移除了ID=4的冥想疗愈分类（AI生成音频，单独收费，不在分类列表显示）
     ]
   },
 

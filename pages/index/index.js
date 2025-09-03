@@ -32,6 +32,11 @@ Page({
   },
   
   onLoad: function () {
+    console.log('Index page loaded')
+    
+    // 清除可能的缓存，确保分类数据是最新的
+    wx.removeStorageSync('music_categories_cache')
+    
     // 延迟检查登录状态，确保App实例已初始化
     setTimeout(() => {
       try {
@@ -528,30 +533,30 @@ Page({
   async getTimeBasedRecommendation() {
     try {
       const hour = new Date().getHours();
-      let categoryId = 1; // 默认自然音
-      let categoryName = '自然音';
+      let categoryId = 1; // 默认助眠疗愈
+      let categoryName = '助眠疗愈';
       
       // 根据时间推荐不同类型的音乐
       if (hour >= 22 || hour <= 6) {
         // 夜间：推荐助眠音乐
-        categoryId = 1; // 自然音
-        categoryName = '助眠自然音';
+        categoryId = 1; // 助眠疗愈
+        categoryName = '夜间助眠疗愈';
       } else if (hour >= 7 && hour <= 11) {
         // 上午：推荐专注音乐
-        categoryId = 2; // 白噪音
-        categoryName = '专注白噪音';
+        categoryId = 2; // 专注疗愈
+        categoryName = '上午专注疗愈';
       } else if (hour >= 12 && hour <= 14) {
         // 午休：推荐放松音乐
-        categoryId = 1; // 自然音
-        categoryName = '午休自然音';
+        categoryId = 1; // 助眠疗愈
+        categoryName = '午休助眠疗愈';
       } else if (hour >= 15 && hour <= 18) {
-        // 下午：推荐AI音乐
-        categoryId = 4; // AI音乐
-        categoryName = '下午AI音乐';
+        // 下午：推荐专注音乐（原为AI音乐，已屏蔽）
+        categoryId = 2; // 专注疗愈
+        categoryName = '下午专注疗愈';
       } else {
         // 晚间：推荐疗愈资源
-        categoryId = 5; // 疗愈资源
-        categoryName = '晚间疗愈资源';
+        categoryId = 5; // 放松疗愈
+        categoryName = '晚间放松疗愈';
       }
       
       // 获取该分类的推荐音乐
@@ -721,8 +726,9 @@ Page({
     
     unifiedMusicManager.init().then((success) => {
       if (success) {
-        // 获取最新的分类数据
-        const categories = unifiedMusicManager.getAllCategories()
+        // 获取最新的分类数据，过滤掉冥想疗愈分类（AI生成音频，单独收费）
+        const allCategories = unifiedMusicManager.getAllCategories()
+        const categories = this.filterCategories(allCategories)
         
         this.setData({
           categories: categories,
@@ -795,7 +801,9 @@ Page({
       wx.hideLoading()
       
       if (result && result.success) {
-        const categories = result.data || unifiedMusicManager.getAllCategories()
+        const allCategories = result.data || unifiedMusicManager.getAllCategories()
+        // 过滤掉冥想疗愈分类（AI生成音频，单独收费）
+        const categories = this.filterCategories(allCategories)
         
         this.setData({
           categories: categories,
@@ -1072,11 +1080,11 @@ Page({
     const defaultImage = '/assets/images/default-image.png'
     
     const imageMap = {
-      1: defaultImage, // 自然音
-      2: defaultImage, // 白噪音
-      3: defaultImage, // 脑波音频
-      4: defaultImage, // AI音乐
-      5: defaultImage  // 疗愈资源
+      1: defaultImage, // 助眠疗愈
+      2: defaultImage, // 专注疗愈
+      3: defaultImage, // 抑郁疗愈
+      4: defaultImage, // 冥想疗愈（已屏蔽）
+      5: defaultImage  // 放松疗愈
     };
     return imageMap[categoryId] || defaultImage;
   },
@@ -1347,8 +1355,8 @@ Page({
    * 选择一个可用的分类
    */
   selectAvailableCategory: function() {
-    // 默认选择分类1（自然音）或分类5（疗愈资源），这些通常有内容
-    const fallbackCategories = [1, 5, 4]
+    // 默认选择分类1（助眠疗愈）或分类5（放松疗愈），这些通常有内容
+    const fallbackCategories = [1, 5, 3] // 移除ID=4（冥想疗愈已屏蔽）
     for (const categoryId of fallbackCategories) {
       if (categoryId !== this.data.selectedCategory) {
         this.setData({
@@ -1377,8 +1385,9 @@ Page({
       let categories = []
       
       if (categoriesResult.success && categoriesResult.data && categoriesResult.data.length > 0) {
-        // 使用API返回的分类数据
-        categories = categoriesResult.data.map(cat => ({
+        // 使用API返回的分类数据，过滤掉冥想疗愈分类（AI生成音频，单独收费）
+        const filteredCategories = this.filterCategories(categoriesResult.data)
+        categories = filteredCategories.map(cat => ({
           id: cat.id,
           name: cat.name,
           icon: cat.icon || cat.emoji_code || '🎵',
@@ -1507,8 +1516,9 @@ Page({
       const categoriesResult = await MusicAPI.getCategories()
       
       if (categoriesResult.success && categoriesResult.data && categoriesResult.data.length > 0) {
-        // 使用API返回的最新分类数据
-        const categories = categoriesResult.data.map(cat => ({
+        // 使用API返回的最新分类数据，过滤掉冥想疗愈分类（AI生成音频，单独收费）
+        const filteredCategories = this.filterCategories(categoriesResult.data)
+        const categories = filteredCategories.map(cat => ({
           id: cat.id,
           name: cat.name,
           icon: cat.icon || cat.emoji_code || '🎵',
@@ -1542,37 +1552,48 @@ Page({
   /**
    * 获取默认分类（降级处理） - 添加明显标识
    */
+  /**
+   * 过滤分类数据，移除不应在前端显示的分类
+   */
+  filterCategories(categories) {
+    if (!categories || !Array.isArray(categories)) return []
+    // 过滤掉冥想疗愈分类（ID=4，AI生成音频，单独收费）
+    return categories.filter(cat => cat.id !== 4)
+  },
+
   getDefaultCategories() {
-    return [
+    const defaultCategories = [
       { 
         id: 1, 
-        name: '自然音(默认)', 
+        name: '助眠疗愈(默认)', 
         icon: '🌿',
-        description: '大自然的真实声音',
+        description: '助眠疗愈音频',
         count: 1
       },
       { 
         id: 2, 
-        name: '白噪音(默认)', 
+        name: '专注疗愈(默认)', 
         icon: '🔊',
-        description: '各种频率的白噪音',
+        description: '专注疗愈音频',
         count: 1
       },
       { 
-        id: 4, 
-        name: 'AI音乐(默认)', 
-        icon: '🤖',
-        description: 'AI生成的个性化音乐',
+        id: 3, 
+        name: '抑郁疗愈(默认)', 
+        icon: '🧠',
+        description: '不同频率的脑波音频',
         count: 1
       },
       { 
         id: 5, 
-        name: '疗愈资源(默认)', 
+        name: '放松疗愈(默认)', 
         icon: '💚',
-        description: '专业的疗愈资源',
+        description: '放松疗愈音频',
         count: 1
       }
+      // 注意：移除了ID=4的冥想疗愈分类（AI生成音频，单独收费，不在首页显示）
     ]
+    return this.filterCategories(defaultCategories)
   },
 
   /**
@@ -1728,10 +1749,10 @@ Page({
     // 对于非脑波音频，显示合适的频率信息
     if (!sound.baseFreq && !sound.beatFreq) {
       // 兼容旧的分类检查逻辑，同时支持新的分类ID
-      if (sound.category === '自然音' || sound.categoryId === 1 || sound.category_id === 1) {
+      if (sound.category === '助眠疗愈' || sound.category === '自然音' || sound.categoryId === 1 || sound.category_id === 1) {
         brainwaveInfo.baseFreq = '8-15';
         brainwaveInfo.beatFreq = '10';
-      } else if (sound.category === '白噪音') {
+      } else if (sound.category === '专注疗愈' || sound.category === '白噪音') {
         brainwaveInfo.baseFreq = '20-20K';
         brainwaveInfo.beatFreq = 'Full';
       } else {
@@ -2218,10 +2239,11 @@ Page({
       const categoryId = this.data.selectedCategory;
       
       switch (categoryId) {
-        case 1: // 自然音
-        case 2: // 白噪音
-        case 4: // AI音乐
-        case 5: // 疗愈资源
+        case 1: // 助眠疗愈
+        case 2: // 专注疗愈
+        case 3: // 抑郁疗愈
+        case 5: // 放松疗愈
+        // 注意：case 4（冥想疗愈）已移除，因为AI生成音频已屏蔽
           // 使用统一音乐管理器获取音乐
           this.getMusicFromUnifiedManager(categoryId);
           break;

@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "设置",
+  "navigationBarBackgroundColor": "#2BBAA5",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#2BBAA5",
+  "enablePullDownRefresh": false,
+  "onReachBottomDistance": 50,
+  "usingComponents": {}
+}

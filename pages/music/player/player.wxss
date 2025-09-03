@@ -1,6 +1,7 @@
 /* pages/music/player/player.wxss */
 /* 现代音乐播放器页面样式 */
 @import "/styles/main.wxss";
+@import "player-playlist.wxss";
 
 :root {
   --player-background: linear-gradient(180deg, #2a2a2a 0%, #121212 100%);

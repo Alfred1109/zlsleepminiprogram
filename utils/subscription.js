@@ -347,12 +347,11 @@ function navigateToSubscription(plan = null) {
   
   wx.navigateTo({
     url: url,
-    fail: () => {
-      // 如果订阅页面不存在，显示提示
-      wx.showModal({
-        title: '功能开发中',
-        content: '订阅功能正在开发中，敬请期待！',
-        showCancel: false
+    fail: (err) => {
+      console.error('跳转订阅页面失败:', err)
+      wx.showToast({
+        title: '页面跳转失败',
+        icon: 'none'
       })
     }
   })

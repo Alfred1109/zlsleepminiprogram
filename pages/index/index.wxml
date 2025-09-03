@@ -14,7 +14,7 @@
     <view class="guide-card random-listen" bindtap="onRandomListen">
       <view class="card-content">
         <text class="card-title">随机播放</text>
-        <text class="card-desc">探索为您精选的疗愈脑波</text>
+        <text class="card-desc">——探索为您精选的疗愈脑波</text>
       </view>
       <view class="card-action">
         <image class="play-icon" src="/images/play-white.svg" />

@@ -4,8 +4,96 @@
   <view class="header">
     <text class="title">播放历史</text>
     <view class="actions" wx:if="{{!loading}}">
-      <view class="btn-refresh" bindtap="onRefresh">刷新</view>
+      <view class="btn-stats" bindtap="toggleStats" wx:if="{{history.length > 0}}">
+        <view class="stats-icon"></view>
+        统计
+      </view>
+      <view class="btn-filter" bindtap="toggleFilter" wx:if="{{history.length > 0}}">
+        <view class="filter-icon"></view>
+        筛选
+      </view>
       <view class="btn-clear" bindtap="onClearAll" wx:if="{{history.length > 0}}">清空</view>
+    </view>
+  </view>
+
+  <!-- 统计信息卡片 -->
+  <view class="stats-card" wx:if="{{showStats && history.length > 0}}">
+    <view class="stats-header">
+      <text class="stats-title">播放统计</text>
+      <view class="stats-close" bindtap="toggleStats">×</view>
+    </view>
+    <view class="stats-content">
+      <view class="stat-item">
+        <text class="stat-label">总播放次数</text>
+        <text class="stat-value">{{stats.totalCount}}次</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-label">总播放时长</text>
+        <text class="stat-value">{{stats.totalDuration}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-label">最常听分类</text>
+        <text class="stat-value">{{stats.topCategory}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-label">平均播放时长</text>
+        <text class="stat-value">{{stats.avgDuration}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选器 -->
+  <view class="filter-panel" wx:if="{{showFilter && history.length > 0}}">
+    <view class="filter-header">
+      <text class="filter-title">筛选条件</text>
+      <view class="filter-close" bindtap="toggleFilter">×</view>
+    </view>
+    <view class="filter-content">
+      <!-- 分类筛选 -->
+      <view class="filter-section">
+        <text class="filter-section-title">分类</text>
+        <view class="filter-options">
+          <view class="filter-option {{filterCategory === '' ? 'active' : ''}}" 
+                bindtap="selectFilterCategory" data-category="">全部</view>
+          <block wx:for="{{categoryOptions}}" wx:key="*this">
+            <view class="filter-option {{filterCategory === item ? 'active' : ''}}" 
+                  bindtap="selectFilterCategory" data-category="{{item}}">{{item}}</view>
+          </block>
+        </view>
+      </view>
+      
+      <!-- 日期筛选 -->
+      <view class="filter-section">
+        <text class="filter-section-title">时间范围</text>
+        <view class="filter-options">
+          <view class="filter-option {{filterDate === '' ? 'active' : ''}}" 
+                bindtap="selectFilterDate" data-date="">全部</view>
+          <view class="filter-option {{filterDate === 'today' ? 'active' : ''}}" 
+                bindtap="selectFilterDate" data-date="today">今天</view>
+          <view class="filter-option {{filterDate === 'week' ? 'active' : ''}}" 
+                bindtap="selectFilterDate" data-date="week">本周</view>
+          <view class="filter-option {{filterDate === 'month' ? 'active' : ''}}" 
+                bindtap="selectFilterDate" data-date="month">本月</view>
+        </view>
+      </view>
+      
+      <!-- 重置和应用按钮 -->
+      <view class="filter-actions">
+        <view class="btn-reset" bindtap="resetFilter">重置</view>
+        <view class="btn-apply" bindtap="applyFilter">应用</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-section" wx:if="{{history.length > 0}}">
+    <view class="search-box">
+      <input class="search-input" 
+             placeholder="搜索音乐名称..." 
+             bindinput="onSearchInput" 
+             value="{{searchKeyword}}" />
+      <view class="search-icon" wx:if="{{!searchKeyword}}"></view>
+      <view class="search-clear" wx:if="{{searchKeyword}}" bindtap="clearSearch">×</view>
     </view>
   </view>
 
@@ -22,35 +110,61 @@
     <button class="retry-btn" bindtap="onRefresh">重试</button>
   </view>
 
+  <!-- 筛选结果提示 -->
+  <view class="filter-result-tip" wx:if="{{(filterCategory || filterDate || searchKeyword) && filteredHistory.length !== history.length}}">
+    <text class="tip-text">
+      找到 {{filteredHistory.length}} 条记录
+      <text wx:if="{{filterCategory}}">({{filterCategory}})</text>
+      <text wx:if="{{filterDate}}">({{filterDateText}})</text>
+      <text wx:if="{{searchKeyword}}">(包含"{{searchKeyword}}")</text>
+    </text>
+    <view class="clear-filter" bindtap="clearAllFilters">清除筛选</view>
+  </view>
+
   <!-- 有历史记录时的列表 -->
-  <view wx:elif="{{history && history.length > 0}}" class="history-list">
-    <block wx:for="{{history}}" wx:key="id">
-      <view class="history-card">
-        <view class="sound-info" bindtap="playAgain" data-record="{{item}}">
-          <image class="sound-image" src="{{item.coverUrl || '/assets/images/default-cover.png'}}" mode="aspectFill"/>
-          <view class="sound-detail">
-            <text class="sound-name">{{item.soundName}}</text>
-            <text class="sound-meta">{{item.category}}</text>
-            <view class="play-info">
-              <text class="play-date">{{item.date}}</text>
-              <text class="play-duration">{{item.duration}}</text>
-              <text class="play-progress" wx:if="{{item.play_progress && item.play_progress !== '0%'}}">进度: {{item.play_progress}}</text>
+  <view wx:elif="{{filteredHistory && filteredHistory.length > 0}}" class="history-list">
+    <scroll-view 
+      scroll-y="{{true}}" 
+      refresher-enabled="{{true}}"
+      refresher-triggered="{{refresherTriggered}}"
+      bindrefresherrefresh="onPullDownRefresh"
+      class="history-scroll">
+      <block wx:for="{{filteredHistory}}" wx:key="id">
+        <view class="history-card" style="animation-delay: {{index * 0.05}}s">
+          <view class="sound-info" bindtap="playAgain" data-record="{{item}}">
+            <image class="sound-image" src="{{item.coverUrl || '/assets/images/default-cover.png'}}" mode="aspectFill"/>
+            <view class="sound-detail">
+              <text class="sound-name">{{item.soundName}}</text>
+              <text class="sound-meta">{{item.category}}</text>
+              <view class="play-info">
+                <text class="play-date">{{item.date}}</text>
+                <text class="play-duration" wx:if="{{item.duration}}">{{item.duration}}</text>
+                <text class="play-progress" wx:if="{{item.play_progress && item.play_progress !== '0%'}}">进度: {{item.play_progress}}</text>
+              </view>
+              <view class="play-source" wx:if="{{item.play_source}}">
+                <text class="source-text">来源: {{item.play_source}}</text>
+              </view>
             </view>
-            <view class="play-source" wx:if="{{item.play_source}}">
-              <text class="source-text">来源: {{item.play_source}}</text>
+          </view>
+          <view class="card-actions">
+            <view class="action-btn play" bindtap="playAgain" data-record="{{item}}">
+              <view class="action-icon play-icon"></view>
+            </view>
+            <view class="action-btn delete" bindtap="deleteRecord" data-record="{{item}}">
+              <view class="action-icon delete-icon"></view>
             </view>
           </view>
         </view>
-        <view class="card-actions">
-          <view class="action-btn play" bindtap="playAgain" data-record="{{item}}">
-            <view class="action-icon play-icon"></view>
-          </view>
-          <view class="action-btn delete" bindtap="deleteRecord" data-record="{{item}}">
-            <view class="action-icon delete-icon"></view>
-          </view>
-        </view>
-      </view>
-    </block>
+      </block>
+    </scroll-view>
+  </view>
+
+  <!-- 筛选后无结果 -->
+  <view wx:elif="{{(filterCategory || filterDate || searchKeyword) && filteredHistory.length === 0}}" class="empty-state">
+    <image class="empty-image" src="/assets/images/empty-history.png" mode="aspectFit"/>
+    <text class="empty-text">未找到匹配的记录</text>
+    <text class="empty-subtitle">尝试调整筛选条件或搜索关键词</text>
+    <button class="btn-reset-filter" bindtap="clearAllFilters">清除筛选条件</button>
   </view>
 
   <!-- 空状态 -->

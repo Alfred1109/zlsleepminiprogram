@@ -99,6 +99,15 @@
               <text class="action-text">{{isFavorite ? '已收藏' : '收藏'}}</text>
             </button>
 
+            <button class="action-btn" bindtap="onDownload">
+              <image 
+                class="action-icon {{isDownloaded ? 'active' : ''}}" 
+                src="/images/download.svg" 
+                mode="aspectFit"
+              ></image>
+              <text class="action-text">{{isDownloaded ? '已下载' : '下载'}}</text>
+            </button>
+
             <button class="action-btn" bindtap="onShare">
               <image class="action-icon" src="/images/share.svg" mode="aspectFit"></image>
               <text class="action-text">分享</text>
@@ -114,6 +123,46 @@
         <view class="empty-subtitle">请检查音乐文件是否存在</view>
         <button class="btn primary" bindtap="onNavigateBack">返回</button>
       </view>
+    </view>
+  </view>
+</view>
+
+<!-- 播放列表弹窗 -->
+<view wx:if="{{showPlaylistModal}}" class="playlist-modal">
+  <view class="playlist-overlay" bindtap="closePlaylistModal"></view>
+  <view class="playlist-container">
+    <view class="playlist-header">
+      <text class="playlist-title">播放列表</text>
+      <view class="playlist-close" bindtap="closePlaylistModal">×</view>
+    </view>
+    <view class="playlist-content">
+      <scroll-view class="playlist-scroll" scroll-y="true">
+        <view 
+          wx:for="{{playlist}}" 
+          wx:key="id"
+          class="playlist-item {{currentIndex === index ? 'current' : ''}}"
+          data-index="{{index}}"
+          bindtap="selectPlaylistMusic"
+        >
+          <view class="playlist-item-cover">
+            <image 
+              class="playlist-item-image" 
+              src="{{item.image || '/images/default-music-cover.svg'}}" 
+              mode="aspectFill"
+            />
+            <view wx:if="{{currentIndex === index}}" class="playlist-item-playing">
+              <view class="playing-icon">♪</view>
+            </view>
+          </view>
+          <view class="playlist-item-info">
+            <text class="playlist-item-title">{{item.title || item.name || '未知音乐'}}</text>
+            <text class="playlist-item-subtitle">{{item.category || 'AI音乐'}}</text>
+          </view>
+          <view class="playlist-item-duration">
+            {{item.duration ? (item.duration + 's') : ''}}
+          </view>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </view>

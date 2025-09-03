@@ -1,0 +1,209 @@
+<!-- pages/downloads/downloads.wxml -->
+<view class="page-container">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-content">
+      <text class="page-title">我的下载</text>
+      <text class="page-subtitle">共 {{stats.total}} 个文件 ({{formatFileSize(stats.totalSize)}})</text>
+    </view>
+    
+    <!-- 快捷操作按钮 -->
+    <view class="header-actions">
+      <view class="action-btn" bindtap="toggleFilter">
+        <text class="action-icon">🔍</text>
+      </view>
+      <view class="action-btn" bindtap="toggleSelectMode">
+        <text class="action-icon">{{isSelectMode ? '✅' : '☑️'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-section">
+    <view class="search-box">
+      <view class="search-input-wrapper">
+        <input
+          class="search-input"
+          type="text"
+          placeholder="搜索下载内容..."
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+          confirm-type="search"
+        />
+        <view wx:if="{{searchKeyword}}" class="search-clear" bindtap="clearSearch">
+          <text class="clear-icon">×</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选面板 -->
+  <view wx:if="{{showFilter}}" class="filter-panel">
+    <view class="filter-overlay" bindtap="toggleFilter"></view>
+    <view class="filter-content">
+      <view class="filter-header">
+        <text class="filter-title">筛选状态</text>
+        <view class="filter-close" bindtap="toggleFilter">×</view>
+      </view>
+      <view class="filter-options">
+        <view 
+          wx:for="{{statusOptions}}" 
+          wx:key="value"
+          class="filter-option {{filterStatus === item.value ? 'active' : ''}}"
+          data-status="{{item.value}}"
+          bindtap="selectFilterStatus"
+        >
+          <text class="option-icon">{{item.icon}}</text>
+          <text class="option-label">{{item.label}}</text>
+        </view>
+      </view>
+      
+      <!-- 快捷操作 -->
+      <view class="filter-actions">
+        <button class="action-button secondary" bindtap="onClearFailed">
+          清理失败项目
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view wx:if="{{!isEmpty && !loading}}" class="stats-section">
+    <view class="stats-grid">
+      <view class="stat-item success">
+        <text class="stat-number">{{stats.downloaded}}</text>
+        <text class="stat-label">已下载</text>
+      </view>
+      <view class="stat-item warning">
+        <text class="stat-number">{{stats.downloading}}</text>
+        <text class="stat-label">下载中</text>
+      </view>
+      <view class="stat-item error">
+        <text class="stat-number">{{stats.failed}}</text>
+        <text class="stat-label">失败</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 批量操作栏 -->
+  <view wx:if="{{isSelectMode}}" class="batch-actions">
+    <view class="batch-left">
+      <view class="select-all" bindtap="onSelectAll">
+        <text class="select-icon">{{selectAll ? '☑️' : '☐'}}</text>
+        <text class="select-text">全选</text>
+      </view>
+      <text class="selected-count">已选 {{selectedItems.length}} 项</text>
+    </view>
+    <view class="batch-right">
+      <button class="batch-btn delete" bindtap="onBatchDelete">删除</button>
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="content-section">
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:elif="{{isEmpty}}" class="empty-container">
+      <view class="empty-icon">📥</view>
+      <text class="empty-title">还没有下载</text>
+      <text class="empty-subtitle">在播放页面长按可以下载音频到本地</text>
+      <button class="btn-explore" bindtap="onExplore">去探索</button>
+    </view>
+
+    <!-- 下载列表 -->
+    <view wx:else class="downloads-list">
+      <view 
+        wx:for="{{filteredDownloads}}" 
+        wx:key="id"
+        class="download-item {{isSelectMode ? 'select-mode' : ''}} {{item.status}}"
+        data-item="{{item}}"
+        bindtap="onItemTap"
+      >
+        <!-- 选择框 -->
+        <view wx:if="{{isSelectMode}}" class="item-selector" data-id="{{item.id}}" catchtap="onSelectItem">
+          <text class="selector-icon">{{selectedItems.includes(item.id) ? '☑️' : '☐'}}</text>
+        </view>
+
+        <view class="item-cover">
+          <image class="cover-image" src="{{item.cover}}" mode="aspectFill" />
+          <view class="status-overlay">
+            <text class="status-icon">
+              {{item.status === 'downloaded' ? '✅' : 
+                (item.status === 'downloading' ? '⏬' : 
+                (item.status === 'failed' ? '❌' : '📁'))}}
+            </text>
+          </view>
+          
+          <!-- 下载进度条 -->
+          <view wx:if="{{item.status === 'downloading'}}" class="progress-overlay">
+            <view class="progress-bar">
+              <view class="progress-fill" style="width: {{item.progress}}%"></view>
+            </view>
+            <text class="progress-text">{{item.progress}}%</text>
+          </view>
+        </view>
+
+        <view class="item-content">
+          <view class="item-main">
+            <text class="item-title">{{item.title}}</text>
+            <text class="item-subtitle">{{item.subtitle}}</text>
+          </view>
+          
+          <view class="item-meta">
+            <view class="meta-row">
+              <text class="file-size">{{formatFileSize(item.fileSize)}}</text>
+              <text wx:if="{{item.duration}}" class="item-duration">
+                {{formatDuration(item.duration)}}
+              </text>
+            </view>
+            <view class="meta-row">
+              <text class="download-time">{{formatDownloadTime(item.downloadTime)}}</text>
+              <text class="status-text {{item.status}}">
+                {{item.status === 'downloaded' ? '已完成' : 
+                  (item.status === 'downloading' ? '下载中' : 
+                  (item.status === 'failed' ? '失败' : '未知'))}}
+              </text>
+            </view>
+            <view wx:if="{{item.error}}" class="error-message">
+              <text class="error-text">错误: {{item.error}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 操作按钮 -->
+        <view wx:if="{{!isSelectMode}}" class="item-actions">
+          <view 
+            wx:if="{{item.status === 'failed'}}"
+            class="action-btn retry-btn"
+            data-item="{{item}}"
+            catchtap="retryDownload"
+          >
+            <text class="action-icon">🔄</text>
+          </view>
+          <view 
+            class="action-btn delete-btn"
+            data-item="{{item}}"
+            catchtap="onDeleteItem"
+          >
+            <text class="action-icon">🗑️</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选结果提示 -->
+  <view wx:if="{{filteredDownloads.length < downloads.length && !loading}}" class="filter-tip">
+    <text class="tip-text">
+      显示 {{filteredDownloads.length}} / {{downloads.length}} 项
+      {{searchKeyword ? '包含"' + searchKeyword + '"的' : ''}}
+      {{filterStatus !== 'all' ? statusOptions.find(opt => opt.value === filterStatus).label : ''}}
+      下载
+    </text>
+  </view>
+</view>

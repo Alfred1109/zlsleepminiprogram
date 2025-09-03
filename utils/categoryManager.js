@@ -38,22 +38,12 @@ class CategoryManager {
       },
       {
         id: 3,
-        name: '脑波音频',
+        name: '抑郁疗愈',
         code: 'brainwave',
         description: '不同频率的脑波音频，促进特定脑波状态',
         icon: '🧠',
         emoji_code: 'brainwave',
         tags: ['脑波', '冥想', '专注', '睡眠', '放松'],
-        music_count: 0
-      },
-      {
-        id: 4,
-        name: 'AI音乐',
-        code: 'ai_music',
-        description: 'AI生成的个性化音乐',
-        icon: '🤖',
-        emoji_code: 'ai',
-        tags: ['AI', '个性化', '生成', '疗愈'],
         music_count: 0
       },
       {
