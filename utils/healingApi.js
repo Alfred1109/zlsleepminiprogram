@@ -868,6 +868,73 @@ function withRetry(apiFunction, maxRetries = 3) {
 }
 
 /**
+ * 次数套餐API
+ */
+const CountPackageAPI = {
+  /**
+   * 获取次数套餐列表
+   */
+  async getPlans() {
+    try {
+      const response = await request({
+        url: '/count-package/plans',
+        method: 'GET'
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '获取次数套餐失败')
+    }
+  },
+
+  /**
+   * 创建次数套餐订单
+   */
+  async createOrder(orderData) {
+    try {
+      const response = await request({
+        url: '/count-package/create-order',
+        method: 'POST',
+        data: orderData
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '创建次数套餐订单失败')
+    }
+  },
+
+  /**
+   * 兑换优惠券
+   */
+  async redeemCoupon(couponCode) {
+    try {
+      const response = await request({
+        url: '/count-package/coupon/redeem',
+        method: 'POST',
+        data: { code: couponCode }
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '优惠券兑换失败')
+    }
+  },
+
+  /**
+   * 获取用户次数信息
+   */
+  async getUserCounts() {
+    try {
+      const response = await request({
+        url: '/count-package/user-counts',
+        method: 'GET'
+      })
+      return response
+    } catch (error) {
+      throw new Error(error.message || '获取次数信息失败')
+    }
+  }
+}
+
+/**
  * 订阅管理API
  */
 const SubscriptionAPI = {
@@ -1128,6 +1195,7 @@ module.exports = {
   MusicAPI,
   LongSequenceAPI,
   UserAPI,
+  CountPackageAPI,
   SubscriptionAPI,
   WorkflowAPI,
   DeviceAPI,

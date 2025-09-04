@@ -130,8 +130,47 @@
     </view>
   </view>
 
-  <!-- 套餐选择 -->
-  <view class="plans-section" wx:if="{{!loading}}">
+  <!-- Tab导航 -->
+  <view class="tab-nav" wx:if="{{!loading}}">
+    <view 
+      class="tab-item {{currentTab === 'subscription' ? 'active' : ''}}"
+      data-tab="subscription"
+      bind:tap="onSwitchTab"
+    >
+      📅 订阅套餐
+    </view>
+    <view 
+      class="tab-item {{currentTab === 'package' ? 'active' : ''}}"
+      data-tab="package"
+      bind:tap="onSwitchTab"
+    >
+      🎁 次数套餐
+    </view>
+  </view>
+
+  <!-- 用户次数显示 -->
+  <view class="user-counts" wx:if="{{userCounts && currentTab === 'package'}}">
+    <view class="counts-header">我的剩余次数</view>
+    <view class="counts-list">
+      <view class="count-item" wx:for="{{userCounts}}" wx:key="type">
+        <view class="count-type">{{item.type_name || item.type}}</view>
+        <view class="count-value">{{item.remaining_count}}次</view>
+        <view class="count-expire" wx:if="{{item.expire_date}}">
+          到期：{{item.expire_date}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 优惠券兑换按钮 -->
+  <view class="coupon-section" wx:if="{{currentTab === 'package'}}">
+    <view class="coupon-btn" bind:tap="onShowCouponModal">
+      🎫 兑换优惠券
+    </view>
+  </view>
+
+  <!-- 订阅套餐选择 -->
+  <view class="plans-section" wx:if="{{!loading && currentTab === 'subscription'}}">
     <view class="section-title">选择订阅套餐</view>
     
     <view class="plans-list">
@@ -168,6 +207,63 @@
     </view>
   </view>
 
+  <!-- 次数套餐选择 -->
+  <view class="plans-section" wx:if="{{!loading && currentTab === 'package'}}">
+    <view class="section-title">选择次数套餐</view>
+    
+    <view class="plans-list">
+      <view 
+        class="package-card {{selectedPackage === item.id ? 'selected' : ''}}"
+        wx:for="{{countPackages}}"
+        wx:key="id"
+        data-package-id="{{item.id}}"
+        bind:tap="onSelectPackage"
+      >
+        <!-- 套餐标签 -->
+        <view class="package-badge {{item.bonus_count > 0 ? 'bonus' : ''}}" wx:if="{{item.bonus_count > 0}}">
+          送{{item.bonus_count}}次
+        </view>
+        
+        <!-- 套餐头部 -->
+        <view class="package-header">
+          <view class="package-name">{{item.name}}</view>
+          <view class="package-price">
+            <view class="price-amount">¥{{item.price}}</view>
+            <view class="price-unit">/{{item.total_count}}次</view>
+          </view>
+        </view>
+        
+        <!-- 套餐内容 -->
+        <view class="package-content">
+          <view class="package-info">
+            <view class="info-item">
+              <text class="info-label">购买次数：</text>
+              <text class="info-value">{{item.count}}次</text>
+            </view>
+            <view class="info-item" wx:if="{{item.bonus_count > 0}}">
+              <text class="info-label">赠送次数：</text>
+              <text class="info-value bonus">{{item.bonus_count}}次</text>
+            </view>
+            <view class="info-item">
+              <text class="info-label">总共获得：</text>
+              <text class="info-value total">{{item.total_count}}次</text>
+            </view>
+            <view class="info-item" wx:if="{{item.valid_days}}">
+              <text class="info-label">有效期：</text>
+              <text class="info-value">{{item.valid_days}}天</text>
+            </view>
+          </view>
+          
+          <!-- 适用功能 -->
+          <view class="package-features" wx:if="{{item.description}}">
+            <view class="features-title">适用功能</view>
+            <view class="features-desc">{{item.description}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <view class="loading-icon"></view>
@@ -175,24 +271,67 @@
   </view>
 
   <!-- 空状态 -->
-  <view class="empty-state" wx:if="{{!loading && subscriptionPlans.length === 0}}">
+  <view class="empty-state" wx:if="{{!loading && currentTab === 'subscription' && subscriptionPlans.length === 0}}">
     <view class="empty-icon">📦</view>
     <view class="empty-text">暂无可用套餐</view>
+  </view>
+  
+  <view class="empty-state" wx:if="{{!loading && currentTab === 'package' && countPackages.length === 0}}">
+    <view class="empty-icon">🎁</view>
+    <view class="empty-text">暂无可用次数套餐</view>
   </view>
 </view>
 
 <!-- 购买按钮 -->
-<view class="purchase-section" wx:if="{{!loading && subscriptionPlans.length > 0}}">
+<view class="purchase-section" wx:if="{{!loading && ((currentTab === 'subscription' && subscriptionPlans.length > 0) || (currentTab === 'package' && countPackages.length > 0))}}">
   <view 
-    class="purchase-btn {{purchasing || !selectedPlan ? 'disabled' : ''}}"
+    class="purchase-btn {{purchasing || (!selectedPlan && !selectedPackage) ? 'disabled' : ''}}"
     bind:tap="onPurchaseSubscription"
   >
-    {{purchasing ? '处理中...' : '立即订阅'}}
+    <text wx:if="{{purchasing}}">处理中...</text>
+    <text wx:elif="{{currentTab === 'subscription'}}">立即订阅</text>
+    <text wx:else>立即购买</text>
   </view>
   
   <!-- 底部链接 -->
   <view class="footer-links">
     <text class="footer-link" bind:tap="onViewAgreement">用户协议</text>
     <text class="footer-link" bind:tap="onContactService">联系客服</text>
+  </view>
+</view>
+
+<!-- 优惠券兑换模态框 -->
+<view class="coupon-modal" wx:if="{{showCouponModal}}">
+  <view class="modal-mask" bind:tap="onHideCouponModal"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <view class="modal-title">🎫 兑换优惠券</view>
+      <view class="modal-close" bind:tap="onHideCouponModal">✕</view>
+    </view>
+    
+    <view class="modal-body">
+      <view class="input-section">
+        <view class="input-label">请输入优惠券码</view>
+        <input 
+          class="coupon-input"
+          type="text"
+          placeholder="请输入优惠券码"
+          value="{{couponCode}}"
+          bindinput="onCouponInput"
+          maxlength="20"
+        />
+      </view>
+      
+      <view class="coupon-tips">
+        <view class="tip-item">• 优惠券码不区分大小写</view>
+        <view class="tip-item">• 每个优惠券只能使用一次</view>
+        <view class="tip-item">• 兑换成功后次数将立即到账</view>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <view class="modal-btn cancel" bind:tap="onHideCouponModal">取消</view>
+      <view class="modal-btn confirm" bind:tap="onRedeemCoupon">兑换</view>
+    </view>
   </view>
 </view>

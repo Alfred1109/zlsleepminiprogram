@@ -1,19 +1,25 @@
 // pages/subscription/subscription.js
 // 订阅管理页面
 const app = getApp()
-const { SubscriptionAPI } = require('../../utils/healingApi')
+const { SubscriptionAPI, CountPackageAPI } = require('../../utils/healingApi')
 const { getSubscriptionInfo, startFreeTrial, notifySubscriptionChange } = require('../../utils/subscription')
 
 Page({
   data: {
     subscriptionInfo: null,
     subscriptionPlans: [],
+    countPackages: [],
+    userCounts: null,
     selectedPlan: null,
+    selectedPackage: null,
+    currentTab: 'subscription', // 'subscription' 或 'package'
     loading: false,
     purchasing: false,
     showTrialOption: false,
     isInTrial: false,
-    trialDaysLeft: 0
+    trialDaysLeft: 0,
+    showCouponModal: false,
+    couponCode: ''
   },
 
   onLoad(options) {
@@ -24,13 +30,21 @@ Page({
       this.setData({ selectedPlan: options.plan })
     }
     
+    // 如果指定了显示次数套餐
+    if (options.tab === 'package') {
+      this.setData({ currentTab: 'package' })
+    }
+    
     this.loadSubscriptionInfo()
     this.loadSubscriptionPlans()
+    this.loadCountPackages()
+    this.loadUserCounts()
   },
 
   onShow() {
     // 页面显示时刷新订阅状态
     this.refreshSubscriptionInfo()
+    this.loadUserCounts()
   },
 
   /**
@@ -173,7 +187,10 @@ Page({
       const result = await SubscriptionAPI.getPlans()
       
       if (result.success) {
-        const plans = result.data.filter(plan => plan.id !== 'trial') // 排除试用套餐
+        console.log('📅 订阅套餐加载成功:', result.data?.length || 0, '个套餐')
+        
+        // 直接使用后端返回的订阅套餐数据
+        const plans = result.data || []
         this.setData({ subscriptionPlans: plans })
         
         // 如果没有选中套餐，默认选择第一个
@@ -196,11 +213,86 @@ Page({
   },
 
   /**
+   * 加载次数套餐
+   */
+  async loadCountPackages() {
+    try {
+      console.log('🎁 开始加载次数套餐...')
+      const result = await CountPackageAPI.getPlans()
+      
+      if (result.success) {
+        console.log('🎁 次数套餐加载成功:', result.data?.length || 0, '个套餐')
+        
+        // 直接使用后端返回的次数套餐数据
+        const countPackages = result.data || []
+        this.setData({ 
+          countPackages: countPackages
+        })
+      } else {
+        console.error('❌ 次数套餐加载失败:', result.error)
+        this.setData({ countPackages: [] })
+      }
+    } catch (error) {
+      console.error('❌ 次数套餐加载异常:', error)
+      this.setData({ countPackages: [] })
+    }
+  },
+
+  /**
+   * 加载用户次数信息
+   */
+  async loadUserCounts() {
+    try {
+      console.log('🔢 开始加载用户次数...')
+      const result = await CountPackageAPI.getUserCounts()
+      
+      if (result.success) {
+        console.log('✅ 用户次数加载成功:', result.data)
+        this.setData({ 
+          userCounts: result.data || null
+        })
+      } else {
+        console.log('ℹ️ 用户次数加载失败（可能未登录）:', result.error)
+        this.setData({ userCounts: null })
+      }
+    } catch (error) {
+      console.warn('⚠️ 用户次数加载异常:', error)
+      this.setData({ userCounts: null })
+    }
+  },
+
+  /**
+   * 切换Tab
+   */
+  onSwitchTab(e) {
+    const tab = e.currentTarget.dataset.tab
+    this.setData({ 
+      currentTab: tab,
+      selectedPlan: null,
+      selectedPackage: null
+    })
+  },
+
+  /**
    * 选择套餐
    */
   onSelectPlan(e) {
     const { planId } = e.currentTarget.dataset
-    this.setData({ selectedPlan: planId })
+    this.setData({ 
+      selectedPlan: planId,
+      selectedPackage: null
+    })
+  },
+
+  /**
+   * 选择次数套餐
+   */
+  onSelectPackage(e) {
+    const packageId = e.currentTarget.dataset.packageId
+    this.setData({ 
+      selectedPackage: packageId,
+      selectedPlan: null
+    })
   },
 
   /**
@@ -243,46 +335,92 @@ Page({
   },
 
   /**
-   * 购买订阅
+   * 购买订阅或次数套餐
    */
   async onPurchaseSubscription() {
-    if (this.data.purchasing || !this.data.selectedPlan) return
+    if (this.data.purchasing) return
 
-    const selectedPlan = this.data.subscriptionPlans.find(plan => plan.id === this.data.selectedPlan)
-    if (!selectedPlan) {
-      wx.showToast({
-        title: '请选择套餐',
-        icon: 'error'
-      })
-      return
-    }
-
-    // 显示购买确认
-    wx.showModal({
-      title: '确认购买',
-      content: `确定要购买 ${selectedPlan.name} 吗？\n价格：¥${selectedPlan.price}`,
-      success: (res) => {
-        if (res.confirm) {
-          this.processPurchase(selectedPlan)
-        }
+    if (this.data.currentTab === 'subscription') {
+      // 购买订阅套餐
+      if (!this.data.selectedPlan) {
+        wx.showToast({
+          title: '请选择套餐',
+          icon: 'error'
+        })
+        return
       }
-    })
+
+      const selectedPlan = this.data.subscriptionPlans.find(plan => plan.id === this.data.selectedPlan)
+      if (!selectedPlan) {
+        wx.showToast({
+          title: '套餐信息错误',
+          icon: 'error'
+        })
+        return
+      }
+
+      wx.showModal({
+        title: '确认订阅',
+        content: `确定要订阅 ${selectedPlan.name}（¥${selectedPlan.price}）吗？`,
+        success: (res) => {
+          if (res.confirm) {
+            this.processPurchase(selectedPlan, 'subscription')
+          }
+        }
+      })
+    } else if (this.data.currentTab === 'package') {
+      // 购买次数套餐
+      if (!this.data.selectedPackage) {
+        wx.showToast({
+          title: '请选择次数套餐',
+          icon: 'error'
+        })
+        return
+      }
+
+      const selectedPackage = this.data.countPackages.find(pkg => pkg.id === this.data.selectedPackage)
+      if (!selectedPackage) {
+        wx.showToast({
+          title: '套餐信息错误',
+          icon: 'error'
+        })
+        return
+      }
+
+      wx.showModal({
+        title: '确认购买',
+        content: `确定要购买 ${selectedPackage.name}（¥${selectedPackage.price}）吗？`,
+        success: (res) => {
+          if (res.confirm) {
+            this.processPurchase(selectedPackage, 'package')
+          }
+        }
+      })
+    }
   },
 
   /**
    * 处理购买流程
    */
-  async processPurchase(plan) {
+  async processPurchase(plan, type = 'subscription') {
     this.setData({ purchasing: true })
 
     try {
       wx.showLoading({ title: '创建订单...' })
       
       // 1. 创建订单
-      console.log('🛍️ 开始创建订单, plan:', plan.id)
-      const orderResult = await SubscriptionAPI.createOrder({
-        plan_id: plan.id
-      })
+      console.log('🛍️ 开始创建订单:', { type, planId: plan.id })
+      
+      let orderResult
+      if (type === 'subscription') {
+        orderResult = await SubscriptionAPI.createOrder({
+          plan_id: plan.id
+        })
+      } else if (type === 'package') {
+        orderResult = await CountPackageAPI.createOrder({
+          plan_id: plan.id
+        })
+      }
       
       console.log('🛍️ 订单创建结果:', { 
         success: orderResult.success, 
@@ -571,6 +709,85 @@ Page({
       title: 'AI疗愈 - 专业的个性化音乐治疗',
       path: '/pages/subscription/subscription',
       imageUrl: '/images/share-subscription.png'
+    }
+  },
+
+  /**
+   * 显示优惠券输入框
+   */
+  onShowCouponModal() {
+    this.setData({ 
+      showCouponModal: true,
+      couponCode: ''
+    })
+  },
+
+  /**
+   * 隐藏优惠券输入框
+   */
+  onHideCouponModal() {
+    this.setData({ 
+      showCouponModal: false,
+      couponCode: ''
+    })
+  },
+
+  /**
+   * 优惠券输入
+   */
+  onCouponInput(e) {
+    this.setData({ couponCode: e.detail.value })
+  },
+
+  /**
+   * 兑换优惠券
+   */
+  async onRedeemCoupon() {
+    const { couponCode } = this.data
+    
+    if (!couponCode || !couponCode.trim()) {
+      wx.showToast({
+        title: '请输入优惠券码',
+        icon: 'error'
+      })
+      return
+    }
+
+    try {
+      wx.showLoading({ title: '兑换中...' })
+      
+      const result = await CountPackageAPI.redeemCoupon(couponCode.trim())
+      
+      wx.hideLoading()
+      
+      if (result.success) {
+        // 兑换成功
+        this.setData({ 
+          showCouponModal: false,
+          couponCode: ''
+        })
+        
+        // 刷新用户次数信息
+        await this.loadUserCounts()
+        
+        wx.showModal({
+          title: '兑换成功',
+          content: `恭喜！您已成功兑换优惠券。\n${result.data.message || '次数已添加到您的账户'}`,
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      } else {
+        throw new Error(result.error || '兑换失败')
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('优惠券兑换失败:', error)
+      
+      wx.showModal({
+        title: '兑换失败',
+        content: error.message || '优惠券兑换失败，请检查券码是否正确',
+        showCancel: false
+      })
     }
   }
 })
