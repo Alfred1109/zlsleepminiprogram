@@ -279,11 +279,19 @@ Page({
       wx.showLoading({ title: '创建订单...' })
       
       // 1. 创建订单
+      console.log('🛍️ 开始创建订单, plan:', plan.id)
       const orderResult = await SubscriptionAPI.createOrder({
         plan_id: plan.id
       })
       
+      console.log('🛍️ 订单创建结果:', { 
+        success: orderResult.success, 
+        hasData: !!orderResult.data,
+        error: orderResult.error 
+      })
+      
       if (!orderResult.success) {
+        console.error('❌ 订单创建失败:', orderResult.error)
         throw new Error(orderResult.error || '创建订单失败')
       }
       
@@ -380,9 +388,24 @@ Page({
       wx.hideLoading()
       console.error('购买失败:', error)
       
+      // 根据不同错误类型提供不同的用户提示
+      let errorTitle = '购买失败'
+      let errorContent = error.message || '购买过程中出现错误，请稍后重试'
+      
+      if (error.message && error.message.includes('404')) {
+        errorTitle = '服务维护中'
+        errorContent = '订阅服务正在维护升级，请稍后重试。如问题持续存在，请联系客服。'
+      } else if (error.message && error.message.includes('网络')) {
+        errorTitle = '网络异常'
+        errorContent = '网络连接异常，请检查网络设置后重试。'
+      } else if (error.statusCode === 401) {
+        errorTitle = '登录过期'
+        errorContent = '登录状态已过期，请重新登录后再试。'
+      }
+      
       wx.showModal({
-        title: '购买失败',
-        content: error.message || '购买过程中出现错误，请稍后重试',
+        title: errorTitle,
+        content: errorContent,
         showCancel: false
       })
     } finally {
