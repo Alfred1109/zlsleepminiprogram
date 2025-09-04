@@ -130,6 +130,7 @@
     </view>
   </view>
 
+
   <!-- Tab导航 -->
   <view class="tab-nav" wx:if="{{!loading}}">
     <view 
@@ -158,6 +159,7 @@
         <view class="count-expire" wx:if="{{item.expire_date}}">
           到期：{{item.expire_date}}
         </view>
+        
       </view>
     </view>
   </view>
@@ -190,19 +192,20 @@
         <view class="plan-header">
           <view class="plan-name">{{item.name}}</view>
           <view class="plan-price">
-            <view class="price-amount">¥{{item.price}}</view>
+            <view class="price-amount">{{item.formattedPrice}}</view>
             <view class="price-period">{{item.duration === 30 ? '/月' : item.duration === 365 ? '/年' : '/' + item.duration + '天'}}</view>
             <view class="price-discount" wx:if="{{item.discount}}">{{item.discount}}</view>
           </view>
         </view>
         
         <!-- 套餐特性 -->
-        <view class="plan-features">
+        <view class="plan-features" wx:if="{{item.features && item.features.length > 0}}">
           <view class="feature-item" wx:for="{{item.features}}" wx:for-item="feature" wx:key="*this">
             <view class="feature-icon"></view>
             <text>{{feature}}</text>
           </view>
         </view>
+        
       </view>
     </view>
   </view>
@@ -228,7 +231,7 @@
         <view class="package-header">
           <view class="package-name">{{item.name}}</view>
           <view class="package-price">
-            <view class="price-amount">¥{{item.price}}</view>
+            <view class="price-amount">{{item.formattedPrice}}</view>
             <view class="price-unit">/{{item.total_count}}次</view>
           </view>
         </view>
@@ -262,6 +265,7 @@
               <text>{{feature}}</text>
             </view>
           </view>
+          
         </view>
       </view>
     </view>
@@ -276,12 +280,14 @@
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{!loading && currentTab === 'subscription' && subscriptionPlans.length === 0}}">
     <view class="empty-icon">📦</view>
-    <view class="empty-text">暂无可用套餐</view>
+    <view class="empty-text">暂无可用订阅套餐</view>
+    <view style="font-size:22rpx;color:#999;margin-top:20rpx;">请检查网络连接或稍后重试</view>
   </view>
   
   <view class="empty-state" wx:if="{{!loading && currentTab === 'package' && countPackages.length === 0}}">
     <view class="empty-icon">🎁</view>
     <view class="empty-text">暂无可用次数套餐</view>
+    <view style="font-size:22rpx;color:#999;margin-top:20rpx;">请检查网络连接或稍后重试</view>
   </view>
 </view>
 

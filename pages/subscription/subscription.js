@@ -23,7 +23,7 @@ Page({
   },
 
   onLoad(options) {
-    console.log('订阅页面加载', options)
+    console.log('📱 订阅页面加载', options)
     
     // 如果有指定的套餐，默认选中
     if (options.plan) {
@@ -189,8 +189,101 @@ Page({
       if (result.success) {
         console.log('📅 订阅套餐加载成功:', result.data?.length || 0, '个套餐')
         
-        // 直接使用后端返回的订阅套餐数据
-        const plans = result.data || []
+        // 直接使用后端返回的订阅套餐数据，并格式化价格
+        console.log('🔍 开始处理订阅套餐数据...')
+        
+        const plans = (result.data || []).map((plan, index) => {
+          try {
+            console.log(`📋 处理套餐 ${index}:`, plan.name)
+            
+            // 处理features数据，确保每个feature都是字符串
+            let processedFeatures = ['无限制使用所有功能'] // 默认值
+            
+            if (plan.features && Array.isArray(plan.features)) {
+              processedFeatures = plan.features.map((feature, fIndex) => {
+                // 如果feature是对象，尝试提取有意义的字符串
+                if (typeof feature === 'object' && feature !== null) {
+                  console.log(`🔧 Feature ${fIndex} 是对象，尝试转换:`, feature)
+                  // 常见的对象结构处理
+                  if (feature.name) return feature.name
+                  if (feature.text) return feature.text
+                  if (feature.description) return feature.description
+                  if (feature.title) return feature.title
+                  // 如果是对象但没有明确的文本字段，返回JSON字符串
+                  return JSON.stringify(feature)
+                }
+                // 如果是字符串，直接返回
+                return String(feature)
+              })
+            } else if (plan.features && typeof plan.features === 'string') {
+              processedFeatures = [plan.features]
+            } else if (plan.features && typeof plan.features === 'object' && !Array.isArray(plan.features)) {
+              // 处理对象类型的features（如套餐0的结构）
+              console.log('🔧 Features是对象格式，开始解析')
+              processedFeatures = []
+              
+              Object.keys(plan.features).forEach(featureKey => {
+                const featureObj = plan.features[featureKey]
+                
+                // 尝试从功能对象中提取描述文本
+                if (featureObj && typeof featureObj === 'object') {
+                  if (featureObj.name) {
+                    processedFeatures.push(featureObj.name)
+                  } else if (featureObj.description) {
+                    processedFeatures.push(featureObj.description)
+                  } else {
+                    // 根据功能类型生成友好的描述
+                    switch(featureKey) {
+                      case 'ai_music':
+                        processedFeatures.push('AI音乐生成功能')
+                        break
+                      case 'custom_1':
+                        processedFeatures.push(featureObj.description || '专属定制服务')
+                        break
+                      case 'long_sequence':
+                        processedFeatures.push('长序列音乐生成')
+                        break
+                      case 'music_download':
+                        processedFeatures.push('音乐下载功能')
+                        break
+                      case 'music_generate':
+                        processedFeatures.push('音乐生成服务')
+                        break
+                      case 'priority_support':
+                        processedFeatures.push('优先客服支持')
+                        break
+                      case 'voice_interaction':
+                        processedFeatures.push('语音交互功能')
+                        break
+                      default:
+                        processedFeatures.push(`${featureKey}功能`)
+                    }
+                  }
+                }
+              })
+              
+              if (processedFeatures.length === 0) {
+                processedFeatures = ['无限制使用所有功能']
+              }
+            }
+            
+            const processedPlan = {
+              ...plan,
+              formattedPrice: this.formatPrice(plan.price),
+              features: processedFeatures
+            }
+            
+            return processedPlan
+          } catch (error) {
+            console.error(`💥 处理套餐 ${index} 时出错:`, error, plan)
+            return {
+              id: plan.id || `error_${index}`,
+              name: plan.name || '套餐名称错误',
+              formattedPrice: '价格错误',
+              features: ['数据处理错误']
+            }
+          }
+        })
         this.setData({ subscriptionPlans: plans })
         
         // 如果没有选中套餐，默认选择第一个
@@ -223,8 +316,53 @@ Page({
       if (result.success) {
         console.log('🎁 次数套餐加载成功:', result.data?.length || 0, '个套餐')
         
-        // 直接使用后端返回的次数套餐数据
-        const countPackages = result.data || []
+        // 直接使用后端返回的次数套餐数据，并格式化价格
+        console.log('🔍 开始处理次数套餐数据...')
+        
+        const countPackages = (result.data || []).map((pkg, index) => {
+          try {
+            console.log(`🎁 处理次数套餐 ${index}:`, pkg.name)
+            
+            // 处理features数据，确保每个feature都是字符串（和订阅套餐相同逻辑）
+            let processedFeatures = ['灵活按次使用'] // 次数套餐的默认值
+            
+            if (pkg.features && Array.isArray(pkg.features)) {
+              processedFeatures = pkg.features.map((feature, fIndex) => {
+                // 如果feature是对象，尝试提取有意义的字符串
+                if (typeof feature === 'object' && feature !== null) {
+                  console.log(`🔧 次数套餐 Feature ${fIndex} 是对象，尝试转换:`, feature)
+                  // 常见的对象结构处理
+                  if (feature.name) return feature.name
+                  if (feature.text) return feature.text
+                  if (feature.description) return feature.description
+                  if (feature.title) return feature.title
+                  // 如果是对象但没有明确的文本字段，返回JSON字符串
+                  return JSON.stringify(feature)
+                }
+                // 如果是字符串，直接返回
+                return String(feature)
+              })
+            } else if (pkg.features && typeof pkg.features === 'string') {
+              processedFeatures = [pkg.features]
+            }
+            
+            const processedPackage = {
+              ...pkg,
+              formattedPrice: this.formatPrice(pkg.price),
+              features: processedFeatures
+            }
+            
+            return processedPackage
+          } catch (error) {
+            console.error(`💥 处理次数套餐 ${index} 时出错:`, error, pkg)
+            return {
+              id: pkg.id || `error_${index}`,
+              name: pkg.name || '套餐名称错误',
+              formattedPrice: '价格错误',
+              features: ['数据处理错误']
+            }
+          }
+        })
         this.setData({ 
           countPackages: countPackages
         })
@@ -247,9 +385,48 @@ Page({
       const result = await CountPackageAPI.getUserCounts()
       
       if (result.success) {
-        console.log('✅ 用户次数加载成功:', result.data)
+        console.log('✅ 用户次数加载成功')
+        
+        // 处理用户次数数据，确保type字段是字符串
+        let processedUserCounts = null
+        if (result.data && Array.isArray(result.data)) {
+          processedUserCounts = result.data.map((countItem, index) => {
+            
+            // 确保type和type_name都是字符串
+            let processedType = String(countItem.type || '未知类型')
+            let processedTypeName = countItem.type_name
+            
+            // 如果type是对象，尝试提取有意义的字符串
+            if (typeof countItem.type === 'object' && countItem.type !== null) {
+              if (countItem.type.name) processedType = countItem.type.name
+              else if (countItem.type.text) processedType = countItem.type.text
+              else if (countItem.type.description) processedType = countItem.type.description
+              else processedType = JSON.stringify(countItem.type)
+            }
+            
+            // 如果type_name是对象，同样处理
+            if (typeof countItem.type_name === 'object' && countItem.type_name !== null) {
+              if (countItem.type_name.name) processedTypeName = countItem.type_name.name
+              else if (countItem.type_name.text) processedTypeName = countItem.type_name.text
+              else if (countItem.type_name.description) processedTypeName = countItem.type_name.description
+              else processedTypeName = JSON.stringify(countItem.type_name)
+            }
+            
+            const processed = {
+              ...countItem,
+              type: processedType,
+              type_name: processedTypeName || processedType
+            }
+            
+            return processed
+          })
+        } else if (result.data) {
+          // 如果不是数组，可能是对象格式
+          processedUserCounts = result.data
+        }
+        
         this.setData({ 
-          userCounts: result.data || null
+          userCounts: processedUserCounts
         })
       } else {
         console.log('ℹ️ 用户次数加载失败（可能未登录）:', result.error)
@@ -361,7 +538,7 @@ Page({
 
       wx.showModal({
         title: '确认订阅',
-        content: `确定要订阅 ${selectedPlan.name}（¥${selectedPlan.price}）吗？`,
+        content: `确定要订阅 ${selectedPlan.name}（${selectedPlan.formattedPrice || this.formatPrice(selectedPlan.price)}）吗？`,
         success: (res) => {
           if (res.confirm) {
             this.processPurchase(selectedPlan, 'subscription')
@@ -389,7 +566,7 @@ Page({
 
       wx.showModal({
         title: '确认购买',
-        content: `确定要购买 ${selectedPackage.name}（¥${selectedPackage.price}）吗？`,
+        content: `确定要购买 ${selectedPackage.name}（${selectedPackage.formattedPrice || this.formatPrice(selectedPackage.price)}）吗？`,
         success: (res) => {
           if (res.confirm) {
             this.processPurchase(selectedPackage, 'package')
@@ -411,15 +588,34 @@ Page({
       // 1. 创建订单
       console.log('🛍️ 开始创建订单:', { type, planId: plan.id })
       
+      // 准备订单数据，可能需要添加用户信息
+      const orderData = {
+        plan_id: plan.id
+      }
+      
+      // 尝试添加用户信息（服务器可能需要）
+      try {
+        const userInfo = wx.getStorageSync('userInfo') || wx.getStorageSync('user_info')
+        if (userInfo && userInfo.id) {
+          orderData.user_id = userInfo.id
+          console.log('👤 添加用户ID到订单:', userInfo.id)
+        } else {
+          console.warn('⚠️ 无法获取用户ID，服务器可能需要用户ID来创建订单')
+        }
+      } catch (e) {
+        console.warn('无法获取用户信息，使用默认订单数据')
+      }
+      
+      console.log('📝 发送到服务器的订单数据:', orderData)
+      console.log('📋 套餐完整信息:', plan)
+      
       let orderResult
       if (type === 'subscription') {
-        orderResult = await SubscriptionAPI.createOrder({
-          plan_id: plan.id
-        })
+        console.log('📅 调用订阅套餐创建订单API')
+        orderResult = await SubscriptionAPI.createOrder(orderData)
       } else if (type === 'package') {
-        orderResult = await CountPackageAPI.createOrder({
-          plan_id: plan.id
-        })
+        console.log('🎁 调用次数套餐创建订单API')
+        orderResult = await CountPackageAPI.createOrder(orderData)
       }
       
       console.log('🛍️ 订单创建结果:', { 
@@ -433,23 +629,23 @@ Page({
         throw new Error(orderResult.error || '创建订单失败')
       }
       
-      const orderData = orderResult.data
+      const paymentData = orderResult.data
       wx.hideLoading()
-      
+
       // 2. 调用微信支付
-      if (orderData.payment_params) {
-        console.log('调用微信支付:', orderData.payment_params)
+      if (paymentData.payment_params) {
+        console.log('调用微信支付:', paymentData.payment_params)
         
         wx.showLoading({ title: '正在支付...' })
         
         try {
-          await this.callWechatPay(orderData.payment_params)
+          await this.callWechatPay(paymentData.payment_params)
           
           // 3. 支付成功，查询订单状态
           wx.hideLoading()
           wx.showLoading({ title: '确认支付状态...' })
           
-          const paymentSuccess = await this.verifyPaymentStatus(orderData.order_no)
+          const paymentSuccess = await this.verifyPaymentStatus(paymentData.order_no)
           wx.hideLoading()
           
           if (paymentSuccess) {
@@ -530,7 +726,17 @@ Page({
       let errorTitle = '购买失败'
       let errorContent = error.message || '购买过程中出现错误，请稍后重试'
       
-      if (error.message && error.message.includes('404')) {
+      console.error('💥 购买失败详细信息:', {
+        errorMessage: error.message,
+        statusCode: error.statusCode,
+        errorCode: error.code,
+        fullError: error
+      })
+      
+      if (error.statusCode === 500) {
+        errorTitle = '服务器错误'
+        errorContent = '服务器处理订单时遇到问题，请稍后重试。如问题持续存在，请联系客服。'
+      } else if (error.message && error.message.includes('404')) {
         errorTitle = '服务维护中'
         errorContent = '订阅服务正在维护升级，请稍后重试。如问题持续存在，请联系客服。'
       } else if (error.message && error.message.includes('网络')) {
@@ -539,6 +745,9 @@ Page({
       } else if (error.statusCode === 401) {
         errorTitle = '登录过期'
         errorContent = '登录状态已过期，请重新登录后再试。'
+      } else if (error.statusCode === 400) {
+        errorTitle = '订单信息错误'
+        errorContent = '订单信息有误，请重新选择套餐后再试。'
       }
       
       wx.showModal({
@@ -687,8 +896,13 @@ Page({
    * 格式化价格显示
    */
   formatPrice(price) {
+    if (!price && price !== 0) return '价格待定'
     if (price === 0) return '免费'
-    return `¥${price}`
+    if (typeof price !== 'number') {
+      price = parseFloat(price) || 0
+    }
+    // 后端返回的价格是分为单位，需要转换为元
+    return `¥${(price / 100).toFixed(2)}`
   },
 
   /**
