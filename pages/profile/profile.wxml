@@ -219,23 +219,7 @@
           <view class="list-item-action">▶</view>
         </view>
 
-        <view class="list-item" bindtap="showHelp">
-          <view class="list-item-icon">❓</view>
-          <view class="list-item-content">
-            <view class="list-item-title">使用帮助</view>
-            <view class="list-item-subtitle">功能介绍和使用指南</view>
-          </view>
-          <view class="list-item-action">▶</view>
-        </view>
-
-        <view class="list-item" bindtap="showFeedback">
-          <view class="list-item-icon">💬</view>
-          <view class="list-item-content">
-            <view class="list-item-title">意见反馈</view>
-            <view class="list-item-subtitle">提出建议和问题反馈</view>
-          </view>
-          <view class="list-item-action">▶</view>
-        </view>
+        <!-- 使用帮助和意见反馈模块已移除 -->
 
         <view class="list-item" bindtap="showAbout">
           <view class="list-item-icon">ℹ️</view>

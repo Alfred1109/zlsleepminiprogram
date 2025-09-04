@@ -630,13 +630,7 @@ Page({
     })
   },
 
-  showHelp: function () {
-    wx.showModal({
-      title: '使用帮助',
-      content: 'AI疗愈系统帮助您通过心理评测和个性化音乐生成来改善心理健康。完成评测后，系统会为您生成专属的疗愈音乐。',
-      showCancel: false
-    })
-  },
+  // showHelp 方法已移除
 
   showAbout: function () {
     wx.showModal({
@@ -857,12 +851,7 @@ Page({
     });
   },
 
-  showFeedback() {
-    wx.showToast({
-      title: '功能开发中，敬请期待',
-      icon: 'none'
-    });
-  },
+  // showFeedback 方法已移除
 
   /**
    * 加载订阅状态
