@@ -42,21 +42,7 @@
   z-index: 2;
 }
 
-/* 分析模式指示器 */
-.analysis-mode {
-  position: absolute;
-  top: 8rpx;
-  right: 12rpx;
-  z-index: 2;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 4rpx 8rpx;
-  border-radius: 6rpx;
-}
-
-.mode-text {
-  font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.8);
-}
+/* 分析模式指示器样式已移除，不再需要显示模式文字 */
 
 .status-text {
   color: rgba(255, 255, 255, 0.9);

@@ -12,8 +12,5 @@
     <text class="status-text">初始化中...</text>
   </view>
   
-  <!-- 分析模式指示器 -->
-  <view class="analysis-mode" wx:if="{{isInitialized}}">
-    <text class="mode-text">{{analyserNode ? '实时分析' : '模拟分析'}}</text>
-  </view>
+  <!-- 分析模式指示器已移除，现在使用真实数据拟合波形 -->
 </view>

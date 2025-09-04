@@ -68,6 +68,14 @@ Page({
     this.checkLoginStatus()
     this.loadUserStats()
     this.loadSubscriptionStatus()
+    
+    // 监听统计数据更新事件
+    this.setupStatsListener()
+  },
+
+  onHide() {
+    // 移除事件监听
+    this.removeStatsListener()
   },
 
   /**
@@ -257,7 +265,16 @@ Page({
 
       if (result.success && result.data) {
         const records = result.data || [];
+        console.log('📊 获取到的播放记录数据:', records);
+        console.log('📊 播放记录数量:', records.length);
+        
+        // 打印第一条记录的结构以便调试
+        if (records.length > 0) {
+          console.log('📊 播放记录示例:', records[0]);
+        }
+        
         const stats = this.calculateStatsFromRecords(records);
+        console.log('📊 计算得到的统计数据:', stats);
         
         this.setData({
           stats: {
@@ -268,7 +285,7 @@ Page({
           }
         });
 
-        console.log('用户统计数据加载成功:', this.data.stats);
+        console.log('📊 最终设置的统计数据:', this.data.stats);
       } else {
         console.warn('加载播放记录失败:', result.error);
         this.setFallbackStats();
@@ -284,10 +301,40 @@ Page({
   },
 
   /**
+   * 解析中文时长格式 "0分59秒" -> 59秒
+   */
+  parseDurationString(durationStr) {
+    if (!durationStr || typeof durationStr === 'number') {
+      return durationStr || 0;
+    }
+    
+    if (typeof durationStr !== 'string') {
+      return 0;
+    }
+
+    let totalSeconds = 0;
+    
+    // 匹配 "2分30秒" 格式
+    const minuteMatch = durationStr.match(/(\d+)分/);
+    const secondMatch = durationStr.match(/(\d+)秒/);
+    
+    if (minuteMatch) {
+      totalSeconds += parseInt(minuteMatch[1]) * 60;
+    }
+    if (secondMatch) {
+      totalSeconds += parseInt(secondMatch[1]);
+    }
+    
+    console.log(`🔧 解析时长字符串 "${durationStr}" -> ${totalSeconds}秒`);
+    return totalSeconds;
+  },
+
+  /**
    * 从播放记录计算统计数据
    */
   calculateStatsFromRecords(records) {
     if (!records || records.length === 0) {
+      console.log('📊 没有播放记录数据');
       return {
         totalRecords: 0,
         totalMinutes: 0,
@@ -297,28 +344,72 @@ Page({
 
     // 计算总播放次数
     const totalRecords = records.length;
+    console.log('📊 播放记录总数:', totalRecords);
 
     // 计算总播放时长（分钟）
-    const totalSeconds = records.reduce((total, record) => {
-      return total + (record.actual_play_duration || record.play_duration || 0);
-    }, 0);
+    let totalSeconds = 0;
+    records.forEach((record, index) => {
+      // 尝试多个可能的字段名
+      const rawDuration = record.actual_play_duration 
+        || record.play_duration 
+        || record.duration 
+        || record.play_time
+        || 0;
+      
+      // 🔧 处理中文时长格式
+      const duration = this.parseDurationString(rawDuration);
+      
+      console.log(`📊 记录${index + 1}播放时长字段检查:`, {
+        actual_play_duration: record.actual_play_duration,
+        play_duration: record.play_duration,
+        duration: record.duration,
+        play_time: record.play_time,
+        原始值: rawDuration,
+        解析后: duration
+      });
+      console.log(`📊 记录${index + 1}播放时长:`, duration, '秒');
+      totalSeconds += duration;
+    });
     const totalMinutes = Math.floor(totalSeconds / 60);
+    console.log('📊 总播放时长:', totalSeconds, '秒 =', totalMinutes, '分钟');
 
     // 计算活跃天数
     const playDates = new Set();
-    records.forEach(record => {
-      if (record.created_at) {
-        const date = new Date(record.created_at).toDateString();
+    records.forEach((record, index) => {
+      // 🔧 尝试多个可能的时间字段名，包括date字段
+      const createdTime = record.created_at 
+        || record.create_time 
+        || record.createdAt 
+        || record.createTime
+        || record.date;  // 从日志看到有这个字段
+      
+      console.log(`📊 记录${index + 1}创建时间字段检查:`, {
+        created_at: record.created_at,
+        create_time: record.create_time,
+        createdAt: record.createdAt,
+        createTime: record.createTime,
+        date: record.date,
+        最终使用: createdTime
+      });
+      console.log(`📊 记录${index + 1}创建时间:`, createdTime);
+      
+      if (createdTime) {
+        const date = new Date(createdTime).toDateString();
         playDates.add(date);
+        console.log('📊 添加活跃日期:', date);
       }
     });
     const activeDays = playDates.size;
+    console.log('📊 活跃天数:', activeDays, '天, 活跃日期:', Array.from(playDates));
 
-    return {
+    const result = {
       totalRecords,
-      totalMinutes,
+      totalMinutes: isNaN(totalMinutes) ? 0 : totalMinutes,  // 🔧 修复NaN问题
       activeDays
     };
+    console.log('📊 统计计算结果:', result);
+
+    return result;
   },
 
   /**
@@ -329,8 +420,13 @@ Page({
     if (!userInfo) return;
 
     try {
-      const { AssessmentAPI } = require('../../utils/healingApi');
-      const result = await AssessmentAPI.getHistory(userInfo.id);
+      const api = require('../../utils/api');
+      const result = await api.request({
+        url: `/assessment/history/${userInfo.id}`,
+        method: 'GET',
+        showLoading: false  // 统计数据后台加载，不显示loading
+      });
+      
       if (result.success) {
         const assessmentCount = (result.data || []).length;
         this.setData({
@@ -354,6 +450,41 @@ Page({
         consecutiveDays: 0
       }
     });
+  },
+
+  /**
+   * 设置统计数据更新监听器
+   */
+  setupStatsListener() {
+    if (!this.statsUpdateHandler) {
+      this.statsUpdateHandler = () => {
+        console.log('收到统计数据更新通知，刷新数据...');
+        this.refreshUserStats();
+      };
+
+      // 监听事件总线
+      const eventEmitter = require('../../utils/eventEmitter');
+      eventEmitter.on('statsUpdated', this.statsUpdateHandler);
+    }
+  },
+
+  /**
+   * 移除统计数据更新监听器
+   */
+  removeStatsListener() {
+    if (this.statsUpdateHandler) {
+      const eventEmitter = require('../../utils/eventEmitter');
+      eventEmitter.off('statsUpdated', this.statsUpdateHandler);
+      this.statsUpdateHandler = null;
+    }
+  },
+
+  /**
+   * 刷新用户统计数据（外部调用）
+   */
+  refreshUserStats() {
+    console.log('刷新用户统计数据');
+    this.loadUserStats();
   },
 
   /**

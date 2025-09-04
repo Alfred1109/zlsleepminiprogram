@@ -131,6 +131,10 @@ Component({
       this.setData({ isPlaying: true })
       // 使用底层timeUpdate事件，不再启动额外计时器，避免重复setData
       console.log('🎵 播放状态更新: isPlaying = true')
+      
+      // 🆕 记录播放开始
+      this.recordGlobalPlayStart();
+      
       this.triggerEvent('playStateChange', { 
         isPlaying: true,
         currentTime: this.data.currentTime,
@@ -154,6 +158,10 @@ Component({
 
     onGlobalPlayerStop() {
       console.log('全局播放器停止')
+      
+      // 🆕 记录播放结束
+      this.recordGlobalPlayEnd();
+      
       this.setData({ 
         isPlaying: false,
         currentTime: 0,
@@ -170,6 +178,9 @@ Component({
 
     onGlobalPlayerEnded() {
       console.log('全局播放器播放结束')
+      
+      // 🆕 记录播放结束
+      this.recordGlobalPlayEnd();
       
       // 检查是否有定时器在运行
       if (this.data.timerEnabled && this.data.timerRemaining > 0) {
@@ -892,9 +903,166 @@ Component({
       this.triggerEvent('timerEnd');
     },
 
+    // 🆕 记录全局播放器播放开始
+    recordGlobalPlayStart() {
+      try {
+        const AuthService = require('../../services/AuthService');
+        // 检查用户登录状态
+        if (!AuthService.isLoggedIn()) {
+          console.log('🎵 用户未登录，跳过播放记录');
+          return;
+        }
+
+        const currentTrack = this.data.currentTrack;
+        if (!currentTrack || !currentTrack.name) {
+          console.log('🎵 无当前音轨信息，跳过播放记录');
+          return;
+        }
+
+        // 记录播放开始时间和信息
+        this.currentGlobalPlayRecord = {
+          track: currentTrack,
+          startTime: Date.now(),
+          totalDuration: currentTrack.duration || 60, // 音轨总时长(秒)
+        };
+
+        console.log('🎵 全局播放器开始记录播放:', currentTrack.name);
+      } catch (error) {
+        console.error('🎵 记录全局播放开始失败:', error);
+      }
+    },
+
+    // 🆕 记录全局播放器播放结束
+    recordGlobalPlayEnd() {
+      try {
+        if (!this.currentGlobalPlayRecord) {
+          return;
+        }
+
+        const AuthService = require('../../services/AuthService');
+        if (!AuthService.isLoggedIn()) {
+          return;
+        }
+
+        const endTime = Date.now();
+        const actualPlayDuration = Math.floor((endTime - this.currentGlobalPlayRecord.startTime) / 1000); // 实际播放时长(秒)
+        const track = this.currentGlobalPlayRecord.track;
+
+        // 只记录播放超过5秒的记录
+        if (actualPlayDuration < 5) {
+          console.log('🎵 全局播放器播放时间过短，跳过记录');
+          this.currentGlobalPlayRecord = null;
+          return;
+        }
+
+        // 计算播放进度
+        const playProgress = this.currentGlobalPlayRecord.totalDuration > 0 
+          ? Math.min(actualPlayDuration / this.currentGlobalPlayRecord.totalDuration, 1.0)
+          : 0.0;
+
+        // 确定内容类型
+        let contentType = 'generated_music';
+        const trackId = String(track.id || ''); // 🔧 转换为字符串避免类型错误
+        
+        if (track.type === 'brainwave' || trackId.startsWith('brainwave_')) {
+          contentType = 'brainwave';
+        } else if (track.type === 'healing_resource' || track.type === 'qiniu_file') {
+          contentType = 'healing_resource';
+        } else if (track.category && track.category.includes('AI')) {
+          contentType = 'generated_music';
+        } else if (track.category && (track.category.includes('脑波') || track.category.includes('brainwave'))) {
+          contentType = 'brainwave';
+        }
+
+        // 创建播放记录
+        const playRecordData = {
+          content_type: contentType,
+          content_id: track.id || 'unknown',
+          content_title: track.name || track.title || '未知音乐',
+          category_name: track.category || '未知分类',
+          category_id: track.categoryId || track.category_id,
+          play_duration: actualPlayDuration,
+          total_duration: this.currentGlobalPlayRecord.totalDuration,
+          play_progress: playProgress,
+          device_type: 'miniprogram',
+          play_source: 'global_player'
+        };
+
+        console.log('🎵 全局播放器记录数据准备提交:', playRecordData);
+        console.log('🎵 播放时长:', actualPlayDuration, '秒，进度:', (playProgress * 100).toFixed(1) + '%');
+        console.log('🎵 内容类型判断:', {
+          trackType: track.type,
+          trackId: trackId,
+          trackCategory: track.category,
+          finalContentType: contentType
+        });
+
+        // 调用API记录播放记录
+        const api = require('../../utils/api');
+        api.request({
+          url: '/play-records/',
+          method: 'POST',
+          data: playRecordData,
+          showLoading: false
+        }).then((result) => {
+          if (result.success) {
+            console.log('✅ 全局播放器播放记录创建成功:', result.data);
+            console.log('📝 记录ID:', result.data.id);
+            console.log('📊 播放数据:', {
+              时长: actualPlayDuration + '秒',
+              内容: track.name || track.title,
+              类型: contentType
+            });
+            
+            // 通知其他页面刷新统计数据
+            this.notifyStatsUpdate();
+          } else {
+            console.warn('❌ 全局播放器播放记录创建失败:', result.error);
+            console.warn('❌ 失败的数据:', playRecordData);
+          }
+        }).catch((error) => {
+          console.error('❌ 全局播放器创建播放记录失败:', error);
+          console.error('❌ 请求数据:', playRecordData);
+        });
+
+        // 清除当前播放记录
+        this.currentGlobalPlayRecord = null;
+
+      } catch (error) {
+        console.error('🎵 记录全局播放结束失败:', error);
+      }
+    },
+
+    // 🆕 通知其他页面更新统计数据
+    notifyStatsUpdate() {
+      try {
+        // 使用事件总线通知
+        const eventEmitter = require('../../utils/eventEmitter');
+        eventEmitter.emit('statsUpdated', {
+          timestamp: Date.now(),
+          source: 'global_player'
+        });
+
+        // 通知个人资料页面更新
+        const pages = getCurrentPages();
+        pages.forEach(page => {
+          if (page.route === 'pages/profile/profile' && page.refreshUserStats) {
+            page.refreshUserStats();
+          }
+        });
+
+        console.log('🎵 全局播放器已通知页面刷新统计数据');
+      } catch (error) {
+        console.error('🎵 全局播放器通知统计数据更新失败:', error);
+      }
+    },
+
     // 清理资源
     cleanup() {
       this.stopTimer() // 清理定时器
+      
+      // 🆕 清理播放记录
+      this.currentGlobalPlayRecord = null;
       
       // 解绑全局播放器事件
       this.unbindGlobalPlayerEvents()

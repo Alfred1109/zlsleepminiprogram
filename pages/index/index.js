@@ -2546,7 +2546,8 @@ Page({
         play_source: 'homepage'
       };
 
-      console.log('记录播放结束:', playRecordData);
+      console.log('🎵 播放记录数据准备提交:', playRecordData);
+      console.log('🎵 播放时长:', actualPlayDuration, '秒，进度:', (playProgress * 100).toFixed(1) + '%');
 
       // 调用API记录播放记录
       const api = require('../../utils/api');
@@ -2557,12 +2558,23 @@ Page({
         showLoading: false
       }).then((result) => {
         if (result.success) {
-          console.log('播放记录创建成功:', result.data.id);
+          console.log('✅ 播放记录创建成功:', result.data);
+          console.log('📝 记录ID:', result.data.id);
+          console.log('📊 播放数据:', {
+            时长: actualPlayDuration + '秒',
+            内容: sound.name || sound.title,
+            类型: contentType
+          });
+          
+          // 通知其他页面刷新统计数据
+          this.notifyStatsUpdate();
         } else {
-          console.warn('播放记录创建失败:', result.error);
+          console.warn('❌ 播放记录创建失败:', result.error);
+          console.warn('❌ 失败的数据:', playRecordData);
         }
       }).catch((error) => {
-        console.error('创建播放记录失败:', error);
+        console.error('❌ 创建播放记录失败:', error);
+        console.error('❌ 请求数据:', playRecordData);
       });
 
       // 清除当前播放记录
@@ -2570,6 +2582,31 @@ Page({
 
     } catch (error) {
       console.error('记录播放结束失败:', error);
+    }
+  },
+
+  /**
+   * 通知其他页面更新统计数据
+   */
+  notifyStatsUpdate() {
+    try {
+      // 使用事件总线通知
+      const eventEmitter = require('../../utils/eventEmitter');
+      eventEmitter.emit('statsUpdated', {
+        timestamp: Date.now()
+      });
+
+      // 通知个人资料页面更新
+      const pages = getCurrentPages();
+      pages.forEach(page => {
+        if (page.route === 'pages/profile/profile' && page.refreshUserStats) {
+          page.refreshUserStats();
+        }
+      });
+
+      console.log('已通知页面刷新统计数据');
+    } catch (error) {
+      console.error('通知统计数据更新失败:', error);
     }
   }
 });
