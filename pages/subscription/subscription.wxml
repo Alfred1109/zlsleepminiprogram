@@ -255,9 +255,12 @@
           </view>
           
           <!-- 适用功能 -->
-          <view class="package-features" wx:if="{{item.description}}">
-            <view class="features-title">适用功能</view>
-            <view class="features-desc">{{item.description}}</view>
+          <view class="package-features" wx:if="{{item.features && item.features.length > 0}}">
+            <view class="features-title">套餐特性</view>
+            <view class="feature-item" wx:for="{{item.features}}" wx:for-item="feature" wx:key="*this">
+              <view class="feature-icon"></view>
+              <text>{{feature}}</text>
+            </view>
           </view>
         </view>
       </view>
