@@ -4,10 +4,23 @@
 
 .container {
   min-height: 1334rpx;
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(180deg, #F8F6F7 0%, #F4F2F3 100%); /* 保持与首页一致 */
   padding: 40rpx;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 30% 40%, rgba(192, 169, 189, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* 顶部区域 */
@@ -26,13 +39,13 @@
 .title {
   font-size: 48rpx;
   font-weight: bold;
-  color: #ffffff;
+  color: #2D3A36; /* 主标题色 */
   margin-bottom: 16rpx;
 }
 
 .subtitle {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: #5A6B5F; /* 正文色 */
   line-height: 1.5;
 }
 
@@ -44,10 +57,12 @@
   margin: 0 auto 40rpx;
   width: 80%;
   max-width: 600rpx;
-  background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.10));
+  background: rgba(255, 255, 255, 0.9); /* 半透明白色 */
+  backdrop-filter: blur(10px);
   border-radius: 60rpx;
   padding: 10rpx;
-  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.08) inset, 0 6rpx 18rpx rgba(0,0,0,0.10);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08), inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+  border: 1rpx solid rgba(255, 255, 255, 0.5);
 }
 
 .method-item {
@@ -65,21 +80,22 @@
 
 .method-item.active {
   background: #ffffff;
-  color: #2BBAA5;
-  box-shadow: 0 10rpx 22rpx rgba(43, 186, 165, 0.25);
+  color: #FF6B35; /* 使用品牌橙色 */
+  box-shadow: 0 10rpx 22rpx rgba(255, 107, 53, 0.2);
   transform: translateY(-2rpx);
+  border: 1rpx solid rgba(255, 107, 53, 0.15);
 }
 
 .method-item.active .method-icon {
-  filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(434%) hue-rotate(135deg) brightness(98%) contrast(94%);
+  filter: brightness(0) saturate(100%) invert(55%) sepia(76%) saturate(2067%) hue-rotate(360deg) brightness(103%) contrast(101%); /* 橙色滤镜 */
 }
 
 .method-icon { width: 34rpx; height: 34rpx; }
 
 .method-name { font-size: 24rpx; font-weight: 600; color: inherit; }
 
-.method-item .method-name { color: rgba(255,255,255,0.85); font-weight: 500; }
-.method-item.active .method-name { color: #2BBAA5; font-weight: 600; }
+.method-item .method-name { color: #5A6B5F; font-weight: 500; }
+.method-item.active .method-name { color: #FF6B35; font-weight: 600; } /* 使用品牌橙色 */
 
 /* 登录表单 */
 
@@ -113,11 +129,30 @@
 
 /* 智能登录按钮 */
 .wechat-btn { 
-  background: linear-gradient(135deg, #2BBAA5, #93D3AE) !important; 
-  color: #ffffff !important;
-  box-shadow: 0 6rpx 20rpx rgba(43, 186, 165, 0.3); 
+  background: #FF6B35 !important; /* 使用品牌橙色 */
+  color: #FFFFFF !important; /* 白色文字 */
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.3), 0 2rpx 8rpx rgba(0, 0, 0, 0.1) !important;
   transform: translateY(0); 
-  transition: all 0.3s ease; 
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 添加微妙的光效 */
+.wechat-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
+  transform: rotate(45deg) translate(-100%, -100%);
+  transition: transform 0.6s ease;
+}
+
+.wechat-btn:active::after {
+  transform: rotate(45deg) translate(0, 0);
 }
 
 .wechat-btn:active { transform: translateY(2rpx); box-shadow: 0 3rpx 12rpx rgba(43, 186, 165, 0.4); }
@@ -128,7 +163,7 @@
   padding: 16rpx;
   background: rgba(147, 211, 174, 0.1);
   border-radius: 12rpx;
-  border-left: 4rpx solid #2BBAA5;
+  border-left: 4rpx solid #C0A9BD;
 }
 
 .tip-item {
@@ -177,15 +212,17 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
   border-radius: 50rpx;
   padding: 0 20rpx;
-  border: 2rpx solid transparent;
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06), inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
   transition: all 0.3s ease;
 }
 
 .input-wrapper:focus-within {
-  border-color: #2BBAA5;
+  border-color: #C0A9BD;
   background: #ffffff;
 }
 
@@ -229,8 +266,9 @@
 }
 
 .login-btn.primary {
-  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  background: linear-gradient(135deg, #FF6B35, rgba(255, 107, 53, 0.9)); /* 品牌橙色渐变 */
   color: #ffffff;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.3);
 }
 
 .login-btn.secondary {
@@ -275,7 +313,7 @@
 
 .link-text {
   font-size: 24rpx;
-  color: #2BBAA5;
+  color: #C0A9BD;
   text-decoration: underline;
 }
 

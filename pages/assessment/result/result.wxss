@@ -2,22 +2,11 @@
 /* 全新现代化评测结果页面样式 */
 @import "/styles/main.wxss";
 
-:root {
-  --primary-color: #2BBAA5;
-  --secondary-color: #93D3AE;
-  --background-color: #f7f9fc;
-  --card-background: #ffffff;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --shadow: 0 10rpx 30rpx -10rpx rgba(0, 0, 0, 0.08);
-  --border-radius: 24rpx;
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
+/* CSS变量不被支持，已移除 */
 
 .page-container {
-  background-color: var(--background-color);
-  font-family: var(--font-family);
+  background-color: #f7f9fc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   min-height: 100vh;
   padding-bottom: 40rpx;
 }
@@ -33,13 +22,13 @@
   align-items: center;
   justify-content: center;
   height: 80vh;
-  color: var(--text-secondary);
+  color: #94A7AE;
 }
 .loading-spinner {
   width: 60rpx;
   height: 60rpx;
-  border: 6rpx solid var(--border-color);
-  border-top-color: var(--primary-color);
+  border: 6rpx solid #e5e7eb;
+  border-top-color: #C0A9BD;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -57,7 +46,7 @@
 .result-header-new {
   position: relative;
   background: linear-gradient(135deg, #e0f2f1, #e6fffa); /* Lighter gradient */
-  color: var(--text-primary); /* Dark text for high contrast */
+  color: #64766A; /* Dark text for high contrast */
   padding: 120rpx 40rpx 60rpx;
   margin: 0 -32rpx 40rpx;
   border-bottom-left-radius: 60rpx;
@@ -124,7 +113,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: white;
-  color: var(--primary-color);
+  color: #C0A9BD;
   padding: 10rpx 24rpx;
   border-radius: 30rpx;
   font-size: 24rpx;
@@ -150,11 +139,11 @@
 .healing-schedule-card,
 .actions-section,
 .tips-section-new {
-  background: var(--card-background);
-  border-radius: var(--border-radius);
+  background: #ffffff;
+  border-radius: 24rpx;
   margin-bottom: 32rpx;
   padding: 32rpx;
-  box-shadow: var(--shadow);
+  box-shadow: 0 10rpx 30rpx -10rpx rgba(0, 0, 0, 0.08);
   animation: fadeInUp 0.5s ease-out forwards;
   opacity: 0;
 }
@@ -168,7 +157,7 @@
   align-items: center;
   font-size: 36rpx;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #64766A;
   margin-bottom: 32rpx;
 }
 .title-icon {
@@ -189,11 +178,11 @@
 .scale-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #64766A;
 }
 .scale-type {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #94A7AE;
 }
 .score-visualization {
   display: flex;
@@ -209,7 +198,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: conic-gradient(var(--primary-color) 0% 75%, var(--border-color) 75% 100%);
+  background: conic-gradient(#C0A9BD 0% 75%, #e5e7eb 75% 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -217,7 +206,7 @@
 .score-inner {
   width: 180rpx;
   height: 180rpx;
-  background: var(--card-background);
+  background: #ffffff;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -227,11 +216,11 @@
 .score-number {
   font-size: 64rpx;
   font-weight: 700;
-  color: var(--primary-color);
+  color: #C0A9BD;
 }
 .score-total {
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: #94A7AE;
 }
 .score-analysis {
   flex: 1;
@@ -253,7 +242,7 @@
 
 .severity-description {
   font-size: 28rpx;
-  color: var(--text-primary);
+  color: #64766A;
   font-weight: 500;
   margin-bottom: 8rpx;
 }
@@ -283,27 +272,27 @@
 .dimension-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #64766A;
 }
 .dimension-score {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #94A7AE;
 }
 .dimension-bar {
   height: 16rpx;
-  background-color: var(--border-color);
+  background-color: #e5e7eb;
   border-radius: 8rpx;
   overflow: hidden;
   margin-bottom: 12rpx;
 }
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+  background: linear-gradient(90deg, #94A7AE, #C0A9BD);
   border-radius: 8rpx;
 }
 .dimension-level {
   font-size: 24rpx;
-  color: var(--text-secondary);
+  color: #94A7AE;
   text-align: right;
 }
 .professional-interpretation {
@@ -314,13 +303,13 @@
 .interpretation-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #64766A;
   margin-bottom: 16rpx;
 }
 .interpretation-content {
   font-size: 26rpx;
   line-height: 1.7;
-  color: var(--text-secondary);
+  color: #94A7AE;
 }
 
 /* 个性化建议 */
@@ -344,12 +333,12 @@
 .recommendation-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #64766A;
   margin-bottom: 8rpx;
 }
 .recommendation-desc {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #94A7AE;
   line-height: 1.6;
 }
 .recommendation-priority {
@@ -366,7 +355,7 @@
 /* 专属疗愈音频方案 */
 .plan-description {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #94A7AE;
   margin-bottom: 32rpx;
 }
 .music-options-new {
@@ -478,7 +467,7 @@
 .schedule-time {
   font-size: 26rpx;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: #94A7AE;
 }
 .schedule-activity {
   flex: 1;
@@ -492,11 +481,11 @@
 .activity-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #64766A;
 }
 .activity-duration {
   font-size: 24rpx;
-  color: var(--text-secondary);
+  color: #94A7AE;
 }
 
 /* 操作按钮区域 */
@@ -536,7 +525,7 @@
   justify-content: center;
 }
 .primary-btn {
-  background: linear-gradient(135deg, #2BBAA5 0%, #1ea895 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #1ea895 100%);
   color: white;
   font-weight: 600;
   font-size: 30rpx;
@@ -586,7 +575,7 @@
 .tips-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #64766A;
 }
 .tips-content {
   display: flex;
@@ -596,12 +585,12 @@
 .tip-category-title {
   font-size: 28rpx;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #64766A;
   margin-bottom: 16rpx;
 }
 .tip-item {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #94A7AE;
   line-height: 1.7;
   padding-left: 20rpx;
   position: relative;
@@ -610,7 +599,7 @@
   content: '•';
   position: absolute;
   left: 0;
-  color: var(--primary-color);
+  color: #C0A9BD;
 }
 .disclaimer {
   padding: 24rpx;

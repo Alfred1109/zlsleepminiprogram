@@ -2,7 +2,7 @@
 @import "/styles/main.wxss";
 
 .container {
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background-color: #F4F2F3; /* 主背景色 */
   min-height: 100vh;
   padding-bottom: 100rpx;
   display: flex;
@@ -13,20 +13,34 @@
 .page-header {
   padding: 40rpx 30rpx 30rpx;
   text-align: center;
+  position: relative;
+}
+
+/* 添加微妙的品牌色点缀 */
+.page-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80rpx;
+  height: 3rpx;
+  background: linear-gradient(90deg, #FF6B35, rgba(255, 107, 53, 0.3));
+  border-radius: 2rpx;
 }
 
 .page-title {
   display: block;
   font-size: 36rpx;
   font-weight: 600;
-  color: white;
+  color: #2D3A36; /* 主标题色 */
   margin-bottom: 12rpx;
 }
 
 .page-subtitle {
   display: block;
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: #5A6B5F; /* 正文色 */
 }
 
 /* 设置内容 */
@@ -39,10 +53,11 @@
 /* 设置区块 */
 .setting-section {
   margin: 0 30rpx 32rpx;
-  background: rgba(255, 255, 255, 0.95);
+  background: #FFFFFF; /* 纯白卡片背景 */
   border-radius: 20rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border: 1rpx solid rgba(192, 169, 189, 0.1);
 }
 
 .section-header {
@@ -60,7 +75,7 @@
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #2D3A36; /* 主标题色 */
 }
 
 /* 设置项 */
@@ -78,7 +93,7 @@
 }
 
 .setting-item:active {
-  background-color: rgba(43, 186, 165, 0.05);
+  background-color: rgba(192, 169, 189, 0.05);
 }
 
 .setting-label {
@@ -89,7 +104,7 @@
 .label-text {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: #2D3A36; /* 主标题色 */
   font-weight: 500;
   margin-bottom: 8rpx;
 }
@@ -109,10 +124,11 @@
 
 .current-value {
   font-size: 26rpx;
-  color: #2BBAA5;
+  color: #FF6B35; /* 使用品牌橙色 */
   margin-right: 8rpx;
   display: flex;
   align-items: center;
+  font-weight: 600;
 }
 
 .value-icon {
@@ -168,9 +184,10 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2BBAA5, #93D3AE);
+  background: linear-gradient(90deg, #FF6B35, rgba(255, 107, 53, 0.8)); /* 品牌橙色渐变 */
   border-radius: 4rpx;
   transition: width 0.3s ease;
+  box-shadow: 0 1rpx 3rpx rgba(255, 107, 53, 0.3);
 }
 
 .clear-cache-btn {
@@ -223,20 +240,20 @@
   right: 0;
   background: rgba(255, 255, 255, 0.95);
   padding: 20rpx 30rpx;
-  border-top: 1rpx solid rgba(43, 186, 165, 0.1);
+  border-top: 1rpx solid rgba(192, 169, 189, 0.1);
   z-index: 100;
 }
 
 .save-btn {
   width: 100%;
-  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  background: linear-gradient(135deg, #FF6B35, rgba(255, 107, 53, 0.9)); /* 品牌橙色渐变 */
   color: white;
   border: none;
   border-radius: 16rpx;
   padding: 20rpx;
   font-size: 30rpx;
   font-weight: 600;
-  box-shadow: 0 4rpx 16rpx rgba(43, 186, 165, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.3);
 }
 
 .save-btn:active {
@@ -332,11 +349,11 @@
 }
 
 .selector-item:active {
-  background-color: rgba(43, 186, 165, 0.05);
+  background-color: rgba(192, 169, 189, 0.05);
 }
 
 .selector-item.selected {
-  background-color: rgba(43, 186, 165, 0.1);
+  background-color: rgba(192, 169, 189, 0.1);
   border-radius: 12rpx;
   margin: 8rpx 0;
   padding: 20rpx 16rpx;
@@ -355,7 +372,7 @@
 }
 
 .selector-item.selected .item-label {
-  color: #2BBAA5;
+  color: #C0A9BD;
 }
 
 .item-desc {
@@ -371,7 +388,7 @@
 }
 
 .check-icon {
-  color: #2BBAA5;
+  color: #C0A9BD;
   font-size: 28rpx;
   font-weight: bold;
 }

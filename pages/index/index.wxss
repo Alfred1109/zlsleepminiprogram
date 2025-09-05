@@ -1,8 +1,23 @@
 /* 首页样式 - 使用统一配色 */
 .container {
-  padding: 48rpx 24rpx 200rpx; /* 增加底部边距，为展开的播放器留更多空间 */
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
-  min-height: 100rpx; /* 移除vh单位 */
+  padding: 48rpx 24rpx 200rpx;
+  background: linear-gradient(180deg, #F8F6F7 0%, #F4F2F3 100%); /* 微妙渐变背景 */
+  min-height: 100vh;
+  position: relative;
+}
+
+/* 添加背景纹理 */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 20% 20%, rgba(192, 169, 189, 0.03) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(148, 167, 174, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* 顶部Logo区域 */
@@ -23,14 +38,30 @@
 .logo-text {
   font-size: 56rpx;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #2D3A36;
   letter-spacing: 2rpx;
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.8);
+  opacity: 0.9;
+  position: relative;
+}
+
+/* 给logo添加品牌橙色点缀 */
+.logo-text::after {
+  content: '';
+  position: absolute;
+  bottom: -8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: linear-gradient(90deg, #FF6B35, rgba(255, 107, 53, 0.6));
+  border-radius: 2rpx;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
 }
 
 .logo-subtitle {
   font-size: 24rpx;
-  color: #374151;
+  color: #5A6B5F; /* 使用正文色 */
   font-weight: 500;
   letter-spacing: 1rpx;
   position: relative;
@@ -38,6 +69,7 @@
   align-items: center;
   justify-content: center;
   text-shadow: none;
+  opacity: 0.8;
 }
 
 .logo-subtitle::before,
@@ -45,7 +77,7 @@
   content: '';
   width: 40rpx;
   height: 2rpx;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+  background-color: rgba(255, 255, 255, 0.6);
   margin: 0 16rpx;
 }
 
@@ -58,42 +90,65 @@
 }
 
 .guide-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.85); /* 半透明白色 - 毛玻璃效果 */
+  backdrop-filter: blur(10px); /* 毛玻璃模糊 */
   border-radius: 24rpx;
   padding: 32rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+  border: 1rpx solid rgba(255, 255, 255, 0.3); /* 微妙边框 */
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06), 0 1rpx 2rpx rgba(0, 0, 0, 0.08); /* 分层阴影 */
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .guide-card:active {
-  transform: scale(0.98);
-  background: rgba(255, 255, 255, 0.15);
+  transform: scale(0.98) translateY(-2rpx);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.1), 0 2rpx 4rpx rgba(0, 0, 0, 0.08);
 }
 
-/* 模块一：随机播放 */
+/* 模块一：随机播放 - 品牌橙色主题设计 */
 .random-listen {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, #1F9A85, #2BBAA5);
-  box-shadow: 0 8rpx 24rpx rgba(31, 154, 133, 0.4);
+  background: rgba(255, 255, 255, 0.95);
+  border: 2rpx solid transparent;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), linear-gradient(135deg, #FF6B35, rgba(255, 107, 53, 0.8));
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.15), 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
 }
 
 .random-listen .card-content {
-  color: #1F2937;
+  color: #2D3A36; /* 深色文字 */
+  position: relative;
+  z-index: 2;
 }
 
 .random-listen .card-title {
   font-size: 36rpx;
   font-weight: 600;
   margin-bottom: 8rpx;
-  color: #1F2937;
+  color: #2D3A36;
 }
 
 .random-listen .card-desc {
   font-size: 24rpx;
-  opacity: 0.9;
-  color: #374151;
+  color: #5A6B5F;
+  opacity: 0.8;
+}
+
+/* 添加品牌橙色背景装饰 */
+.random-listen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120rpx;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.12), rgba(255, 107, 53, 0.06));
+  border-radius: 0 24rpx 24rpx 0;
 }
 
 .random-listen .card-action .play-icon {
@@ -101,18 +156,74 @@
   height: 80rpx;
 }
 
-/* 模块二：专业评测 */
+/* 模块二：专业评测 - 紫粉色点缀设计 */
 .assessment-card {
-  color: #1F2937;
-  background: linear-gradient(135deg, #2BBAA5, #4DCAB4);
-  box-shadow: 0 8rpx 24rpx rgba(43, 186, 165, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  border: 2rpx solid transparent;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), linear-gradient(135deg, #C0A9BD, rgba(192, 169, 189, 0.8));
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  position: relative;
 }
 
-/* 模块三：AI生成脑波 */
+.assessment-card .card-content {
+  color: #2D3A36;
+  position: relative;
+  z-index: 2;
+}
+
+.assessment-card .card-title {
+  color: #2D3A36;
+}
+
+.assessment-card .card-desc {
+  color: #5A6B5F;
+}
+
+.assessment-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120rpx;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(192, 169, 189, 0.15), rgba(192, 169, 189, 0.08));
+  border-radius: 0 24rpx 24rpx 0;
+}
+
+/* 模块三：AI生成脑波 - 蓝灰色点缀设计 */
 .brainwave-card {
-  color: #1F2937;
-  background: linear-gradient(135deg, #4DCAB4, #93D3AE);
-  box-shadow: 0 8rpx 24rpx rgba(77, 202, 180, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  border: 2rpx solid transparent;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), linear-gradient(135deg, #94A7AE, rgba(148, 167, 174, 0.8));
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  position: relative;
+}
+
+.brainwave-card .card-content {
+  color: #2D3A36;
+  position: relative;
+  z-index: 2;
+}
+
+.brainwave-card .card-title {
+  color: #2D3A36;
+}
+
+.brainwave-card .card-desc {
+  color: #5A6B5F;
+}
+
+.brainwave-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120rpx;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(148, 167, 174, 0.15), rgba(148, 167, 174, 0.08));
+  border-radius: 0 24rpx 24rpx 0;
 }
 
 .card-header {
@@ -125,7 +236,7 @@
 .card-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #1F2937;
+  color: #2D3A36; /* 主标题色 */
 }
 
 .card-action-button {
@@ -133,27 +244,39 @@
   border-radius: 999rpx;
   font-size: 24rpx;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.25);
-  color: #1F2937;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2D3A36;
+  border: 1rpx solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08), inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 随机播放按钮使用品牌色 */
+.random-listen .card-action-button {
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+  border: 1rpx solid rgba(255, 107, 53, 0.2);
+  font-weight: 600;
 }
 
 /* 随机播放按钮 */
 .random-listen .card-action-button {
   background: rgba(255, 255, 255, 0.3);
-  color: #1F2937;
+  color: #64766A;
 }
 
 /* 专业评测按钮 */
 .assessment-card .card-action-button {
   background: rgba(255, 255, 255, 0.3);
-  color: #1F2937;
+  color: #64766A;
   border: 1rpx solid rgba(255, 255, 255, 0.4);
 }
 
 /* AI生成脑波按钮 */
 .brainwave-card .card-action-button {
   background: rgba(255, 255, 255, 0.3);
-  color: #1F2937;
+  color: #64766A;
   border: 1rpx solid rgba(255, 255, 255, 0.4);
 }
 
@@ -213,7 +336,7 @@
 .history-name, .history-result {
   font-size: 28rpx;
   font-weight: 500;
-  color: #1F2937;
+  color: #64766A;
 }
 
 .history-meta {
@@ -227,18 +350,18 @@
   font-size: 22rpx;
   opacity: 0.8;
   font-weight: 400;
-  color: #6B7280;
+  color: #94A7AE;
 }
 
 /* 专业评测历史日期 */
 .assessment-card .history-date {
-  color: #6B7280;
+  color: #94A7AE;
   opacity: 1;
 }
 
 /* AI生成脑波历史日期 */
 .brainwave-card .history-date {
-  color: #6B7280;
+  color: #94A7AE;
   opacity: 1;
 }
 
@@ -251,7 +374,7 @@
 
 .type-60s {
   background: rgba(255, 255, 255, 0.3);
-  color: #1F2937;
+  color: #64766A;
 }
 
 .type-long {
@@ -262,18 +385,18 @@
 .history-action {
   font-size: 24rpx;
   font-weight: 600;
-  color: #1F2937;
+  color: #64766A;
 }
 
 /* 专业评测历史操作颜色 */
 .assessment-card .history-action {
-  color: #1F2937;
+  color: #64766A;
   font-weight: 700;
 }
 
 /* AI生成脑波历史操作颜色 */
 .brainwave-card .history-action {
-  color: #1F2937;
+  color: #64766A;
   font-weight: 700;
 }
 
@@ -292,7 +415,7 @@
 
 .assessment-view-button .view-text {
   font-size: 22rpx;
-  color: #1F2937;
+  color: #64766A;
   font-weight: 600;
 }
 
@@ -327,15 +450,18 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32rpx;
-  padding: 16rpx 12rpx;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04), inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
 }
 
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #1F2937;
+  color: #2D3A36; /* 主标题色 */
   flex: 1;
   text-shadow: none;
 }
@@ -350,13 +476,15 @@
 
 .section-more {
   font-size: 24rpx;
-  color: #1F2937;
+  color: #FF6B35; /* 使用品牌橙色 */
   padding: 12rpx 24rpx;
-  border-radius: 16rpx;
-  background: rgba(255, 255, 255, 0.25);
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-  font-weight: 500;
+  border-radius: 20rpx;
+  background: rgba(255, 107, 53, 0.08);
+  border: 1rpx solid rgba(255, 107, 53, 0.2);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.1), inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-weight: 600;
 }
 
 .section-more:active {
@@ -420,7 +548,7 @@
 
 .category-name {
   font-size: 24rpx;
-  color: #1F2937;
+  color: #64766A;
   font-weight: 600;
   text-align: center;
   line-height: 1.2;
@@ -428,30 +556,32 @@
   text-shadow: none;
 }
 
-/* 各分类图标背景 - 使用统一配色 */
+/* 各分类图标背景 - 使用指定的四个颜色 */
 .category-icon-1 {
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background-color: #C0A9BD;
 }
 
 .category-icon-2 {
-  background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+  background-color: #94A7AE;
 }
 
 .category-icon-3 {
-  background: linear-gradient(135deg, #3B82F6 0%, #4DCAB4 100%);
+  background-color: #64766A;
 }
 
 .category-icon-4 {
-  background: linear-gradient(135deg, #FCECA5 0%, #F5DE7A 100%);
+  background-color: #F4F2F3;
+  border: 2rpx solid #C0A9BD;
 }
 
 .category-icon-5 {
-  background: linear-gradient(135deg, #CBC7FC 0%, #B3AEF7 100%);
+  background-color: #C0A9BD;
+  opacity: 0.8;
 }
 
 .category-item-text {
   font-size: 24rpx;
-  color: #1F2937;
+  color: #64766A;
   font-weight: 600;
   text-align: center;
   line-height: 1.2;
@@ -484,23 +614,27 @@
 .recommendation-vertical-item {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
   border-radius: 20rpx;
   padding: 20rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.15);
-  transition: all 0.3s ease;
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06), inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
+  margin-bottom: 16rpx;
 }
 
 .recommendation-vertical-item:active {
-  transform: scale(0.98);
-  background: rgba(255, 255, 255, 0.15);
+  transform: scale(0.98) translateY(-2rpx);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1), inset 0 1rpx 0 rgba(255, 255, 255, 1);
 }
 
 .recommendation-vertical-item.playing {
-  background: rgba(43, 186, 165, 0.2);
-  border-color: rgba(43, 186, 165, 0.4);
-  box-shadow: 0 4rpx 20rpx rgba(43, 186, 165, 0.3);
+  background: rgba(192, 169, 189, 0.2);
+  border-color: rgba(192, 169, 189, 0.4);
+  box-shadow: 0 4rpx 20rpx rgba(192, 169, 189, 0.3);
 }
 
 /* 脑波封面 */
@@ -531,7 +665,7 @@
 .music-title-vertical {
   font-size: 32rpx;
   font-weight: 600;
-  color: #1F2937;
+  color: #2D3A36; /* 主标题色 */
   margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -541,7 +675,7 @@
 
 .music-duration-vertical {
   font-size: 24rpx;
-  color: #6B7280;
+  color: #8B9C91; /* 辅助文字色 */
   font-weight: 500;
 }
 
@@ -550,19 +684,23 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: rgba(255, 255, 255, 0.95);
+  border: 2rpx solid transparent;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), linear-gradient(135deg, #FF6B35, rgba(255, 107, 53, 0.8));
+  background-origin: border-box;
+  background-clip: content-box, border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba(43, 186, 165, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.2), 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   margin-left: 20rpx;
   flex-shrink: 0;
 }
 
 .play-button-vertical:active {
   transform: scale(0.9);
-  box-shadow: 0 2rpx 10rpx rgba(43, 186, 165, 0.4);
+  box-shadow: 0 2rpx 10rpx rgba(192, 169, 189, 0.4);
 }
 
 .play-icon-vertical {
@@ -606,31 +744,32 @@
 }
 
 .sleep-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #C0A9BD;
 }
 
 .meditation-icon {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background-color: #94A7AE;
 }
 
 .relax-icon {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background-color: #64766A;
 }
 
 .focus-icon {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  background-color: #C0A9BD;
+  opacity: 0.8;
 }
 
 .mood-item-text {
   font-size: 24rpx;
-  color: #1F2937;
+  color: #64766A;
   text-align: center;
   margin-bottom: 4rpx;
 }
 
 .mood-freq {
   font-size: 20rpx;
-  color: #6B7280;
+  color: #94A7AE;
 }
 
 /* 使用提示 */
@@ -657,7 +796,7 @@
   display: block;
   font-size: 28rpx;
   font-weight: 600;
-  color: #1F2937;
+  color: #64766A;
   margin-bottom: 8rpx;
   text-shadow: none;
 }
@@ -701,8 +840,8 @@
 }
 
 .recommended-music-item.playing {
-  background: rgba(43, 186, 165, 0.2);
-  border-color: rgba(43, 186, 165, 0.4);
+  background: rgba(192, 169, 189, 0.2);
+  border-color: rgba(192, 169, 189, 0.4);
 }
 
 /* 推荐理由标签 */
@@ -722,7 +861,7 @@
 
 .tag-text {
   font-size: 20rpx;
-  color: #1F2937;
+  color: #64766A;
   line-height: 1;
 }
 
@@ -731,7 +870,7 @@
   position: relative;
   width: 100%;
   height: 120rpx;
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background-color: #C0A9BD;
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   display: flex;
@@ -771,7 +910,7 @@
 
 .play-overlay .play-icon {
   font-size: 20rpx;
-  color: #2BBAA5;
+  color: #C0A9BD;
   margin: 0;
 }
 
@@ -784,7 +923,7 @@
 
 .music-title {
   font-size: 26rpx;
-  color: #1F2937;
+  color: #64766A;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -794,7 +933,7 @@
 
 .music-category {
   font-size: 22rpx;
-  color: #6B7280;
+  color: #94A7AE;
   font-weight: 500;
 }
 

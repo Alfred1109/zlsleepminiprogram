@@ -2,7 +2,7 @@
 
 .container {
   padding: 24rpx;
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
   min-height: 1334rpx;
 }
 
@@ -159,7 +159,7 @@
 
 .category-count {
   font-size: 26rpx;
-  color: #2BBAA5;
+  color: #C0A9BD;
   font-weight: 600;
   background: rgba(43, 186, 165, 0.1);
   padding: 8rpx 16rpx;

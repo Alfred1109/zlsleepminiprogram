@@ -3,7 +3,7 @@
 
 .play-container {
   padding: 30rpx;
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
   min-height: 1334rpx;
 }
 
@@ -54,7 +54,7 @@
   padding: 16rpx;
   border-radius: 40rpx;
   margin-bottom: 30rpx;
-  color: #2BBAA5;
+  color: #C0A9BD;
   border: 1rpx solid rgba(43, 186, 165, 0.2);
 }
 
@@ -89,7 +89,7 @@
 
 .btn-circle {
   border-radius: 50%;
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -218,7 +218,7 @@
 }
 
 .timer-option.active {
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
   color: white;
   box-shadow: 0 4rpx 12rpx rgba(43, 186, 165, 0.3);
 }

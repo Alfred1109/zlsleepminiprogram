@@ -3,7 +3,7 @@
 
 /* 页面容器使用统一样式，在layout.wxss中已定义 */
 .page-container {
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background-color: #C0A9BD;
   display: flex;
   flex-direction: column;
   min-height: 1334rpx;
@@ -30,7 +30,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2BBAA5 0%, #93D3AE 100%);
+  background-color: #C0A9BD;
   transition: width 0.3s ease;
 }
 
@@ -59,7 +59,7 @@
   width: 60rpx;
   height: 60rpx;
   border: 4rpx solid rgba(43, 186, 165, 0.3);
-  border-top: 4rpx solid #2BBAA5;
+  border-top: 4rpx solid #C0A9BD;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -98,7 +98,7 @@
 .question-number {
   font-size: 32rpx;
   font-weight: bold;
-  color: #2BBAA5;
+  color: #C0A9BD;
   margin-bottom: 10rpx;
 }
 
@@ -139,7 +139,7 @@
 
 .option-item.selected {
   background: rgba(43, 186, 165, 0.1);
-  border-color: #2BBAA5;
+  border-color: #C0A9BD;
 }
 
 .option-item:active {
@@ -160,8 +160,8 @@
 }
 
 .option-item.selected .option-radio {
-  border-color: #2BBAA5;
-  background-color: #2BBAA5;
+  border-color: #C0A9BD;
+  background-color: #C0A9BD;
 }
 
 .option-checked {
@@ -215,7 +215,7 @@
 }
 
 .next-button {
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background-color: #C0A9BD;
   color: white;
 }
 
@@ -255,7 +255,7 @@
   width: 60rpx;
   height: 60rpx;
   border: 4rpx solid #e0e0e0;
-  border-top: 4rpx solid #2BBAA5;
+  border-top: 4rpx solid #C0A9BD;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;

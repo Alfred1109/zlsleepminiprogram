@@ -3,7 +3,7 @@
 
 .page-container {
   min-height: 100vh;
-  background: #2BBAA5;
+  background: #C0A9BD;
   padding: 0 32rpx 120rpx;
   box-sizing: border-box;
 }
@@ -120,7 +120,7 @@
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #2BBAA5;
+  background: #C0A9BD;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -155,7 +155,7 @@
 
 .wave {
   width: 6rpx;
-  background: #2BBAA5;
+  background: #C0A9BD;
   border-radius: 3rpx;
   animation: wave 1.2s ease-in-out infinite;
   margin: 0 2rpx;

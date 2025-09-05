@@ -18,7 +18,9 @@ page {
   color: white;
   position: relative;
   overflow: hidden;
-}.status-content {
+}
+
+.status-content {
   position: relative;
   z-index: 2;
 }
@@ -54,7 +56,9 @@ page {
   margin-bottom: 30rpx;
   position: relative;
   overflow: hidden;
-}.trial-content {
+}
+
+.trial-content {
   position: relative;
   z-index: 2;
   color: #2d3436;

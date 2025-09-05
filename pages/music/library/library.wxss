@@ -3,7 +3,7 @@
 
 /* 页面容器 - 添加统一背景 */
 .page-container {
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
   min-height: 1334rpx;
 }
 
@@ -13,7 +13,9 @@
   padding: 80rpx 24rpx 48rpx;
   text-align: center;
   margin-bottom: 32rpx;
-}.page-header-title {
+}
+
+.page-header-title {
   font-size: 48rpx;
   font-weight: 700;
   color: #FFFFFF;
@@ -55,7 +57,7 @@
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
   box-shadow: 0 4rpx 16rpx rgba(43, 186, 165, 0.3);
   transform: translateY(-2rpx);
 }
@@ -67,7 +69,7 @@
 
 .tab-text {
   font-size: 24rpx;
-  color: #6B7280;
+  color: #94A7AE;
   font-weight: 500;
 }
 
@@ -109,7 +111,7 @@
   width: 60rpx;
   height: 60rpx;
   border: 4rpx solid rgba(43, 186, 165, 0.3);
-  border-top: 4rpx solid #2BBAA5;
+  border-top: 4rpx solid #C0A9BD;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -193,7 +195,9 @@
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
-}.music-item:active, .sequence-item:active {
+}
+
+.music-item:active, .sequence-item:active {
   transform: scale(0.97) translateY(-4rpx);
   box-shadow: 0 16rpx 48rpx rgba(43, 186, 165, 0.25);
   background: rgba(255, 255, 255, 1);
@@ -287,7 +291,7 @@
 
 .music-subtitle {
   font-size: 24rpx;
-  color: #2BBAA5;
+  color: #C0A9BD;
   margin-bottom: 12rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -337,7 +341,7 @@
 
 .music-tag.favorite {
   background: rgba(43, 186, 165, 0.1);
-  color: #2BBAA5;
+  color: #C0A9BD;
 }
 
 .sequence-description {
@@ -415,7 +419,7 @@
 }
 
 .action-btn-with-text:active .btn-text {
-  color: #2BBAA5;
+  color: #C0A9BD;
 }
 
 /* 浮动操作按钮 */
@@ -503,7 +507,7 @@
 }
 
 .btn-upgrade {
-  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
   color: white;
   border: none;
   border-radius: 32rpx;
@@ -537,7 +541,7 @@
 
 .feature-item {
   font-size: 24rpx;
-  color: #2BBAA5;
+  color: #C0A9BD;
   margin-right: 24rpx;
   margin-bottom: 8rpx;
 }

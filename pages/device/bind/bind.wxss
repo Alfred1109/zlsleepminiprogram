@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   min-height: 1334rpx; /* 移除vh单位，使用标准屏幕高度 */
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
   padding: 20rpx;
   box-sizing: border-box;
 }
@@ -125,7 +125,7 @@
   font-size: 34rpx;
   font-weight: bold;
   color: #fff;
-  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
   box-shadow: 0 4rpx 12rpx rgba(43, 186, 165, 0.4);
   transition: all 0.3s;
 }
@@ -225,7 +225,7 @@
 }
 
 .special-device {
-  border: 2rpx solid #2BBAA5;
+  border: 2rpx solid #C0A9BD;
   background: rgba(43, 186, 165, 0.1);
 }
 
@@ -260,7 +260,7 @@
 .special-tag {
   font-size: 20rpx;
   color: #fff;
-  background-color: #2BBAA5;
+  background-color: #C0A9BD;
   padding: 4rpx 10rpx;
   border-radius: 20rpx;
   margin-left: 15rpx;
@@ -295,7 +295,7 @@
 .signal-strength {
   height: 8rpx;
   border-radius: 4rpx;
-  background: linear-gradient(to right, #F96635, #F9A822, #2BBAA5);
+  background: linear-gradient(to right, #F96635, #F9A822, #C0A9BD);
   margin-bottom: 8rpx;
   max-width: 100rpx;
 }

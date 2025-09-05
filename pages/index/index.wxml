@@ -75,7 +75,7 @@
           <text class="empty-history-text">暂无生成记录</text>
           <view style="margin-top: 20rpx; padding: 20rpx; background: rgba(255,255,255,0.2); border-radius: 8rpx; font-size: 20rpx;">
             <view style="display: flex; flex-direction: column; gap: 8rpx;">
-              <text style="color: #1F2937;">🔍 调试信息:</text>
+              <text style="color: #64766A;">🔍 调试信息:</text>
               <text style="color: #374151;">登录状态: {{isLoggedIn ? '✅ 已登录' : '❌ 未登录'}}</text>
               <text style="color: #374151;">用户ID: {{userInfo.id || userInfo.user_id || '无'}}</text>
               <text style="color: #374151;">脑波数据: {{brainwaveHistory.length}}条</text>

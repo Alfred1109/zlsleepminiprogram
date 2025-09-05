@@ -12,27 +12,41 @@ Page({
     recentAssessments: []
   },
 
-  onLoad() {
-    console.log('评测量表页面加载')
+  async onLoad() {
+    console.log('📱 评测量表页面加载')
+
+    // 调试：检查存储中的所有认证相关信息
+    console.log('🔍 调试信息:')
+    console.log('- access_token:', wx.getStorageSync('access_token'))
+    console.log('- refresh_token:', wx.getStorageSync('refresh_token'))  
+    console.log('- user_info:', wx.getStorageSync('user_info'))
+    console.log('- AuthService.getCurrentUser():', AuthService.getCurrentUser())
 
     // 检查页面访问权限
     const currentPages = getCurrentPages()
     const currentPage = currentPages[currentPages.length - 1]
     const pagePath = '/' + currentPage.route
 
-    if (!AuthService.getCurrentUser()) {
+    const currentUser = AuthService.getCurrentUser()
+    if (!currentUser) {
+      console.log('❌ 没有用户信息，跳转到登录页')
       wx.navigateTo({ url: '/pages/login/login' })
-      return // 如果没有权限，跳转到登录页
+      return
     }
 
-    this.checkUserLogin()
+    console.log('✅ 检测到用户信息，继续加载页面数据')
+
+    // 确保按顺序执行，先检查登录状态，再加载数据
+    await this.checkUserLogin()
     this.loadScales()
     this.loadRecentAssessments()
   },
 
   onShow() {
-    // 每次显示时刷新最近评测
-    this.loadRecentAssessments()
+    // 每次显示时检查登录状态并刷新数据
+    this.checkUserLogin().then(() => {
+      this.loadRecentAssessments()
+    })
   },
 
   /**
@@ -41,9 +55,14 @@ Page({
   async checkUserLogin() {
     try {
       const userInfo = AuthService.getCurrentUser()
+      console.log('🔍 获取到的用户信息:', userInfo)
+      
       if (userInfo) {
         this.setData({ userInfo })
+        console.log('✅ 用户信息已设置到页面data中')
+        return userInfo
       } else {
+        console.log('❌ 未获取到用户信息，跳转登录页')
         // 未登录，跳转到登录页
         wx.showModal({
           title: '需要登录',
@@ -61,9 +80,11 @@ Page({
             }
           }
         })
+        return null
       }
     } catch (error) {
       console.error('检查登录状态失败:', error)
+      return null
     }
   },
 
@@ -112,26 +133,31 @@ Page({
     console.log('🔍 开始加载评测历史...')
     console.log('当前userInfo:', this.data.userInfo)
     
+    // 如果页面的userInfo为空，尝试从AuthService重新获取
     if (!this.data.userInfo) {
-      console.log('❌ userInfo为空，无法加载评测历史')
+      console.log('❌ 页面userInfo为空，尝试从AuthService重新获取...')
       
-      wx.showModal({
-        title: '用户信息丢失',
-        content: '检测到用户信息丢失，是否重新登录？',
-        confirmText: '重新登录',
-        cancelText: '手动修复',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            })
-          } else {
-            // 调试模式：强制设置用户信息
-            this.debugSetUserInfo()
+      const userInfo = AuthService.getCurrentUser()
+      if (userInfo) {
+        console.log('✅ 从AuthService重新获取到用户信息:', userInfo)
+        this.setData({ userInfo })
+      } else {
+        console.log('❌ AuthService中也没有用户信息，需要重新登录')
+        wx.showModal({
+          title: '需要重新登录',
+          content: '用户信息已过期，请重新登录',
+          confirmText: '去登录',
+          showCancel: false,
+          success: (res) => {
+            if (res.confirm) {
+              wx.redirectTo({
+                url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/assessment/scales/scales')
+              })
+            }
           }
-        }
-      })
-      return
+        })
+        return
+      }
     }
 
     try {

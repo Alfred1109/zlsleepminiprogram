@@ -3,7 +3,7 @@
 
 .container {
   padding: 30rpx;
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
   min-height: 1334rpx;
   box-sizing: border-box;
 }
@@ -50,7 +50,7 @@
 }
 
 .device-status.connected {
-  color: #2BBAA5;
+  color: #C0A9BD;
 }
 
 .device-status.disconnected {
@@ -92,7 +92,7 @@
 .reconnect-button {
   width: 240rpx;
   height: 80rpx;
-  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
   color: #FFFFFF;
   font-size: 28rpx;
   border-radius: 40rpx;
@@ -107,10 +107,10 @@
   width: 240rpx;
   height: 80rpx;
   background-color: #FFFFFF;
-  color: #2BBAA5;
+  color: #C0A9BD;
   font-size: 28rpx;
   border-radius: 40rpx;
-  border: 2rpx solid #2BBAA5;
+  border: 2rpx solid #C0A9BD;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -139,7 +139,7 @@
 }
 
 .power-button.on {
-  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
   box-shadow: 0 8rpx 24rpx rgba(43, 186, 165, 0.3);
 }
 
@@ -180,7 +180,7 @@
   transform: translateY(-50%);
   width: 8rpx;
   height: 30rpx;
-  background-color: #2BBAA5;
+  background-color: #C0A9BD;
   border-radius: 4rpx;
 }
 
@@ -206,7 +206,7 @@
 }
 
 .mode-item.active {
-  background: linear-gradient(135deg, #2BBAA5, #93D3AE);
+  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
   box-shadow: 0 8rpx 24rpx rgba(43, 186, 165, 0.3);
 }
 
@@ -392,7 +392,7 @@
 }
 
 .timer-option.active {
-  color: #2BBAA5;
+  color: #C0A9BD;
   font-weight: 600;
   position: relative;
 }
@@ -405,6 +405,6 @@
   transform: translateX(-50%);
   width: 40rpx;
   height: 6rpx;
-  background-color: #2BBAA5;
+  background-color: #C0A9BD;
   border-radius: 3rpx;
 } 

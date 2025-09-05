@@ -3,7 +3,7 @@
 
 .page-container {
   min-height: 1334rpx;
-  background: #2BBAA5;
+  background: #C0A9BD;
   padding-bottom: 200rpx;
 }
 
@@ -187,7 +187,7 @@
 
 .assessment-item.selected {
   background: rgba(43, 186, 165, 0.1);
-  border-color: #2BBAA5;
+  border-color: #C0A9BD;
 }
 
 .assessment-item:last-child {
@@ -302,7 +302,7 @@
 }
 
 .btn-primary {
-  background: #2BBAA5;
+  background: #C0A9BD;
   color: white;
   height: 96rpx;
 }
@@ -312,7 +312,7 @@
 }
 
 .btn-generate {
-  background: #2BBAA5;
+  background: #C0A9BD;
   color: #ffffff;
 }
 

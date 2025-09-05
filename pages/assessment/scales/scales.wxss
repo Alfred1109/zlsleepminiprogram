@@ -3,7 +3,7 @@
 
 /* 页面容器 - 使用统一的主色调背景 */
 .page-container {
-  background: linear-gradient(135deg, #2BBAA5 0%, #93D3AE 100%);
+  background-color: #C0A9BD;
   min-height: 1334rpx;
 }
 
@@ -13,7 +13,9 @@
   padding: 80rpx 24rpx 48rpx;
   text-align: center;
   margin-bottom: 32rpx;
-}.page-title {
+}
+
+.page-title {
   font-size: 48rpx;
   font-weight: 700;
   color: #FFFFFF;
@@ -55,7 +57,7 @@
   width: 60rpx;
   height: 60rpx;
   border: 4rpx solid rgba(43, 186, 165, 0.3);
-  border-top: 4rpx solid #2BBAA5;
+  border-top: 4rpx solid #C0A9BD;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -113,7 +115,9 @@
   box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
   border: 1rpx solid rgba(255, 255, 255, 0.3);
   position: relative;
-}.scale-card {
+}
+
+.scale-card {
   display: flex;
   align-items: center;
   padding: 32rpx;
@@ -150,7 +154,7 @@
 
 .scale-type {
   font-size: 24rpx;
-  color: #2BBAA5;
+  color: #C0A9BD;
   margin-bottom: 12rpx;
 }
 
@@ -287,7 +291,9 @@
   box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
   border: 1rpx solid rgba(255, 255, 255, 0.3);
   position: relative;
-}.info-title {
+}
+
+.info-title {
   font-size: 32rpx;
   font-weight: bold;
   color: #333;

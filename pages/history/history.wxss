@@ -3,7 +3,7 @@
 
 .container {
   padding: 30rpx;
-  background: #2BBAA5;
+  background: #C0A9BD;
   min-height: 1334rpx; /* 移除vh单位 */
 }
 
@@ -121,7 +121,7 @@
 .stat-value {
   font-size: 28rpx;
   font-weight: 600;
-  color: #2BBAA5;
+  color: #C0A9BD;
 }
 
 /* 筛选面板 */
@@ -190,7 +190,7 @@
 }
 
 .filter-option.active {
-  background: #2BBAA5;
+  background: #C0A9BD;
   color: white;
 }
 
@@ -217,7 +217,7 @@
 }
 
 .btn-apply {
-  background: #2BBAA5;
+  background: #C0A9BD;
   color: white;
 }
 
@@ -279,7 +279,7 @@
   margin: 16rpx 0;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 12rpx;
-  border-left: 4rpx solid #2BBAA5;
+  border-left: 4rpx solid #C0A9BD;
 }
 
 .filter-result-tip .tip-text {
@@ -289,7 +289,7 @@
 
 .clear-filter {
   font-size: 24rpx;
-  color: #2BBAA5;
+  color: #C0A9BD;
   padding: 4rpx 12rpx;
   background: rgba(43, 186, 165, 0.1);
   border-radius: 12rpx;
@@ -401,7 +401,7 @@
 }
 
 .action-btn.play {
-  background: #2BBAA5;
+  background: #C0A9BD;
   box-shadow: 0 4rpx 12rpx rgba(43, 186, 165, 0.3);
 }
 
@@ -459,7 +459,7 @@
   font-size: 28rpx;
   padding: 16rpx 60rpx;
   background: rgba(255, 255, 255, 0.9);
-  color: #2BBAA5;
+  color: #C0A9BD;
   border-radius: 25rpx;
   border: none;
 }
@@ -538,7 +538,7 @@
   font-size: 28rpx;
   padding: 16rpx 40rpx;
   background: rgba(255, 255, 255, 0.9);
-  color: #2BBAA5;
+  color: #C0A9BD;
   border-radius: 25rpx;
   border: none;
 }

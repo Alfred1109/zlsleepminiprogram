@@ -150,7 +150,7 @@
 }
 
 .playlist-item.current .playlist-item-title {
-  color: #2BBAA5;
+  color: #C0A9BD;
 }
 
 .playlist-item-subtitle {
