@@ -113,40 +113,21 @@ class MusicPlayer {
     this.audioContext.onError((err) => {
       console.error('🎵 音频事件: 播放错误', err)
       
-      // 🔍 针对CDN认证失败进行详细分析
-      if (err.errMsg && err.errMsg.includes('NSURLErrorDomain错误-1013')) {
+      // 🔍 检测CDN认证失败的各种情况
+      const isCdnAuthError = this.detectCdnAuthError(err)
+      
+      if (isCdnAuthError) {
         console.error('🔐 CDN认证失败详细分析:')
         console.error('  - 错误码:', err.errCode)
         console.error('  - 错误消息:', err.errMsg)
         console.error('  - 当前音频源:', this.currentMusic?.src)
         
-        // 检查URL的token过期时间
-        if (this.currentMusic?.src) {
-          const urlMatch = this.currentMusic.src.match(/[?&]e=(\d+)/)
-          if (urlMatch) {
-            const expireTime = parseInt(urlMatch[1]) * 1000
-            const now = Date.now()
-            console.error('🕐 详细时间分析:')
-            console.error('  - Token过期时间戳:', urlMatch[1])
-            console.error('  - Token过期时间:', new Date(expireTime).toLocaleString())
-            console.error('  - 当前时间:', new Date(now).toLocaleString())
-            console.error('  - 时间差:', Math.round((now - expireTime) / 1000), '秒')
-            console.error('  - Token状态:', now > expireTime ? '已过期 ❌' : '未过期 ✅')
-            
-            // 如果token过期，提供更明确的错误信息
-            if (now > expireTime) {
-              console.error('💡 解决方案: 需要重新获取有效的CDN访问链接')
-            }
-          } else {
-            console.error('⚠️ URL中未找到过期时间参数，可能是签名错误')
-          }
-          
-          // 检查URL结构
-          console.error('🔍 URL结构分析:')
-          console.error('  - 是否为CDN链接:', this.currentMusic.src.includes('cdn.medsleep.cn') ? '是' : '否')
-          console.error('  - 是否有token参数:', this.currentMusic.src.includes('token=') ? '是' : '否')
-          console.error('  - 是否有过期参数:', this.currentMusic.src.includes('e=') ? '是' : '否')
-        }
+        // 检查URL结构和token状态
+        this.analyzeCdnUrl(this.currentMusic?.src)
+        
+        // 触发CDN认证失败处理
+        this.onCdnAuthFailure(err)
+        return // 交给CDN错误处理逻辑，不执行后续错误处理
       }
       
       this.isPlaying = false
@@ -157,6 +138,78 @@ class MusicPlayer {
       if (app.globalData.handleAudioError) {
         app.globalData.handleAudioError(err)
       }
+    })
+  }
+
+  /**
+   * 检测是否为CDN认证失败错误
+   */
+  detectCdnAuthError(err) {
+    if (!err || !err.errMsg) return false
+    
+    const errorMsg = err.errMsg.toLowerCase()
+    
+    // 检测各种CDN认证失败的错误模式
+    const cdnAuthPatterns = [
+      'nsurlerrordomain错误-1013',          // iOS认证失败
+      'unable to decode audio data',       // 通用解码失败（通常是401返回HTML）
+      '401',                               // HTTP 401错误
+      'unauthorized',                      // 未授权错误
+      'access denied',                     // 访问被拒绝
+      'token expired',                     // Token过期
+      'signature not match'                // 签名不匹配
+    ]
+    
+    return cdnAuthPatterns.some(pattern => errorMsg.includes(pattern))
+  }
+  
+  /**
+   * 分析CDN URL结构和token状态
+   */
+  analyzeCdnUrl(url) {
+    if (!url) {
+      console.error('⚠️ 音频URL为空')
+      return
+    }
+    
+    console.error('🔍 URL结构分析:')
+    console.error('  - 完整URL:', url)
+    console.error('  - 是否为CDN链接:', url.includes('cdn.medsleep.cn') ? '是' : '否')
+    console.error('  - 是否有token参数:', url.includes('token=') ? '是' : '否')
+    console.error('  - 是否有过期参数:', url.includes('e=') ? '是' : '否')
+    
+    // 如果是CDN链接但没有token，说明URL生成有问题
+    if (url.includes('cdn.medsleep.cn') && !url.includes('token=')) {
+      console.error('❌ CDN链接缺少token参数，这是问题根源')
+      console.error('💡 原因分析: 后端生成URL时未添加认证参数')
+      console.error('💡 解决方案: 需要通过API刷新获取带token的正确URL')
+    }
+    
+    // 检查token过期时间
+    const urlMatch = url.match(/[?&]e=(\d+)/)
+    if (urlMatch) {
+      const expireTime = parseInt(urlMatch[1]) * 1000
+      const now = Date.now()
+      console.error('🕐 Token时间分析:')
+      console.error('  - Token过期时间戳:', urlMatch[1])
+      console.error('  - Token过期时间:', new Date(expireTime).toLocaleString())
+      console.error('  - 当前时间:', new Date(now).toLocaleString())
+      console.error('  - 时间差:', Math.round((now - expireTime) / 1000), '秒')
+      console.error('  - Token状态:', now > expireTime ? '已过期 ❌' : '未过期 ✅')
+    }
+  }
+  
+  /**
+   * 处理CDN认证失败
+   */
+  onCdnAuthFailure(err) {
+    console.error('🔄 CDN认证失败，触发自动修复流程')
+    
+    // 发送CDN认证失败事件，让全局播放器处理
+    this.emit('cdnAuthError', {
+      error: err,
+      currentMusic: this.currentMusic,
+      source: 'MusicPlayer'
     })
   }
 

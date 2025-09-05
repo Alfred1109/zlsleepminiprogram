@@ -98,7 +98,8 @@ Component({
           stop: this.onGlobalPlayerStop.bind(this),
           ended: this.onGlobalPlayerEnded.bind(this),
           timeUpdate: this.onGlobalPlayerTimeUpdate.bind(this),
-          error: this.onGlobalPlayerError.bind(this)
+          error: this.onGlobalPlayerError.bind(this),
+          cdnAuthError: this.onCdnAuthError.bind(this)  // 新增CDN认证失败事件
         }
       }
 
@@ -109,6 +110,7 @@ Component({
       globalPlayer.on('ended', h.ended)
       globalPlayer.on('timeUpdate', h.timeUpdate)
       globalPlayer.on('error', h.error)
+      globalPlayer.on('cdnAuthError', h.cdnAuthError)  // 监听CDN认证失败事件
     },
 
     // 解绑全局播放器事件
@@ -123,6 +125,7 @@ Component({
       globalPlayer.off('ended', h.ended)
       globalPlayer.off('timeUpdate', h.timeUpdate)
       globalPlayer.off('error', h.error)
+      globalPlayer.off('cdnAuthError', h.cdnAuthError)  // 解绑CDN认证失败事件
     },
 
     // 全局播放器事件处理
@@ -258,12 +261,13 @@ Component({
         } else {
           errorMsg = '音频文件不存在，请重新选择'
         }
-      } else if (error.errMsg && error.errMsg.includes('NSURLErrorDomain错误-1013')) {
+      } else if (this.isCdnAuthError(error)) {
         // 针对CDN认证失败的特殊处理 - 尝试自动刷新URL
         console.error('🔐 CDN认证失败，尝试刷新URL')
         const currentTrack = this.data.currentTrack
-        if (currentTrack && currentTrack.url) {
+        if (currentTrack && (currentTrack.url || currentTrack.id)) {
           console.error('🔍 问题URL:', currentTrack.url)
+          console.error('🔍 音频ID:', currentTrack.id)
           
           // 尝试自动刷新URL并重新播放
           this.handleCdnAuthError(currentTrack)
@@ -312,6 +316,46 @@ Component({
         progress: this.data.progress,
         currentTrack: this.data.currentTrack
       })
+    },
+
+    /**
+     * 检测是否为CDN认证失败错误
+     */
+    isCdnAuthError(error) {
+      if (!error || !error.errMsg) return false
+      
+      const errorMsg = error.errMsg.toLowerCase()
+      
+      // 检测各种CDN认证失败的错误模式
+      const cdnAuthPatterns = [
+        'nsurlerrordomain错误-1013',          // iOS认证失败
+        'unable to decode audio data',       // 通用解码失败（通常是401返回HTML）
+        '401',                               // HTTP 401错误
+        'unauthorized',                      // 未授权错误
+        'access denied',                     // 访问被拒绝
+        'token expired',                     // Token过期
+        'signature not match'                // 签名不匹配
+      ]
+      
+      return cdnAuthPatterns.some(pattern => errorMsg.includes(pattern))
+    },
+
+    /**
+     * 处理CDN认证失败事件（从MusicPlayer传来）
+     */
+    onCdnAuthError(eventData) {
+      console.error('🔐 收到CDN认证失败事件:', eventData)
+      if (eventData.currentMusic) {
+        // 转换为当前播放器的track格式
+        const currentTrack = {
+          id: eventData.currentMusic.id,
+          url: eventData.currentMusic.src,
+          title: eventData.currentMusic.title,
+          type: eventData.currentMusic.type || 'music',
+          sessionId: eventData.currentMusic.sessionId  // 长序列需要
+        }
+        this.handleCdnAuthError(currentTrack)
+      }
     },
 
     /**
