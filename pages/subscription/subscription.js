@@ -3,6 +3,8 @@
 const app = getApp()
 const { SubscriptionAPI, CountPackageAPI } = require('../../utils/healingApi')
 const { getSubscriptionInfo, startFreeTrial, notifySubscriptionChange } = require('../../utils/subscription')
+const { getPaymentConfig, getPaymentTimeout, getOrderQueryConfig } = require('../../utils/config')
+const { PaymentConfig, PaymentUtils } = require('../../utils/paymentConfig')
 
 Page({
   data: {
@@ -24,6 +26,16 @@ Page({
 
   onLoad(options) {
     console.log('📱 订阅页面加载', options)
+    
+    // 检查支付环境
+    const paymentEnv = PaymentConfig.checkPaymentEnvironment()
+    if (!paymentEnv.isReady) {
+      console.warn('⚠️ 支付环境检查失败，某些功能可能不可用')
+      if (!paymentEnv.configValid) {
+        const validation = PaymentConfig.validateConfig()
+        console.error('❌ 支付配置验证失败:', validation.errors)
+      }
+    }
     
     // 如果有指定的套餐，默认选中
     if (options.plan) {
@@ -588,26 +600,41 @@ Page({
       // 1. 创建订单
       console.log('🛍️ 开始创建订单:', { type, planId: plan.id })
       
-      // 准备订单数据，可能需要添加用户信息
-      const orderData = {
-        plan_id: plan.id
-      }
-      
-      // 尝试添加用户信息（服务器可能需要）
+      // 使用支付配置工具创建订单数据
+      let userId = null
       try {
         const userInfo = wx.getStorageSync('userInfo') || wx.getStorageSync('user_info')
         if (userInfo && userInfo.id) {
-          orderData.user_id = userInfo.id
-          console.log('👤 添加用户ID到订单:', userInfo.id)
+          userId = userInfo.id
+          console.log('👤 获取到用户ID:', userId)
         } else {
-          console.warn('⚠️ 无法获取用户ID，服务器可能需要用户ID来创建订单')
+          console.warn('⚠️ 无法获取用户ID，将使用空值')
         }
       } catch (e) {
-        console.warn('无法获取用户信息，使用默认订单数据')
+        console.warn('无法获取用户信息:', e.message)
       }
       
-      console.log('📝 发送到服务器的订单数据:', orderData)
+      // 使用 PaymentConfig 创建标准化的订单参数
+      const orderData = PaymentConfig.createOrderParams(plan.id, userId)
+      
+      console.log('📝 发送到服务器的订单数据:', {
+        plan_id: orderData.plan_id,
+        user_id: orderData.user_id,
+        payment_config: {
+          api_key: '***已隐藏***', // 不在日志中显示敏感信息
+          app_id: orderData.payment_config.app_id,
+          timeout: orderData.payment_config.timeout
+        }
+      })
       console.log('📋 套餐完整信息:', plan)
+      
+      // 记录支付事件
+      PaymentConfig.logPaymentEvent('ORDER_CREATE_START', {
+        plan_id: plan.id,
+        plan_name: plan.name,
+        plan_price: plan.price,
+        type: type
+      })
       
       let orderResult
       if (type === 'subscription') {
@@ -634,14 +661,29 @@ Page({
 
       // 2. 调用微信支付
       if (paymentData.payment_params) {
-        console.log('调用微信支付:', paymentData.payment_params)
+        // 使用 PaymentConfig 格式化和验证支付参数
+        const formattedParams = PaymentConfig.formatPaymentParams(paymentData)
+        
+        if (!formattedParams) {
+          throw new Error('支付参数格式错误')
+        }
+        
+        console.log('📱 调用微信支付，订单号:', paymentData.order_no)
+        PaymentConfig.logPaymentEvent('WECHAT_PAY_START', {
+          order_no: paymentData.order_no,
+          plan_name: plan.name
+        })
         
         wx.showLoading({ title: '正在支付...' })
         
         try {
-          await this.callWechatPay(paymentData.payment_params)
+          await this.callWechatPay(formattedParams)
           
           // 3. 支付成功，查询订单状态
+          PaymentConfig.logPaymentEvent('WECHAT_PAY_SUCCESS', {
+            order_no: paymentData.order_no
+          })
+          
           wx.hideLoading()
           wx.showLoading({ title: '确认支付状态...' })
           
@@ -650,6 +692,11 @@ Page({
           
           if (paymentSuccess) {
             // 支付成功
+            PaymentConfig.logPaymentEvent('PAYMENT_CONFIRMED', {
+              order_no: paymentData.order_no,
+              plan_name: plan.name
+            })
+            
             await this.refreshSubscriptionInfo()
             notifySubscriptionChange()
             
@@ -668,20 +715,29 @@ Page({
           
         } catch (payError) {
           wx.hideLoading()
-          console.error('微信支付失败:', payError)
           
-          // 支付失败，但不一定是真的失败，可能是用户取消
-          if (payError.errMsg && payError.errMsg.includes('cancel')) {
-            wx.showToast({
-              title: '支付已取消',
-              icon: 'none'
-            })
-          } else {
-            wx.showModal({
-              title: '支付失败',
-              content: '支付过程中出现问题，请稍后重试',
-              showCancel: false
-            })
+          // 使用 PaymentConfig 处理支付错误
+          const errorInfo = PaymentConfig.handlePaymentError(payError, '订阅支付')
+          
+          PaymentConfig.logPaymentEvent('PAYMENT_FAILED', {
+            order_no: paymentData.order_no,
+            error_type: errorInfo.type,
+            error_message: errorInfo.message
+          })
+          
+          if (errorInfo.showToUser) {
+            if (errorInfo.type === 'USER_CANCEL') {
+              wx.showToast({
+                title: errorInfo.message,
+                icon: 'none'
+              })
+            } else {
+              wx.showModal({
+                title: '支付失败',
+                content: errorInfo.message,
+                showCancel: false
+              })
+            }
           }
         }
       } else {
@@ -786,33 +842,48 @@ Page({
   /**
    * 验证支付状态
    */
-  async verifyPaymentStatus(orderNo, maxRetries = 5) {
-    for (let i = 0; i < maxRetries; i++) {
+  async verifyPaymentStatus(orderNo, maxRetries = null) {
+    // 使用配置中的重试设置
+    const orderQueryConfig = getOrderQueryConfig()
+    const retryCount = maxRetries || orderQueryConfig.retryCount
+    const retryInterval = orderQueryConfig.retryInterval
+    
+    console.log(`🔍 开始验证支付状态，订单号: ${orderNo}，重试次数: ${retryCount}，重试间隔: ${retryInterval}ms`)
+    
+    for (let i = 0; i < retryCount; i++) {
       try {
         const result = await SubscriptionAPI.queryOrder(orderNo)
         
         if (result.success) {
           const orderStatus = result.data.status
           
+          console.log(`📊 第${i+1}次查询，订单状态: ${orderStatus}`)
+          
           if (orderStatus === 'paid') {
+            console.log('✅ 支付状态验证成功')
             return true
           } else if (orderStatus === 'expired' || orderStatus === 'cancelled') {
+            console.log('❌ 订单已过期或取消')
             return false
           }
           // 如果状态是pending，继续重试
         }
         
-        // 等待1秒后重试
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // 等待配置的间隔时间后重试
+        if (i < retryCount - 1) {
+          console.log(`⏳ 等待 ${retryInterval}ms 后重试...`)
+          await new Promise(resolve => setTimeout(resolve, retryInterval))
+        }
         
       } catch (error) {
-        console.error('查询支付状态失败:', error)
-        if (i === maxRetries - 1) {
+        console.error(`❌ 第${i+1}次查询支付状态失败:`, error)
+        if (i === retryCount - 1) {
           throw error
         }
       }
     }
     
+    console.log('❌ 支付状态验证失败，已达到最大重试次数')
     return false
   },
 
@@ -896,13 +967,8 @@ Page({
    * 格式化价格显示
    */
   formatPrice(price) {
-    if (!price && price !== 0) return '价格待定'
-    if (price === 0) return '免费'
-    if (typeof price !== 'number') {
-      price = parseFloat(price) || 0
-    }
-    // 后端返回的价格是分为单位，需要转换为元
-    return `¥${(price / 100).toFixed(2)}`
+    // 使用 PaymentUtils 统一的价格格式化函数
+    return PaymentUtils.formatPrice(price)
   },
 
   /**

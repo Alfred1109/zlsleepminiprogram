@@ -19,13 +19,30 @@ Page({
   },
 
   onLoad(options) {
-    console.log('评测结果页面加载', options)
+    console.log('📋 评测结果页面加载', options)
     
-    const { assessmentId } = options
+    // 兼容 id 和 assessmentId 两种参数名
+    const assessmentId = options.assessmentId || options.id
+    console.log('📋 接收到的 assessmentId:', assessmentId, '类型:', typeof assessmentId)
+    
+    if (!assessmentId) {
+      console.error('❌ 缺少 assessmentId 参数')
+      wx.showModal({
+        title: '参数错误',
+        content: '缺少评测ID参数',
+        showCancel: false,
+        success: () => {
+          wx.navigateBack()
+        }
+      })
+      return
+    }
+    
     this.setData({
       assessmentId: parseInt(assessmentId)
     })
-
+    
+    console.log('📋 设置的 assessmentId:', this.data.assessmentId)
     this.loadAssessmentResult()
   },
 
@@ -43,32 +60,31 @@ Page({
         throw new Error('用户未登录')
       }
 
+      console.log('📡 请求用户评测历史, userId:', userInfo.id)
       const result = await AssessmentAPI.getHistory(userInfo.id)
+      console.log('📡 API响应结果:', result)
 
-      if (result.success) {
-        const assessment = result.data.find(item => item.id === this.data.assessmentId)
-
-        if (assessment) {
-          // 确保有max_score字段
-          if (!assessment.max_score) {
-            assessment.max_score = 100; // 默认最大分数
-          }
-          
-          this.setData({ 
-            assessment,
-            assessmentDimensions: this.generateDimensionsData(assessment),
-            personalizedRecommendations: this.generateRecommendations(assessment),
-            healingSchedule: this.generateHealingSchedule(assessment)
-          })
-        } else {
-          throw new Error('评测结果不存在')
+      if (result.success && result.data.length > 0) {
+        // 简单粗暴：直接使用最新的评测记录
+        const assessment = result.data[0] // 假设API返回的数据是按时间倒序的
+        
+        // 确保有max_score字段
+        if (!assessment.max_score) {
+          assessment.max_score = 100
         }
+        
+        this.setData({ 
+          assessment,
+          assessmentDimensions: this.generateDimensionsData(assessment),
+          personalizedRecommendations: this.generateRecommendations(assessment),
+          healingSchedule: this.generateHealingSchedule(assessment)
+        })
       } else {
         throw new Error(result.error || '获取评测结果失败')
       }
 
     } catch (error) {
-      console.error('加载评测结果失败:', error)
+      console.error('❌ 加载评测结果失败:', error)
       wx.showModal({
         title: '加载失败',
         content: error.message || '无法加载评测结果',

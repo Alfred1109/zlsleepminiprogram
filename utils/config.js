@@ -17,28 +17,40 @@ let CURRENT_ENV = ENV_TYPES.DEVELOPMENT
 
 // 动态环境检测 - 现在所有环境都使用统一配置，主要用于设置调试级别
 function detectEnvironment() {
-  const accountInfo = wx.getAccountInfoSync()
-  console.log('环境检测信息:', accountInfo.miniProgram)
+  // 检查是否在微信小程序环境中
+  if (typeof wx === 'undefined') {
+    // 非微信小程序环境（如 Node.js 测试环境）
+    console.log('🧪 非微信小程序环境 - 使用开发环境配置')
+    return ENV_TYPES.DEVELOPMENT
+  }
   
-  if (accountInfo.miniProgram.envVersion === 'release') {
-    console.log('✅ 正式版环境 - 使用统一服务器配置')
-    return ENV_TYPES.PRODUCTION
-  } else if (accountInfo.miniProgram.envVersion === 'trial') {
-    console.log('✅ 体验版环境 - 使用统一服务器配置')
-    return ENV_TYPES.TEST
-  } else {
-    // 开发环境：本地调试和真机调试现在都使用统一的服务器配置
-    // 无论哪种调试方式都连接同一个服务器，确保100%一致性
-    const deviceInfo = wx.getDeviceInfo()
-    const isSimulator = deviceInfo.platform === 'devtools'
+  try {
+    const accountInfo = wx.getAccountInfoSync()
+    console.log('环境检测信息:', accountInfo.miniProgram)
     
-    if (isSimulator) {
-      console.log('✅ 开发工具环境 - 使用统一服务器配置（本地调试）')
-      return ENV_TYPES.LOCAL
+    if (accountInfo.miniProgram.envVersion === 'release') {
+      console.log('✅ 正式版环境 - 使用统一服务器配置')
+      return ENV_TYPES.PRODUCTION
+    } else if (accountInfo.miniProgram.envVersion === 'trial') {
+      console.log('✅ 体验版环境 - 使用统一服务器配置')
+      return ENV_TYPES.TEST
     } else {
-      console.log('✅ 真机调试环境 - 使用统一服务器配置（真机调试）')
-      return ENV_TYPES.DEVELOPMENT
+      // 开发环境：本地调试和真机调试现在都使用统一的服务器配置
+      // 无论哪种调试方式都连接同一个服务器，确保100%一致性
+      const deviceInfo = wx.getDeviceInfo()
+      const isSimulator = deviceInfo.platform === 'devtools'
+      
+      if (isSimulator) {
+        console.log('✅ 开发工具环境 - 使用统一服务器配置（本地调试）')
+        return ENV_TYPES.LOCAL
+      } else {
+        console.log('✅ 真机调试环境 - 使用统一服务器配置（真机调试）')
+        return ENV_TYPES.DEVELOPMENT
+      }
     }
+  } catch (error) {
+    console.warn('⚠️ 环境检测失败，使用默认开发环境:', error.message)
+    return ENV_TYPES.DEVELOPMENT
   }
 }
 
@@ -61,7 +73,21 @@ const UNIFIED_CONFIG = {
   // 功能开关 - 统一关闭以避免复杂性
   ENABLE_IP_DETECTION: false,
   ENABLE_DEVICE_WHITELIST: false,
-  USE_MOCK: false
+  USE_MOCK: false,
+  // 支付配置 - 微信支付相关设置
+  PAYMENT: {
+    // 支付 API Key
+    API_KEY: 'zlkjcy19811031Medmedvaultcnsleep',
+    // 微信小程序 APPID (来自 project.config.json)
+    WECHAT_APPID: 'wxd0f3dc2792ca55fb',
+    // 支付回调配置
+    PAYMENT_TIMEOUT: 300000, // 5分钟支付超时
+    // 订单查询重试配置
+    ORDER_QUERY_RETRY_COUNT: 5,
+    ORDER_QUERY_RETRY_INTERVAL: 1000, // 1秒
+    // 支付通知设置
+    ENABLE_PAYMENT_NOTIFICATIONS: true
+  }
 }
 
 // 环境配置 - 现在所有环境都基于统一配置，只有调试级别不同
@@ -214,6 +240,38 @@ function getQiniuDir(category) {
   return dir
 }
 
+// 获取支付配置
+function getPaymentConfig() {
+  return getCurrentConfig().PAYMENT || {}
+}
+
+// 获取支付API Key
+function getPaymentApiKey() {
+  const paymentConfig = getPaymentConfig()
+  return paymentConfig.API_KEY || ''
+}
+
+// 获取微信小程序APPID
+function getWechatAppId() {
+  const paymentConfig = getPaymentConfig()
+  return paymentConfig.WECHAT_APPID || ''
+}
+
+// 获取支付超时时间
+function getPaymentTimeout() {
+  const paymentConfig = getPaymentConfig()
+  return paymentConfig.PAYMENT_TIMEOUT || 300000 // 默认5分钟
+}
+
+// 获取订单查询重试配置
+function getOrderQueryConfig() {
+  const paymentConfig = getPaymentConfig()
+  return {
+    retryCount: paymentConfig.ORDER_QUERY_RETRY_COUNT || 5,
+    retryInterval: paymentConfig.ORDER_QUERY_RETRY_INTERVAL || 1000
+  }
+}
+
 module.exports = {
   ENV_TYPES,
   getCurrentConfig,
@@ -226,5 +284,11 @@ module.exports = {
   setEnvironment,
   getFullConfig,
   getQiniuBaseDomain,
-  getQiniuDir
+  getQiniuDir,
+  // 支付相关配置函数
+  getPaymentConfig,
+  getPaymentApiKey,
+  getWechatAppId,
+  getPaymentTimeout,
+  getOrderQueryConfig
 }
