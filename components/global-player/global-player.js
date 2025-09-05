@@ -98,8 +98,7 @@ Component({
           stop: this.onGlobalPlayerStop.bind(this),
           ended: this.onGlobalPlayerEnded.bind(this),
           timeUpdate: this.onGlobalPlayerTimeUpdate.bind(this),
-          error: this.onGlobalPlayerError.bind(this),
-          cdnAuthError: this.onCdnAuthError.bind(this)  // 新增CDN认证失败事件
+          error: this.onGlobalPlayerError.bind(this)
         }
       }
 
@@ -110,7 +109,6 @@ Component({
       globalPlayer.on('ended', h.ended)
       globalPlayer.on('timeUpdate', h.timeUpdate)
       globalPlayer.on('error', h.error)
-      globalPlayer.on('cdnAuthError', h.cdnAuthError)  // 监听CDN认证失败事件
     },
 
     // 解绑全局播放器事件
@@ -125,7 +123,6 @@ Component({
       globalPlayer.off('ended', h.ended)
       globalPlayer.off('timeUpdate', h.timeUpdate)
       globalPlayer.off('error', h.error)
-      globalPlayer.off('cdnAuthError', h.cdnAuthError)  // 解绑CDN认证失败事件
     },
 
     // 全局播放器事件处理
@@ -261,20 +258,8 @@ Component({
         } else {
           errorMsg = '音频文件不存在，请重新选择'
         }
-      } else if (this.isCdnAuthError(error)) {
-        // 针对CDN认证失败的特殊处理 - 尝试自动刷新URL
-        console.error('🔐 CDN认证失败，尝试刷新URL')
-        const currentTrack = this.data.currentTrack
-        if (currentTrack && (currentTrack.url || currentTrack.id)) {
-          console.error('🔍 问题URL:', currentTrack.url)
-          console.error('🔍 音频ID:', currentTrack.id)
-          
-          // 尝试自动刷新URL并重新播放
-          this.handleCdnAuthError(currentTrack)
-          return // 不显示错误提示，让刷新流程处理
-        } else {
-          errorMsg = 'CDN访问权限验证失败，请重新选择音频'
-        }
+      } else if (error.errMsg && error.errMsg.includes('401')) {
+        errorMsg = '音频访问权限失败，请重试'
       }
       
       // 对于长序列错误，提供更详细的处理选项

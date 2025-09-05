@@ -143,7 +143,21 @@ const MusicAPI = {
    * 获取个性化推荐音乐
    */
   getPersonalizedRecommendations(userId) {
-    return get(`/music/personalized_recommendations/${userId}`)
+    return get(`/music/personalized_recommendations/${userId}`).then(response => {
+      // 🔍 诊断：检查后端返回的URL是否缺少token
+      if (response.data && Array.isArray(response.data)) {
+        response.data.forEach((music, index) => {
+          if (music.url && music.url.includes('cdn.medsleep.cn') && !music.url.includes('token=')) {
+            console.error(`❌ 后端API返回的URL缺少token (第${index + 1}个音频):`)
+            console.error('  音频ID:', music.id)
+            console.error('  问题URL:', music.url)
+            console.error('  🎯 根本问题: 后端 /music/personalized_recommendations/${userId} 接口返回的URL未经过CDN token签名')
+            console.error('  💡 解决方案: 需要后端开发者修复URL生成逻辑，确保返回带token的URL')
+          }
+        })
+      }
+      return response
+    })
   },
 
   /**
