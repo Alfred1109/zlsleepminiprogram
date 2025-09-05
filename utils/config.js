@@ -80,6 +80,8 @@ const UNIFIED_CONFIG = {
     API_KEY: 'zlkjcy19811031Medmedvaultcnsleep',
     // 微信小程序 APPID (来自 project.config.json)
     WECHAT_APPID: 'wxd0f3dc2792ca55fb',
+    // 微信支付商户号 (北京溢兰科技有限公司)
+    MCH_ID: '1724793034',
     // 支付回调配置
     PAYMENT_TIMEOUT: 300000, // 5分钟支付超时
     // 订单查询重试配置
@@ -272,6 +274,12 @@ function getOrderQueryConfig() {
   }
 }
 
+// 获取微信支付商户号
+function getWechatMchId() {
+  const paymentConfig = getPaymentConfig()
+  return paymentConfig.MCH_ID || ''
+}
+
 module.exports = {
   ENV_TYPES,
   getCurrentConfig,
@@ -289,6 +297,7 @@ module.exports = {
   getPaymentConfig,
   getPaymentApiKey,
   getWechatAppId,
+  getWechatMchId,
   getPaymentTimeout,
   getOrderQueryConfig
 }

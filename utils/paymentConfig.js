@@ -3,7 +3,7 @@
  * 统一管理微信支付相关的配置和功能
  */
 
-const { getPaymentConfig, getPaymentApiKey, getWechatAppId, getPaymentTimeout, getOrderQueryConfig } = require('./config')
+const { getPaymentConfig, getPaymentApiKey, getWechatAppId, getWechatMchId, getPaymentTimeout, getOrderQueryConfig } = require('./config')
 
 /**
  * 支付配置类
@@ -46,6 +46,13 @@ class PaymentConfig {
   }
   
   /**
+   * 获取微信支付商户号
+   */
+  static getMchId() {
+    return getWechatMchId()
+  }
+  
+  /**
    * 验证支付配置是否完整
    */
   static validateConfig() {
@@ -58,6 +65,10 @@ class PaymentConfig {
     
     if (!config.WECHAT_APPID) {
       errors.push('微信小程序APPID未配置')
+    }
+    
+    if (!config.MCH_ID) {
+      errors.push('微信支付商户号未配置')
     }
     
     if (!config.PAYMENT_TIMEOUT || config.PAYMENT_TIMEOUT <= 0) {
@@ -75,21 +86,58 @@ class PaymentConfig {
    * 创建支付订单请求参数
    */
   static createOrderParams(planId, userId = null, couponCode = null) {
+    // 参数验证和清理
+    if (!planId) {
+      throw new Error('planId 不能为空')
+    }
+    
+    // 确保所有ID都是字符串类型，符合RESTful API标准
+    const cleanPlanId = String(planId).trim()
+    const cleanUserId = userId ? String(userId).trim() : null
+    const cleanCouponCode = couponCode ? String(couponCode).trim() : null
+    
+    // 验证API配置
+    const apiKey = this.getApiKey()
+    const appId = this.getAppId()
+    const mchId = this.getMchId()
+    const timeout = this.getTimeout()
+    
+    if (!apiKey) {
+      throw new Error('支付 API Key 未配置')
+    }
+    if (!appId) {
+      throw new Error('微信小程序 APPID 未配置')
+    }
+    if (!mchId) {
+      throw new Error('微信支付商户号未配置')
+    }
+    if (!timeout || timeout <= 0) {
+      throw new Error('支付超时时间配置无效')
+    }
+    
     const params = {
-      plan_id: planId,
+      plan_id: cleanPlanId,
       payment_config: {
-        api_key: this.getApiKey(),
-        app_id: this.getAppId(),
-        timeout: this.getTimeout()
+        api_key: apiKey,
+        app_id: appId,
+        mch_id: mchId,
+        timeout: timeout
       }
     }
     
-    if (userId) {
-      params.user_id = userId
+    // 只有当userId有值时才添加，避免发送null或undefined
+    if (cleanUserId) {
+      params.user_id = cleanUserId
     }
     
-    if (couponCode) {
-      params.coupon_code = couponCode
+    // 只有当couponCode有值时才添加
+    if (cleanCouponCode) {
+      params.coupon_code = cleanCouponCode
+    }
+    
+    // 最终参数验证
+    if (!params.plan_id) {
+      throw new Error('处理后的 plan_id 为空')
     }
     
     return params
@@ -102,27 +150,71 @@ class PaymentConfig {
     // 确保支付参数包含必要的字段
     if (!paymentData.payment_params) {
       console.error('❌ 支付数据缺少payment_params字段')
+      console.error('🔍 完整的paymentData:', paymentData)
+      
+      // 检查是否是后端返回的错误信息
+      if (paymentData.error && paymentData.error.includes('total_fee')) {
+        console.error('🚨 检测到后端微信支付API错误:', paymentData.error)
+        console.error('📋 问题分析: 这是后端调用微信统一下单接口时的参数问题，不是前端问题')
+        console.error('💡 建议: 检查后端微信支付统一下单接口的total_fee参数设置')
+      }
+      
       return null
     }
     
     const params = paymentData.payment_params
     
-    // 验证必要的支付参数
+    console.log('🔍 后端返回的完整支付数据:', {
+      hasPaymentParams: !!paymentData.payment_params,
+      paymentParamsKeys: Object.keys(params),
+      orderNo: paymentData.order_no,
+      rawParams: params
+    })
+    
+    // 验证package参数格式（应该包含prepay_id）
+    if (params.package && !params.package.startsWith('prepay_id=')) {
+      console.warn('⚠️ package参数格式异常:', params.package)
+      console.warn('💡 正确格式应为: prepay_id=wx201222229874569b201de80e089456213')
+    }
+    
+    // 验证必要的微信小程序支付参数 (微信小程序不需要total_fee)
     const requiredFields = ['timeStamp', 'nonceStr', 'package', 'signType', 'paySign']
     const missingFields = requiredFields.filter(field => !params[field])
     
     if (missingFields.length > 0) {
       console.error('❌ 支付参数缺少必要字段:', missingFields)
+      console.error('📋 后端返回的所有字段:', Object.keys(params))
+      console.error('📄 字段值详情:', {
+        timeStamp: params.timeStamp,
+        nonceStr: params.nonceStr,
+        package: params.package,
+        signType: params.signType,
+        paySign: params.paySign,
+        // total_fee仅用于调试输出，微信小程序支付不使用此参数
+        total_fee_debug: params.total_fee || '未设置（小程序支付不需要）'
+      })
+      
+      // 提供具体的修复建议
+      if (missingFields.includes('package')) {
+        console.error('🔧 修复建议: package参数缺失，这通常是后端统一下单失败导致的')
+        console.error('   请检查后端微信统一下单接口的调用是否成功')
+      }
+      
       return null
     }
     
-    return {
+    // 构建微信小程序支付参数 (不包含total_fee，金额信息在package中)
+    const paymentParams = {
       timeStamp: params.timeStamp,
       nonceStr: params.nonceStr,
       package: params.package,
       signType: params.signType,
       paySign: params.paySign
     }
+    
+    console.log('✅ 格式化后的微信支付参数:', paymentParams)
+    
+    return paymentParams
   }
   
   /**
@@ -158,6 +250,30 @@ class PaymentConfig {
     }
     
     this.logPaymentEvent('PAYMENT_ERROR', errorInfo)
+    
+    // 检查是否是后端微信支付API相关的错误
+    if (error.message && error.message.includes('total_fee')) {
+      console.error('🚨 检测到后端微信支付API错误（total_fee相关）')
+      console.error('📋 错误详情:', error.message)
+      console.error('💡 这是后端问题，需要检查后端微信统一下单接口的total_fee参数设置')
+      
+      return {
+        type: 'BACKEND_PAYMENT_CONFIG_ERROR',
+        message: '支付服务配置异常，请联系客服或稍后重试',
+        showToUser: true,
+        debugInfo: '后端微信支付统一下单接口total_fee参数配置问题'
+      }
+    }
+    
+    // 检查是否是prepay_id相关的错误
+    if (error.message && (error.message.includes('prepay_id') || error.message.includes('package'))) {
+      return {
+        type: 'PREPAY_ERROR',
+        message: '支付订单生成失败，请稍后重试',
+        showToUser: true,
+        debugInfo: '微信统一下单失败或prepay_id无效'
+      }
+    }
     
     // 根据不同的错误类型返回用户友好的错误消息
     if (error.errMsg && error.errMsg.includes('cancel')) {
@@ -281,3 +397,4 @@ module.exports = {
   PaymentConfig,
   PaymentUtils
 }
+
