@@ -163,9 +163,41 @@ const MusicAPI = {
   /**
    * 刷新音频URL（获取最新的CDN访问链接）
    */
-  refreshAudioUrl(musicId) {
-    console.log('🔄 请求刷新音频URL, musicId:', musicId)
+  refreshAudioUrl(musicId, originalUrl = null) {
+    console.log('🔄 请求刷新音频URL, musicId:', musicId, 'originalUrl:', originalUrl)
     
+    // 如果有原始URL，尝试从中提取文件路径
+    if (originalUrl && originalUrl.includes('cdn.medsleep.cn')) {
+      const urlParts = originalUrl.split('/')
+      if (urlParts.length >= 4) {
+        const filePath = urlParts.slice(4).join('/') // 提取域名后的路径部分
+        console.log('🔄 从URL提取文件路径:', filePath)
+        
+        // 使用七牛云签名URL API
+        return this.getQiniuSignedUrl(filePath, 7200).then(response => {
+          console.log('🔄 七牛云签名URL响应:', response)
+          
+          if (response.success && response.data && response.data.signed_url) {
+            console.log('✅ 签名URL生成成功:', response.data.signed_url)
+            return {
+              success: true,
+              data: {
+                url: response.data.signed_url
+              }
+            }
+          } else {
+            console.error('❌ 签名URL生成失败:', response.error)
+            return response
+          }
+        }).catch(error => {
+          console.error('❌ 签名URL请求失败:', error)
+          throw error
+        })
+      }
+    }
+    
+    // 回退到原来的API（虽然可能不存在）
+    console.warn('⚠️ 无法从URL提取文件路径，尝试原API (可能失败)')
     return get(`/music/refresh_url/${musicId}`).then(response => {
       console.log('🔄 音频URL刷新响应:', response)
       

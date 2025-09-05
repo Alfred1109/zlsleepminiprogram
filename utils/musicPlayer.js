@@ -115,11 +115,20 @@ class MusicPlayer {
       
       this.isPlaying = false
       this.updateGlobalState()
-      this.emit('error', err)
       
-      // 调用全局错误处理
-      if (app.globalData.handleAudioError) {
-        app.globalData.handleAudioError(err)
+      // 🔄 检测需要刷新URL的错误类型
+      const needsUrlRefresh = this.shouldRefreshUrl(err, this.currentMusic)
+      
+      if (needsUrlRefresh) {
+        console.log('🔄 检测到需要刷新URL的错误，尝试刷新音频URL...')
+        this.retryWithRefreshedUrl(this.currentMusic)
+      } else {
+        this.emit('error', err)
+        
+        // 调用全局错误处理
+        if (app.globalData.handleAudioError) {
+          app.globalData.handleAudioError(err)
+        }
       }
     })
   }
@@ -148,6 +157,7 @@ class MusicPlayer {
     }
     this.audioContext.src = finalSrc
     this.currentTime = 0
+    this._retryCount = 0 // 重置重试计数器
     this.updateGlobalState()
     
     console.log('加载音乐:', music.title)
@@ -289,10 +299,9 @@ class MusicPlayer {
           src: this.audioContext.src
         })
         
-        if (!this.isPlaying && this.currentMusic) {
-          console.warn('⚠️ 音频可能加载失败，尝试重新播放')
-          // 可选择性重试
-          // this.audioContext.play()
+        if (!this.isPlaying && this.currentMusic && !this._refreshing) {
+          console.warn('⚠️ 音频可能加载失败，尝试智能重试')
+          this.intelligentRetry(this.currentMusic)
         }
       }, 3000)
       
@@ -479,6 +488,118 @@ class MusicPlayer {
   }
 
   /**
+   * 🔍 判断是否需要刷新URL
+   */
+  shouldRefreshUrl(error, music) {
+    if (!music || !music.src) {
+      return false
+    }
+    
+    const errMsg = error.errMsg || ''
+    const isCdnUrl = music.src.includes('cdn.medsleep.cn')
+    
+    // 1. 明确的401错误
+    if (errMsg.includes('401')) {
+      console.log('🔍 检测到401错误')
+      return true
+    }
+    
+    // 2. CDN URL的音频解码失败（可能是token过期）
+    if (isCdnUrl && errMsg.includes('Unable to decode audio data')) {
+      console.log('🔍 检测到CDN URL音频解码失败')
+      return true
+    }
+    
+    // 3. CDN URL的网络错误
+    if (isCdnUrl && (errMsg.includes('fail') || errMsg.includes('error'))) {
+      console.log('🔍 检测到CDN URL网络错误')
+      return true
+    }
+    
+    // 4. CDN URL且没有token参数
+    if (isCdnUrl && !music.src.includes('token=') && !music.src.includes('e=')) {
+      console.log('🔍 检测到CDN URL缺少token参数')
+      return true
+    }
+    
+    return false
+  }
+
+  /**
+   * 🧠 智能重试机制
+   */
+  async intelligentRetry(music) {
+    if (!music || this._retryCount >= 2) {
+      console.log('🚫 达到最大重试次数或音乐对象无效，停止重试')
+      return
+    }
+    
+    this._retryCount = (this._retryCount || 0) + 1
+    console.log(`🔄 智能重试 ${this._retryCount}/2:`, music.title)
+    
+    // 如果是CDN URL且可能需要token，先尝试刷新URL
+    if (music.src && music.src.includes('cdn.medsleep.cn') && music.id && !music.src.includes('token=')) {
+      console.log('🔄 检测到CDN URL缺少token，尝试刷新URL')
+      await this.retryWithRefreshedUrl(music)
+    } else {
+      // 否则简单重试播放
+      console.log('🔄 简单重试播放')
+      try {
+        this.audioContext.play()
+      } catch (error) {
+        console.error('❌ 重试播放失败:', error)
+      }
+    }
+  }
+
+  /**
+   * 🔄 使用刷新的URL重试播放
+   */
+  async retryWithRefreshedUrl(music) {
+    // 防止重复刷新
+    if (this._refreshing) {
+      console.log('🔄 URL刷新中，跳过重复请求')
+      return
+    }
+    
+    this._refreshing = true
+    
+    try {
+      console.log('🔄 开始刷新音频URL, musicId:', music.id)
+      
+      // 动态导入API
+      const { MusicAPI } = require('./healingApi')
+      
+      // 刷新URL，传入原始URL以提取文件路径
+      const response = await MusicAPI.refreshAudioUrl(music.id, music.src)
+      
+      if (response.success && response.data && response.data.url) {
+        console.log('✅ URL刷新成功，尝试重新播放')
+        
+        // 更新音乐URL
+        const refreshedMusic = {
+          ...music,
+          src: response.data.url
+        }
+        
+        // 重新加载并播放
+        this.loadMusic(refreshedMusic)
+        this.audioContext.play()
+        
+      } else {
+        console.error('❌ URL刷新失败:', response.error || 'Unknown error')
+        this.emit('error', { message: 'URL刷新失败', originalError: response.error })
+      }
+      
+    } catch (error) {
+      console.error('❌ URL刷新过程出错:', error)
+      this.emit('error', { message: 'URL刷新异常', originalError: error })
+    } finally {
+      this._refreshing = false
+    }
+  }
+
+  /**
    * 销毁播放器
    */
   destroy() {
@@ -493,6 +614,8 @@ class MusicPlayer {
     this.duration = 0
     this.playlist = []
     this.currentIndex = 0
+    this._refreshing = false
+    this._retryCount = 0
     
     // 清空事件监听器
     Object.keys(this.listeners).forEach(event => {

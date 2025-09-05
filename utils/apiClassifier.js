@@ -14,11 +14,16 @@ const PUBLIC_APIS = [
   // 音乐分类（公开）
   '/music/categories',
   
+  // 预设音乐（公开） - 修复关键问题
+  '/preset-music/category',
+  '/preset-music',
+  
   // 评测量表（公开）
   '/assessment/scales',
   
   // 七牛云文件（公开）
   '/music/qiniu/categories',
+  '/music/qiniu_signed_url',
   
   // 其他公开API
   '/music/random', // 随机音乐可以是公开的
