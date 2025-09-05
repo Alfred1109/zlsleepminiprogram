@@ -600,33 +600,77 @@ Page({
       // 1. 创建订单
       console.log('🛍️ 开始创建订单:', { type, planId: plan.id })
       
-      // 使用支付配置工具创建订单数据
+      // 使用AuthService统一获取用户信息，确保数据一致性
+      const AuthService = require('../../services/AuthService')
       let userId = null
+      
       try {
-        const userInfo = wx.getStorageSync('userInfo') || wx.getStorageSync('user_info')
-        if (userInfo && userInfo.id) {
-          userId = userInfo.id
-          console.log('👤 获取到用户ID:', userId)
-        } else {
-          console.warn('⚠️ 无法获取用户ID，将使用空值')
+        // 首先检查登录状态
+        if (!AuthService.isLoggedIn()) {
+          throw new Error('用户未登录')
         }
+        
+        const userInfo = AuthService.getCurrentUser()
+        if (!userInfo) {
+          throw new Error('无法获取用户信息')
+        }
+        
+        // 支持多种用户ID字段格式，确保兼容性
+        userId = userInfo.id || userInfo.user_id || userInfo.userId
+        if (!userId) {
+          throw new Error('用户信息中缺少用户ID')
+        }
+        
+        console.log('👤 获取到用户ID:', userId, '用户信息来源:', userInfo.username || 'unknown')
+        
       } catch (e) {
-        console.warn('无法获取用户信息:', e.message)
+        console.error('❌ 获取用户信息失败:', e.message)
+        wx.hideLoading()
+        wx.showModal({
+          title: '用户信息异常',
+          content: '无法获取用户信息，请重新登录后再试',
+          showCancel: false,
+          success: () => {
+            wx.navigateTo({ url: '/pages/login/login' })
+          }
+        })
+        return
+      }
+      
+      // 验证套餐信息完整性
+      if (!plan || !plan.id) {
+        throw new Error('套餐信息无效')
+      }
+      
+      // 确保参数类型正确 - 很多后端期望字符串类型的ID
+      const planId = String(plan.id)
+      const userIdStr = String(userId)
+      
+      // 验证支付配置
+      const paymentValidation = PaymentConfig.validateConfig()
+      if (!paymentValidation.isValid) {
+        console.error('❌ 支付配置验证失败:', paymentValidation.errors)
+        throw new Error('支付配置错误: ' + paymentValidation.errors.join(', '))
       }
       
       // 使用 PaymentConfig 创建标准化的订单参数
-      const orderData = PaymentConfig.createOrderParams(plan.id, userId)
+      const orderData = PaymentConfig.createOrderParams(planId, userIdStr)
       
-      console.log('📝 发送到服务器的订单数据:', {
-        plan_id: orderData.plan_id,
-        user_id: orderData.user_id,
-        payment_config: {
-          api_key: '***已隐藏***', // 不在日志中显示敏感信息
-          app_id: orderData.payment_config.app_id,
-          timeout: orderData.payment_config.timeout
-        }
+      // 详细的参数检查和日志
+      console.log('📝 发送到服务器的订单数据详情:')
+      console.log('  - plan_id:', orderData.plan_id, '(类型:', typeof orderData.plan_id, ')')
+      console.log('  - user_id:', orderData.user_id, '(类型:', typeof orderData.user_id, ')')
+      console.log('  - payment_config:')
+      console.log('    - api_key:', orderData.payment_config.api_key ? '***已隐藏***' : '未设置')
+      console.log('    - app_id:', orderData.payment_config.app_id, '(类型:', typeof orderData.payment_config.app_id, ')')
+      console.log('    - timeout:', orderData.payment_config.timeout, '(类型:', typeof orderData.payment_config.timeout, ')')
+      
+      console.log('📋 套餐完整信息:', {
+        id: plan.id,
+        name: plan.name,
+        price: plan.price,
+        type: typeof plan.id
       })
-      console.log('📋 套餐完整信息:', plan)
       
       // 记录支付事件
       PaymentConfig.logPaymentEvent('ORDER_CREATE_START', {
@@ -791,7 +835,15 @@ Page({
       
       if (error.statusCode === 500) {
         errorTitle = '服务器错误'
-        errorContent = '服务器处理订单时遇到问题，请稍后重试。如问题持续存在，请联系客服。'
+        errorContent = '服务器处理订单时遇到问题。这可能是由于参数格式或支付配置问题导致的，请稍后重试。如问题持续存在，请联系客服。'
+        
+        // 记录详细的500错误信息以便调试
+        PaymentConfig.logPaymentEvent('ORDER_CREATE_500_ERROR', {
+          plan_id: plan?.id,
+          error_message: error.message,
+          error_details: error,
+          timestamp: Date.now()
+        })
       } else if (error.message && error.message.includes('404')) {
         errorTitle = '服务维护中'
         errorContent = '订阅服务正在维护升级，请稍后重试。如问题持续存在，请联系客服。'
@@ -821,6 +873,13 @@ Page({
    */
   async callWechatPay(paymentParams) {
     return new Promise((resolve, reject) => {
+      console.log('🚀 准备调用微信支付，最终参数:')
+      console.log('  - timeStamp:', paymentParams.timeStamp, typeof paymentParams.timeStamp)
+      console.log('  - nonceStr:', paymentParams.nonceStr, typeof paymentParams.nonceStr)
+      console.log('  - package:', paymentParams.package, typeof paymentParams.package)
+      console.log('  - signType:', paymentParams.signType, typeof paymentParams.signType) 
+      console.log('  - paySign:', paymentParams.paySign, typeof paymentParams.paySign)
+      
       wx.requestPayment({
         timeStamp: paymentParams.timeStamp,
         nonceStr: paymentParams.nonceStr,

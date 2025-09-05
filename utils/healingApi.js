@@ -898,14 +898,52 @@ const CountPackageAPI = {
    */
   async createOrder(orderData) {
     try {
+      console.log('🔍 开始创建次数套餐订单，参数验证:')
+      console.log('  - 参数完整性:', !!orderData)
+      console.log('  - plan_id:', orderData?.plan_id, typeof orderData?.plan_id)
+      console.log('  - user_id:', orderData?.user_id, typeof orderData?.user_id)
+      console.log('  - payment_config:', !!orderData?.payment_config)
+      
+      // 参数验证
+      if (!orderData) {
+        throw new Error('订单数据为空')
+      }
+      if (!orderData.plan_id) {
+        throw new Error('套餐ID为空')
+      }
+      if (!orderData.payment_config || !orderData.payment_config.api_key) {
+        throw new Error('支付配置不完整')
+      }
+      
       const response = await request({
         url: '/count-package/create-order',
         method: 'POST',
-        data: orderData
+        data: orderData,
+        timeout: 20000
       })
+      
+      console.log('✅ 次数套餐订单创建API调用成功')
       return response
+      
     } catch (error) {
-      throw new Error(error.message || '创建次数套餐订单失败')
+      console.error('❌ 创建次数套餐订单失败:', {
+        errorMessage: error.message,
+        statusCode: error.statusCode,
+        errorDetails: error
+      })
+      
+      // 根据不同的错误类型提供更具体的错误信息
+      if (error.statusCode === 500) {
+        throw new Error(`服务器内部错误 (${error.statusCode}): 可能是参数格式问题或后端服务异常，请检查订单参数或稍后重试`)
+      } else if (error.statusCode === 400) {
+        throw new Error(`请求参数错误 (${error.statusCode}): ${error.message || '订单参数格式不正确'}`)
+      } else if (error.statusCode === 401) {
+        throw new Error(`认证失败 (${error.statusCode}): 请重新登录后再试`)
+      } else if (error.statusCode === 403) {
+        throw new Error(`访问被拒绝 (${error.statusCode}): 可能是支付配置问题`)
+      } else {
+        throw new Error(error.message || '创建次数套餐订单失败')
+      }
     }
   },
 
@@ -1043,14 +1081,53 @@ const SubscriptionAPI = {
    */
   async createOrder(orderData) {
     try {
+      console.log('🔍 开始创建订阅订单，参数验证:')
+      console.log('  - 参数完整性:', !!orderData)
+      console.log('  - plan_id:', orderData?.plan_id, typeof orderData?.plan_id)
+      console.log('  - user_id:', orderData?.user_id, typeof orderData?.user_id)
+      console.log('  - payment_config:', !!orderData?.payment_config)
+      console.log('  - api_key存在:', !!orderData?.payment_config?.api_key)
+      
+      // 参数验证
+      if (!orderData) {
+        throw new Error('订单数据为空')
+      }
+      if (!orderData.plan_id) {
+        throw new Error('套餐ID为空')
+      }
+      if (!orderData.payment_config || !orderData.payment_config.api_key) {
+        throw new Error('支付配置不完整')
+      }
+      
       const response = await request({
         url: '/subscription/create-order',
         method: 'POST',
-        data: orderData
+        data: orderData,
+        timeout: 20000 // 增加超时时间，因为订单创建可能需要更长时间
       })
+      
+      console.log('✅ 订单创建API调用成功')
       return response
+      
     } catch (error) {
-      throw new Error(error.message || '创建订单失败')
+      console.error('❌ 创建订阅订单失败:', {
+        errorMessage: error.message,
+        statusCode: error.statusCode,
+        errorDetails: error
+      })
+      
+      // 根据不同的错误类型提供更具体的错误信息
+      if (error.statusCode === 500) {
+        throw new Error(`服务器内部错误 (${error.statusCode}): 可能是参数格式问题或后端服务异常，请检查订单参数或稍后重试`)
+      } else if (error.statusCode === 400) {
+        throw new Error(`请求参数错误 (${error.statusCode}): ${error.message || '订单参数格式不正确'}`)
+      } else if (error.statusCode === 401) {
+        throw new Error(`认证失败 (${error.statusCode}): 请重新登录后再试`)
+      } else if (error.statusCode === 403) {
+        throw new Error(`访问被拒绝 (${error.statusCode}): 可能是支付配置问题`)
+      } else {
+        throw new Error(error.message || '创建订单失败')
+      }
     }
   },
 
