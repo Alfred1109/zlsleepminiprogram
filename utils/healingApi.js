@@ -183,6 +183,13 @@ const MusicAPI = {
   },
 
   /**
+   * 🎯 按分类获取数据库记录的音乐（优先使用）
+   */
+  getPresetMusicByCategory(categoryId) {
+    return get(`/preset-music/category/${categoryId}`)
+  },
+
+  /**
    * 随机获取分类音频（新增统一接口）
    */
   getRandomAudioByCategory(category) {

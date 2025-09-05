@@ -25,7 +25,7 @@
   transform: translateX(-50%);
   width: 80rpx;
   height: 3rpx;
-  background: linear-gradient(90deg, #FF6B35, rgba(255, 107, 53, 0.3));
+  background-color: #C0A9BD; /* 使用主色，去除渐变 */
   border-radius: 2rpx;
 }
 
@@ -124,7 +124,7 @@
 
 .current-value {
   font-size: 26rpx;
-  color: #FF6B35; /* 使用品牌橙色 */
+  color: #C0A9BD; /* 使用主色 */
   margin-right: 8rpx;
   display: flex;
   align-items: center;
@@ -184,10 +184,10 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #FF6B35, rgba(255, 107, 53, 0.8)); /* 品牌橙色渐变 */
+  background-color: #94A7AE; /* 次色实色进度 */
   border-radius: 4rpx;
   transition: width 0.3s ease;
-  box-shadow: 0 1rpx 3rpx rgba(255, 107, 53, 0.3);
+  box-shadow: none;
 }
 
 .clear-cache-btn {
@@ -246,14 +246,14 @@
 
 .save-btn {
   width: 100%;
-  background: linear-gradient(135deg, #FF6B35, rgba(255, 107, 53, 0.9)); /* 品牌橙色渐变 */
+  background: #C0A9BD; /* 主色纯色 */
   color: white;
   border: none;
   border-radius: 16rpx;
   padding: 20rpx;
   font-size: 30rpx;
   font-weight: 600;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
 }
 
 .save-btn:active {

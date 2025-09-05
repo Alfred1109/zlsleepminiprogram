@@ -1,5 +1,6 @@
 // pages/categories/categories.js
 const { unifiedMusicManager } = require('../../utils/unifiedMusicManager')
+const { MusicAPI } = require('../../utils/healingApi')
 const AuthService = require('../../services/AuthService')
 
 Page({
@@ -83,6 +84,8 @@ Page({
           categories: categories,
           loading: false
         })
+        // 同步各自分类的实际音频数
+        this.updateActualCounts()
         console.log('分类初始化成功:', categories.length, '(AI音乐分类已过滤)')
       } else {
         throw new Error('统一音乐管理器初始化失败')
@@ -111,6 +114,8 @@ Page({
       
       if (categories.length > 0) {
         this.setData({ categories })
+        // 刷新时也对齐实际计数
+        this.updateActualCounts()
       }
       
       // 尝试从服务器更新（不阻塞UI）
@@ -119,6 +124,7 @@ Page({
           const allNewCategories = unifiedMusicManager.getAllCategories()
           const newCategories = this.getFilteredCategories(allNewCategories)
           this.setData({ categories: newCategories })
+          this.updateActualCounts()
           console.log('分类数据已更新')
         }
       }).catch(error => {
@@ -127,6 +133,89 @@ Page({
       
     } catch (error) {
       console.error('刷新分类失败:', error)
+    }
+  },
+
+  /**
+   * 检查音乐文件是否有效
+   */
+  isValidMusicFile(music) {
+    if (!music || !music.file_path) return false
+    
+    // 过滤掉static路径的无效文件
+    if (music.file_path.startsWith('static/')) {
+      console.warn(`[Categories] 过滤无效音乐: ${music.title} (${music.file_path})`)
+      return false
+    }
+    
+    // 过滤掉不可用的音乐
+    if (music.available === false) {
+      console.warn(`[Categories] 过滤不可用音乐: ${music.title}`)
+      return false
+    }
+    
+    return true
+  },
+
+  /**
+   * 将分类对象映射到后端分类代码
+   */
+  getCategoryCode(category) {
+    if (!category) return 'healing'
+    if (category.code || category.scale_type || category.type) {
+      return category.code || category.scale_type || category.type
+    }
+    // 无法判断时返回 null，避免全部落到 healing
+    return null
+  },
+
+  /**
+   * 🎯 优先从数据库获取各分类的实际音频数量（与推荐引擎保持一致）
+   */
+  async updateActualCounts() {
+    try {
+      const list = this.data.categories || []
+      if (!list.length) return
+      
+      const updated = await Promise.all(list.map(async (cat) => {
+        try {
+          // 🥇 优先从数据库获取音乐数量
+          const dbResult = await MusicAPI.getPresetMusicByCategory(cat.id).catch(error => {
+            console.warn(`[Categories] 分类${cat.id}数据库获取失败:`, error)
+            return { success: false }
+          })
+          
+          if (dbResult.success && dbResult.data && Array.isArray(dbResult.data)) {
+            // 过滤掉无效音乐（static路径文件不存在）
+            const validMusic = dbResult.data.filter(music => this.isValidMusicFile(music))
+            const dbCount = validMusic.length
+            console.log(`[Categories] 分类${cat.name}使用数据库计数: ${dbCount}首 (过滤前${dbResult.data.length}首)`)
+            return { ...cat, count: dbCount, source: 'database' }
+          }
+          
+          // 🥈 回退：从七牛云获取文件数量
+          console.log(`[Categories] 分类${cat.name}数据库无音乐，使用七牛云计数`)
+          const code = this.getCategoryCode(cat)
+          if (!code) return { ...cat, count: 0, source: 'fallback' }
+          
+          const qiniuResult = await MusicAPI.getQiniuFilesByCategory(code).catch(() => ({ success: false }))
+          const qiniuCount = qiniuResult && qiniuResult.success && qiniuResult.data && Array.isArray(qiniuResult.data.files) 
+            ? qiniuResult.data.files.length 
+            : (cat.count || 0)
+          
+          return { ...cat, count: qiniuCount, source: 'qiniu_fallback' }
+          
+        } catch (error) {
+          console.warn(`[Categories] 分类${cat.name}获取计数失败:`, error)
+          return { ...cat, count: cat.count || 0, source: 'error' }
+        }
+      }))
+      
+      this.setData({ categories: updated })
+      console.log('[Categories] 分类计数更新完成，数据源分布:', updated.map(cat => `${cat.name}: ${cat.count}首(${cat.source})`))
+      
+    } catch (e) {
+      console.warn('更新分类实际数量失败:', e.message)
     }
   },
 
@@ -335,9 +424,10 @@ Page({
     
     console.log('跳转到分类音乐页面:', categoryId, category.name);
     
-    // 跳转到分类音乐列表页面
+    // 跳转到分类音乐列表页面，携带该分类的数量作为显示上限
+    const limit = category.count && Number.isFinite(category.count) ? category.count : 20
     wx.navigateTo({
-      url: `/pages/music/category/category?categoryId=${categoryId}&categoryName=${encodeURIComponent(category.name)}`
+      url: `/pages/music/category/category?categoryId=${categoryId}&categoryName=${encodeURIComponent(category.name)}&limit=${limit}`
     });
   },
 

@@ -45,8 +45,8 @@
 /* 结果头部 */
 .result-header-new {
   position: relative;
-  background: linear-gradient(135deg, #e0f2f1, #e6fffa); /* Lighter gradient */
-  color: #64766A; /* Dark text for high contrast */
+  background-color: #C0A9BD; /* 统一主色，去除渐变 */
+  color: #FFFFFF;
   padding: 120rpx 40rpx 60rpx;
   margin: 0 -32rpx 40rpx;
   border-bottom-left-radius: 60rpx;
@@ -287,7 +287,7 @@
 }
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #94A7AE, #C0A9BD);
+  background-color: #94A7AE;
   border-radius: 8rpx;
 }
 .dimension-level {
@@ -297,7 +297,7 @@
 }
 .professional-interpretation {
   padding: 24rpx;
-  background: linear-gradient(135deg, #f0fdfa, #f5f3ff);
+  background: #F8F6F7;
   border-radius: 16rpx;
 }
 .interpretation-title {
@@ -376,10 +376,10 @@
   border: 1px solid rgba(255,255,255,0.3);
 }
 .quick-option {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background-color: #C0A9BD; /* 主色 */
 }
 .deep-option {
-  background: linear-gradient(135deg, #059669, #34d399);
+  background-color: #94A7AE; /* 次色 */
 }
 .option-header {
   display: flex;
@@ -525,11 +525,11 @@
   justify-content: center;
 }
 .primary-btn {
-  background: linear-gradient(135deg, #C0A9BD 0%, #1ea895 100%);
+  background: #C0A9BD;
   color: white;
   font-weight: 600;
   font-size: 30rpx;
-  box-shadow: 0 6rpx 20rpx rgba(43, 186, 165, 0.4);
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.12);
   border: 2rpx solid rgba(255, 255, 255, 0.3);
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
 }
@@ -539,15 +539,15 @@
   box-shadow: 0 3rpx 10rpx rgba(43, 186, 165, 0.3);
 }
 .secondary-btn {
-  background: linear-gradient(135deg, #e0f2f1 0%, #ccede8 100%);
-  color: #0d9488;
+  background: #FFFFFF;
+  color: #94A7AE;
   font-weight: 600;
-  border: 2rpx solid rgba(13, 148, 136, 0.2);
+  border: 2rpx solid #94A7AE;
 }
 
 .secondary-btn:active {
   transform: translateY(2rpx);
-  background: linear-gradient(135deg, #ccede8 0%, #b8e7e0 100%);
+  background: #F8F6F7;
 }
 .outline-btn {
   border: 2rpx solid #e5e7eb;

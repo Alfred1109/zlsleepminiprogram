@@ -109,6 +109,51 @@ Page({
   },
 
   /**
+   * 将分类ID映射为后端分类代码（与推荐引擎保持一致）
+   */
+  getCategoryCode(id) {
+    // 优先取服务端返回的分类code，静态映射仅作兜底
+    const cat = (this.data.categories || []).find(c => c.id === id)
+    if (cat && (cat.code || cat.scale_type || cat.type)) {
+      return cat.code || cat.scale_type || cat.type
+    }
+    
+    // 🔧 修复：使用与服务器返回数据一致的ID映射逻辑
+    const idToCode = {
+      1: 'natural_sound',
+      2: 'white_noise',
+      3: 'brainwave', 
+      4: 'ai_music',
+      5: 'healing_resource'  // 🚨 修复：使用服务器实际返回的代码
+    }
+    
+    const mappedCode = idToCode[id] || 'healing_resource'
+    return mappedCode
+  },
+
+  /**
+   * 从源头获取该分类的实际音频数
+   */
+  async getActualCategoryCount(categoryId, writeBack = true) {
+    try {
+      const { MusicAPI } = require('../../utils/healingApi')
+      const code = this.getCategoryCode(categoryId)
+      if (!code) return 0
+      const res = await MusicAPI.getQiniuFilesByCategory(code).catch(() => ({ success: false }))
+      const count = res && res.success && res.data && Array.isArray(res.data.files) ? res.data.files.length : 0
+      if (writeBack && count >= 0 && Array.isArray(this.data.categories) && this.data.categories.length) {
+        const updated = this.data.categories.map(c => c.id === categoryId ? { ...c, count } : c)
+        this.setData({ categories: updated })
+      }
+      return count
+    } catch (_) {
+      return 0
+    }
+  },
+
+
+
+  /**
    * 新增：加载历史数据（评测与脑波）
    */
   loadHistoryData: function() {
@@ -739,6 +784,9 @@ Page({
           duration: 2000
         })
         
+        // 直接使用数据库返回的计数，不做修正
+        console.log('[首页] 分类计数:', categories.map(c => `${c.name}:${c.count}`).join(', '))
+        
         // 加载默认分类的推荐音乐
         if (this.data.selectedCategory) {
           this.loadCategoryRecommendations(this.data.selectedCategory);
@@ -1014,10 +1062,8 @@ Page({
     
     // 点击分类
     
-    // 更新选中状态
-    this.setData({
-      selectedCategory: categoryId
-    });
+    // 更新选中状态并清空旧推荐，避免视觉上认为未变化；不改动其他分类的count
+    this.setData({ selectedCategory: categoryId, categoryRecommendations: [] });
     
     // 加载该分类的推荐音频
     this.loadCategoryRecommendations(categoryId);
@@ -1036,17 +1082,33 @@ Page({
         userInfo: this.data.userInfo
       } : null;
       
-      // 使用推荐引擎获取分类推荐
+      // 直接使用数据库计数，不做验证或修正
+      const category = this.data.categories.find(c => c.id === categoryId)
+      const categoryCount = category?.count || 0
+      const limit = Math.max(1, Math.min(3, categoryCount))
+      
+      console.log(`[首页] 分类${categoryId}(${category?.name}) 数据库计数: ${categoryCount}, 推荐限制: ${limit}`)
+
+      // 使用推荐引擎获取分类推荐（带上限）
       const recommendations = await recommendationEngine.getCategoryRecommendations(
         categoryId, 
-        3, 
+        limit, 
         userContext
       );
       
-      // 推荐音频加载完成
+      // 处理推荐结果，确保分类信息正确
+      const processedRecommendations = (recommendations || [])
+        .slice(0, limit)
+        .map(item => ({
+          ...item,
+          category_id: categoryId,
+          category: this.getCategoryName(categoryId)
+        }));
+      
+      console.log(`[首页] 分类${categoryId} 推荐数量: ${processedRecommendations.length}/${limit}`);
       
       this.setData({
-        categoryRecommendations: recommendations
+        categoryRecommendations: processedRecommendations
       });
       
       wx.hideLoading();

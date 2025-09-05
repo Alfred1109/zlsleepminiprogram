@@ -18,10 +18,11 @@ Page({
   onLoad(options) {
     console.log('分类音乐页面加载', options)
     
-    const { categoryId, categoryName } = options
+    const { categoryId, categoryName, limit } = options
     this.setData({
       categoryId: parseInt(categoryId) || 1,
-      categoryName: decodeURIComponent(categoryName || '音乐分类')
+      categoryName: decodeURIComponent(categoryName || '音乐分类'),
+      limit: parseInt(limit) || 20
     })
 
     this.initPage()
@@ -67,7 +68,7 @@ Page({
       
       // 使用统一音乐管理器获取分类音乐
       const music = await unifiedMusicManager.getMusicByCategory(this.data.categoryId, {
-        limit: 20,
+        limit: this.data.limit,
         format: 'list'
       })
 

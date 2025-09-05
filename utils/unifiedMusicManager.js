@@ -116,6 +116,52 @@ class UnifiedMusicManager {
 
       // 列表模式：返回该分类下的多条音乐（用于分类页）
       if (options.format === 'list') {
+        console.log('列表模式获取分类音乐: ', categoryId, category.name)
+
+        // 🎯 优先从数据库获取音乐列表
+        try {
+          const dbMusicResult = await this.api.request({
+            url: `/preset-music/category/${categoryId}`,
+            method: 'GET',
+            showLoading: options.showLoading !== false,
+            loadingText: options.loadingText || '加载音乐中...'
+          })
+
+          if (dbMusicResult && dbMusicResult.success && dbMusicResult.data && Array.isArray(dbMusicResult.data)) {
+            console.log(`[UnifiedMusicManager] 分类${categoryId}使用数据库音乐列表: ${dbMusicResult.data.length}首`)
+            
+            // 过滤掉无效音乐（static路径文件不存在）
+            const validMusic = dbMusicResult.data.filter(music => this.isValidMusicFile(music))
+            
+            if (validMusic.length === 0) {
+              console.warn(`[UnifiedMusicManager] 分类${categoryId}数据库音乐全部无效，使用七牛云文件`)
+              throw new Error('数据库音乐全部无效')
+            }
+            
+            const limited = typeof options.limit === 'number' ? validMusic.slice(0, options.limit) : validMusic
+            const processed = limited.map(music => ({
+              id: music.id || `db_${categoryId}_${Date.now()}_${Math.random()}`,
+              title: music.title || music.name || '未知音乐',
+              name: music.title || music.name || '未知音乐',
+              url: music.file_path || music.url,
+              path: music.file_path || music.url,
+              image: this.fixImagePath(music.cover_image) || '/images/default-music-cover.svg',
+              duration: music.duration || 0,
+              category: category.name || '音乐',
+              description: music.description || '',
+              healing_resource_id: music.healing_resource_id,
+              source: 'database_list',
+              available: music.available
+            }))
+            return processed
+          }
+        } catch (error) {
+          console.warn(`[UnifiedMusicManager] 分类${categoryId}数据库音乐获取失败:`, error)
+        }
+
+        // 🥈 回退：从七牛云获取文件列表
+        console.log(`[UnifiedMusicManager] 分类${categoryId}数据库无音乐，使用七牛云文件`)
+        
         // 归一化分类代码，兼容后端 /qiniu/categories/<code>/files 接口
         const normalizeCode = (cat) => {
           const codeFromCat = (cat && (cat.code || cat.scale_type || cat.type)) || ''
@@ -132,13 +178,13 @@ class UnifiedMusicManager {
         }
 
         const categoryCode = normalizeCode(category)
-        console.log('列表模式获取分类音乐: ', categoryId, categoryCode)
+        console.log('使用七牛云文件列表: ', categoryId, categoryCode)
 
         const listResp = await this.api.request({
           url: `/music/qiniu/categories/${categoryCode}/files`,
           method: 'GET',
           showLoading: options.showLoading !== false,
-          loadingText: options.loadingText || '加载列表中...'
+          loadingText: options.loadingText || '加载文件中...'
         })
 
         if (listResp && listResp.success && listResp.data && Array.isArray(listResp.data.files)) {
@@ -154,6 +200,7 @@ class UnifiedMusicManager {
             duration: 0,
             category: category.name || categoryCode,
             description: '',
+            source: 'qiniu_list'
           }))
           return processed
         } else {
@@ -716,6 +763,46 @@ class UnifiedMusicManager {
         message: '无法从服务器获取最新分类数据'
       }
     }
+  }
+
+  /**
+   * 检查音乐文件是否有效
+   */
+  isValidMusicFile(music) {
+    if (!music || !music.file_path) return false
+    
+    // 过滤掉static路径的无效文件
+    if (music.file_path.startsWith('static/')) {
+      console.warn(`[UnifiedMusicManager] 过滤无效音乐: ${music.title} (${music.file_path})`)
+      return false
+    }
+    
+    // 过滤掉不可用的音乐
+    if (music.available === false) {
+      console.warn(`[UnifiedMusicManager] 过滤不可用音乐: ${music.title}`)
+      return false
+    }
+    
+    return true
+  }
+
+  /**
+   * 修复图片路径（转换错误的/static/路径）
+   */
+  fixImagePath(imagePath) {
+    if (!imagePath) return null
+    
+    // 修复后端返回的错误路径：/static/images/ → /images/
+    if (imagePath.startsWith('/static/images/')) {
+      return imagePath.replace('/static/images/', '/images/')
+    }
+    
+    // 修复后端返回的错误路径：/static/ → /
+    if (imagePath.startsWith('/static/')) {
+      return imagePath.replace('/static/', '/')
+    }
+    
+    return imagePath
   }
 
   // 缓存信息方法已移除

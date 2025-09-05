@@ -4,24 +4,14 @@
 
 .container {
   min-height: 1334rpx;
-  background: linear-gradient(180deg, #F8F6F7 0%, #F4F2F3 100%); /* 保持与首页一致 */
+  background-color: #F4F2F3; /* 与全局主背景一致 */
   padding: 40rpx;
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-.container::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: radial-gradient(circle at 30% 40%, rgba(192, 169, 189, 0.04) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: -1;
-}
+.container::before { content: none; }
 
 /* 顶部区域 */
 .header {
@@ -80,10 +70,10 @@
 
 .method-item.active {
   background: #ffffff;
-  color: #FF6B35; /* 使用品牌橙色 */
-  box-shadow: 0 10rpx 22rpx rgba(255, 107, 53, 0.2);
+  color: #C0A9BD; /* 用主色强调 */
+  box-shadow: 0 10rpx 22rpx rgba(0, 0, 0, 0.08);
   transform: translateY(-2rpx);
-  border: 1rpx solid rgba(255, 107, 53, 0.15);
+  border: 1rpx solid #C0A9BD;
 }
 
 .method-item.active .method-icon {
@@ -95,7 +85,7 @@
 .method-name { font-size: 24rpx; font-weight: 600; color: inherit; }
 
 .method-item .method-name { color: #5A6B5F; font-weight: 500; }
-.method-item.active .method-name { color: #FF6B35; font-weight: 600; } /* 使用品牌橙色 */
+.method-item.active .method-name { color: #C0A9BD; font-weight: 600; }
 
 /* 登录表单 */
 
@@ -129,9 +119,9 @@
 
 /* 智能登录按钮 */
 .wechat-btn { 
-  background: #FF6B35 !important; /* 使用品牌橙色 */
+  background: #C0A9BD !important; /* 使用主色 */
   color: #FFFFFF !important; /* 白色文字 */
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.3), 0 2rpx 8rpx rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12), 0 2rpx 8rpx rgba(0, 0, 0, 0.1) !important;
   transform: translateY(0); 
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
   position: relative;
@@ -266,9 +256,9 @@
 }
 
 .login-btn.primary {
-  background: linear-gradient(135deg, #FF6B35, rgba(255, 107, 53, 0.9)); /* 品牌橙色渐变 */
+  background: #C0A9BD; /* 主色纯色 */
   color: #ffffff;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
 }
 
 .login-btn.secondary {

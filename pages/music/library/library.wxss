@@ -3,7 +3,7 @@
 
 /* 页面容器 - 添加统一背景 */
 .page-container {
-  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
+  background-color: #F4F2F3;
   min-height: 1334rpx;
 }
 
@@ -57,8 +57,8 @@
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
-  box-shadow: 0 4rpx 16rpx rgba(43, 186, 165, 0.3);
+  background: #C0A9BD;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
   transform: translateY(-2rpx);
 }
 

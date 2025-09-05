@@ -3,7 +3,7 @@
 
 /* 个人资料头部 */
 .profile-header {
-  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
+  background: #C0A9BD;
   color: #FFFFFF;
   padding: 50rpx 30rpx 30rpx;
   position: relative;
@@ -203,11 +203,11 @@
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  background: #FFFFFF;
   border-radius: 2rpx;
   transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
-  box-shadow: 0 0 4rpx rgba(255, 255, 255, 0.6);
+  box-shadow: none;
 }
 
 .progress-bar-glow {
@@ -275,7 +275,7 @@
 .stat-icon {
   width: 60rpx;
   height: 60rpx;
-  background: linear-gradient(135deg, rgba(192, 169, 189, 0.1) 0%, rgba(147, 211, 174, 0.15) 100%);
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -432,14 +432,14 @@
 }
 
 .btn-subscription-upgrade {
-  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
+  background: #C0A9BD;
   color: white;
   border: none;
   border-radius: 40rpx;
   padding: 20rpx 40rpx;
   font-size: 28rpx;
   font-weight: 500;
-  box-shadow: 0 6rpx 20rpx rgba(192, 169, 189, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.12);
 }
 
 .btn-subscription-upgrade:active {

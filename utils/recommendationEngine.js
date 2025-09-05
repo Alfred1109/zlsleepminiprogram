@@ -115,20 +115,58 @@ class RecommendationEngine {
     console.log(`获取分类 ${categoryId} 的推荐音乐`)
     
     try {
-      // 分类ID到分类代码的映射（与后台统一配置保持一致）
-      const categoryMapping = {
-        1: 'natural_sound',  // 自然音 -> zl-sleep/ 目录
-        2: 'white_noise',    // 白噪音 -> white-noise/ 目录  
-        3: 'brainwave',      // 脑波音频 -> brainwave/ 目录
-        4: 'ai_music',       // AI音乐 -> ai-generated/ 目录
-        5: 'healing'         // 疗愈资源 -> healing/ 目录
+      // 🎯 优先从数据库获取音乐，确保推荐的是后台管理的音乐
+      const dbMusicResult = await MusicAPI.getPresetMusicByCategory(categoryId).catch(error => {
+        console.warn(`[RecommendationEngine] 分类${categoryId}数据库音乐获取失败:`, error)
+        return { success: false }
+      })
+      
+      if (dbMusicResult.success && dbMusicResult.data && dbMusicResult.data.length > 0) {
+        console.log(`[RecommendationEngine] 分类${categoryId}使用数据库音乐: ${dbMusicResult.data.length}首`)
+        
+        // 使用数据库音乐，按请求数量返回
+        const effectiveLimit = Math.min(limit, dbMusicResult.data.length)
+        const selectedMusic = dbMusicResult.data.slice(0, effectiveLimit)
+        
+        // 过滤掉无效音乐（static路径文件不存在）
+        const validMusic = selectedMusic.filter(music => this.isValidMusicFile(music))
+        
+        if (validMusic.length === 0) {
+          console.warn(`[RecommendationEngine] 分类${categoryId}数据库音乐全部无效，使用七牛云文件`)
+          throw new Error('数据库音乐全部无效')
+        }
+        
+        // 重新计算有效数量限制
+        const validLimit = Math.min(limit, validMusic.length)
+        const finalMusic = validMusic.slice(0, validLimit)
+        
+        // 转换为推荐格式
+        const categoryName = this.getCategoryName(categoryId);
+        
+        return finalMusic.map((music, index) => ({
+          id: music.id || `db_${categoryId}_${index}`,
+          title: music.title || music.name,
+          name: music.title || music.name,
+          url: music.file_path || music.url,
+          path: music.file_path || music.url,
+          category: categoryName,
+          category_id: categoryId,
+          duration: music.duration || 180,
+          type: 'database_music',
+          source: 'database_recommendation',
+          image: this.fixImagePath(music.cover_image) || this.getDefaultImage(),
+          recommendationReason: '数据库音乐',
+          healing_resource_id: music.healing_resource_id,
+          available: music.available
+        }))
       }
       
-      const categoryCode = categoryMapping[categoryId] || 'healing'
+      console.log(`[RecommendationEngine] 分类${categoryId}数据库无音乐，使用七牛云文件`)
       
-      // 获取分类下的所有音频文件
+      // 回退：从七牛云获取文件
+      const categoryCode = await this.getCategoryCodeById(categoryId)
       const fileListResult = await MusicAPI.getQiniuFilesByCategory(categoryCode).catch(error => {
-        console.warn(`[RecommendationEngine] 分类${categoryCode}文件列表API失败:`, error)
+        console.warn(`[RecommendationEngine] 分类${categoryCode}七牛云获取失败:`, error)
         return {
           success: false,
           data: { files: [] },
@@ -137,33 +175,36 @@ class RecommendationEngine {
       })
       
       if (!fileListResult.success || !fileListResult.data?.files || fileListResult.data.files.length === 0) {
-        console.warn(`[RecommendationEngine] 分类${categoryCode}无可用音频文件，尝试降级方案`)
+        console.warn(`[RecommendationEngine] 分类${categoryCode}无可用文件`)
         throw new Error(`分类${categoryCode}获取文件列表失败或无文件: ${fileListResult.error || '未知错误'}`)
       }
       
       const files = fileListResult.data.files
-      console.log(`分类 ${categoryCode} 共有 ${files.length} 个音频文件`)
-      
       if (files.length === 0) {
         return []
       }
+      
+      // 按请求数量返回，不超过实际文件数量
+      const effectiveLimit = Math.min(limit, files.length)
       
       // 智能选择推荐音频
       let selectedFiles = []
       
       if (userContext && userContext.userId) {
         // 如果有用户上下文，进行个性化选择
-        selectedFiles = await this.selectFilesWithPersonalization(files, userContext, limit)
+        selectedFiles = await this.selectFilesWithPersonalization(files, userContext, effectiveLimit)
       } else {
         // 否则使用默认策略：优先选择较新的文件
         const sortedFiles = files.sort((a, b) => {
           // 按文件大小排序（大文件通常质量更好）
           return (b.size || 0) - (a.size || 0)
         })
-        selectedFiles = sortedFiles.slice(0, limit)
+        selectedFiles = sortedFiles.slice(0, effectiveLimit)
       }
       
       // 转换为推荐格式
+      const categoryName = this.getCategoryName(categoryId);
+      
       return selectedFiles.map((file, index) => ({
         id: file.id || `qiniu_${categoryId}_${index}`,
         title: this.extractAudioTitle(file.name || file.key),
@@ -171,7 +212,7 @@ class RecommendationEngine {
         url: file.url,
         path: file.url,
         key: file.key,
-        category: this.getCategoryName(categoryId),
+        category: categoryName,
         category_id: categoryId,
         duration: file.duration || 180,
         size: file.size,
@@ -475,39 +516,39 @@ class RecommendationEngine {
    * 回退分类推荐
    */
   async getFallbackCategoryRecommendations(categoryId, limit) {
-    console.log(`[RecommendationEngine] 使用降级机制为分类${categoryId}获取推荐`)
     const recommendations = []
     
     try {
-      // 首先尝试使用统一音乐管理器的随机获取
-      let attempts = 0
-      const maxAttempts = limit * 3 // 增加尝试次数以获得足够的不重复音乐
+      // 使用统一音乐管理器获取分类音乐，严格按分类不跨类
+      const effectiveLimit = limit
       
-      while (recommendations.length < limit && attempts < maxAttempts) {
+      // 简化回退：尝试从统一音乐管理器获取音乐
+      for (let i = 0; i < effectiveLimit; i++) {
         try {
           const musicData = await unifiedMusicManager.getMusicByCategory(categoryId, {
-            showLoading: false
+            showLoading: false,
+            allowFallback: false  // 严格不跨分类
           })
           
           if (musicData && musicData.title) {
             const exists = recommendations.find(r => r.title === musicData.title || r.url === musicData.url)
             if (!exists) {
+              const categoryName = this.getCategoryName(categoryId);
               recommendations.push({
                 ...musicData,
-                id: musicData.id || `fallback_${categoryId}_${recommendations.length}`,
+                id: musicData.id || `fallback_${categoryId}_${i}`,
+                category_id: categoryId,
+                category: categoryName,
                 recommendationReason: '系统推荐',
-                source: 'fallback_unified_manager',
-                type: 'fallback'
+                source: 'fallback_unified_manager'
               })
             }
           }
-        } catch (singleError) {
-          console.warn('单次获取音乐失败:', singleError)
+        } catch (error) {
+          // 获取失败，停止尝试
+          break
         }
-        attempts++
       }
-      
-      console.log(`[RecommendationEngine] 降级机制获取到${recommendations.length}个推荐`)
       
     } catch (error) {
       console.error('回退分类推荐失败:', error)
@@ -535,24 +576,78 @@ class RecommendationEngine {
   }
   
   /**
-   * 工具方法：获取分类名称
+   * 工具方法：获取分类名称（动态获取，与统一音乐管理器保持一致）
    */
   getCategoryName(categoryId) {
-    const categoryNames = {
-      1: '自然音',
-      2: '白噪音', 
-      3: '脑波音频',
-      4: 'AI音乐',
-      5: '疗愈资源'
+    try {
+      // 首先尝试从统一音乐管理器获取分类信息
+      const category = unifiedMusicManager.getCategoryById(categoryId)
+      
+      if (category && category.name) {
+        return category.name
+      }
+      
+      // 回退到硬编码映射
+      const categoryNames = {
+        1: '自然音',
+        2: '白噪音', 
+        3: '脑波音频',
+        4: 'AI音乐',
+        5: '疗愈资源'
+      }
+      
+      return categoryNames[categoryId] || '音乐'
+    } catch (error) {
+      console.warn(`[RecommendationEngine] 获取分类${categoryId}名称失败:`, error)
+      return '音乐'
     }
-    return categoryNames[categoryId] || '音乐'
   }
   
+  /**
+   * 工具方法：检查音乐文件是否有效
+   */
+  isValidMusicFile(music) {
+    if (!music || !music.file_path) return false
+    
+    // 过滤掉static路径的无效文件
+    if (music.file_path.startsWith('static/')) {
+      console.warn(`[RecommendationEngine] 过滤无效音乐: ${music.title} (${music.file_path})`)
+      return false
+    }
+    
+    // 过滤掉不可用的音乐
+    if (music.available === false) {
+      console.warn(`[RecommendationEngine] 过滤不可用音乐: ${music.title}`)
+      return false
+    }
+    
+    return true
+  }
+
+  /**
+   * 工具方法：修复图片路径（转换错误的/static/路径）
+   */
+  fixImagePath(imagePath) {
+    if (!imagePath) return null
+    
+    // 修复后端返回的错误路径：/static/images/ → /images/
+    if (imagePath.startsWith('/static/images/')) {
+      return imagePath.replace('/static/images/', '/images/')
+    }
+    
+    // 修复后端返回的错误路径：/static/ → /
+    if (imagePath.startsWith('/static/')) {
+      return imagePath.replace('/static/', '/')
+    }
+    
+    return imagePath
+  }
+
   /**
    * 工具方法：获取默认图片
    */
   getDefaultImage() {
-    return '/assets/images/default-image.png'
+    return '/images/default-music-cover.svg'
   }
   
   /**
@@ -667,6 +762,41 @@ class RecommendationEngine {
     })
     
     return sortedFiles.slice(0, limit)
+  }
+  
+  /**
+   * 动态获取分类代码（与统一音乐管理器保持一致）
+   */
+  async getCategoryCodeById(categoryId) {
+    try {
+      // 首先尝试从统一音乐管理器获取分类信息
+      const category = unifiedMusicManager.getCategoryById(categoryId)
+      
+      if (category && (category.code || category.scale_type || category.type)) {
+        return category.code || category.scale_type || category.type
+      }
+      
+      console.log(`[RecommendationEngine] 分类${categoryId}无code字段，使用ID映射`)
+      
+      // 回退到ID映射（与服务器实际返回数据保持一致）
+      const idToCode = {
+        1: 'natural_sound',
+        2: 'white_noise',
+        3: 'brainwave',
+        4: 'ai_music',
+        5: 'healing_resource'  // 🚨 修复：使用服务器实际返回的代码
+      }
+      
+      const mappedCode = idToCode[categoryId] || 'healing_resource'
+      console.log(`[RecommendationEngine] 分类${categoryId}映射为代码: ${mappedCode}`)
+      
+      return mappedCode
+      
+    } catch (error) {
+      console.error(`[RecommendationEngine] 获取分类${categoryId}代码失败:`, error)
+      // 最终回退
+      return 'healing_resource'
+    }
   }
 }
 

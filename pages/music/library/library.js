@@ -656,6 +656,16 @@ Page({
     console.log('📥 直接下载60秒音频:', music)
     
     try {
+      // 先检查订阅权限（下载为高级功能）
+      const permissionCheck = await requireSubscription('music_download', {
+        modalTitle: '下载音频',
+        modalContent: '下载为高级功能，订阅后可无限制下载生成的音频。',
+      })
+
+      if (!permissionCheck.allowed) {
+        return // 用户选择订阅/试用或取消
+      }
+
       wx.showLoading({ title: '下载中...' })
       
       const result = await MusicAPI.downloadMusic(music.id)
@@ -675,10 +685,25 @@ Page({
 
     } catch (error) {
       console.error('下载60秒音频失败:', error)
-      wx.showToast({
-        title: '下载失败',
-        icon: 'error'
-      })
+      // 针对401未授权（含订阅不足）给出升级引导
+      if (error && (error.statusCode === 401 || /401/.test(error.message || ''))) {
+        wx.showModal({
+          title: '订阅提示',
+          content: '订阅后可下载生成的音频。是否前往订阅？',
+          confirmText: '去订阅',
+          cancelText: '稍后',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({ url: '/pages/subscription/subscription' })
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: '下载失败',
+          icon: 'error'
+        })
+      }
     } finally {
       wx.hideLoading()
     }
@@ -1067,6 +1092,16 @@ Page({
     const { music } = e.currentTarget.dataset
     
     try {
+      // 先检查订阅权限，避免出现 showLoading/hideLoading 未配对
+      const permissionCheck = await requireSubscription('music_download', {
+        modalTitle: '下载音频',
+        modalContent: '下载为高级功能，订阅后可无限制下载生成的音频。',
+      })
+
+      if (!permissionCheck.allowed) {
+        return
+      }
+
       wx.showLoading({ title: '下载中...' })
       
       const result = await MusicAPI.downloadMusic(music.id)
@@ -1083,10 +1118,24 @@ Page({
 
     } catch (error) {
       console.error('下载音频失败:', error)
-      wx.showToast({
-        title: '下载失败',
-        icon: 'error'
-      })
+      if (error && (error.statusCode === 401 || /401/.test(error.message || ''))) {
+        wx.showModal({
+          title: '订阅提示',
+          content: '订阅后可下载生成的音频。是否前往订阅？',
+          confirmText: '去订阅',
+          cancelText: '稍后',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({ url: '/pages/subscription/subscription' })
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: '下载失败',
+          icon: 'error'
+        })
+      }
     } finally {
       wx.hideLoading()
     }
