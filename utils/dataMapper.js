@@ -90,8 +90,8 @@ const MusicMapper = {
       title: backendMusic.title || backendMusic.name || '未知音乐',
       name: backendMusic.name || backendMusic.title || '未知音乐',
       
-      // 文件信息
-      url: backendMusic.file_url || backendMusic.path || backendMusic.url,
+      // 文件信息 - 优先使用带token的url字段
+      url: backendMusic.url || backendMusic.file_url || backendMusic.path,
       path: backendMusic.file_path || backendMusic.path,
       backupPath: backendMusic.backup_path,
       fileName: backendMusic.file_name,

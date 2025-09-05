@@ -147,8 +147,8 @@ class RecommendationEngine {
           id: music.id || `db_${categoryId}_${index}`,
           title: music.title || music.name,
           name: music.title || music.name,
-          url: music.file_path || music.url,
-          path: music.file_path || music.url,
+          url: music.url || music.file_path,  // 优先使用带token的url
+          path: music.url || music.file_path,
           category: categoryName,
           category_id: categoryId,
           duration: music.duration || 180,

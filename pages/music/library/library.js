@@ -1435,7 +1435,7 @@ Page({
     console.log('使用全局播放器播放音频:', musicInfo)
     
     // 构建正确的音频URL
-    let audioUrl = musicInfo.audio_url || musicInfo.file_path || musicInfo.path || musicInfo.url
+    let audioUrl = musicInfo.url || musicInfo.audio_url || musicInfo.path || musicInfo.file_path  // 优先使用带token的url
     if (audioUrl && audioUrl.startsWith('/')) {
       // 如果是相对路径，构建完整URL
       const baseUrl = app.globalData.apiBaseUrl.replace('/api', '')
@@ -1482,7 +1482,7 @@ Page({
     console.log('使用全局播放器播放长序列音频:', sequenceInfo)
     
     // 构建正确的音频URL
-    let audioUrl = sequenceInfo.final_file_path || sequenceInfo.audio_url || sequenceInfo.path || sequenceInfo.url
+    let audioUrl = sequenceInfo.url || sequenceInfo.final_file_path || sequenceInfo.audio_url || sequenceInfo.path  // 优先使用带token的url
     if (audioUrl && audioUrl.startsWith('/')) {
       // 如果是相对路径，构建完整URL
       const baseUrl = app.globalData.apiBaseUrl.replace('/api', '')

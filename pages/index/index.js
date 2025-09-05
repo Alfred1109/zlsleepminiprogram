@@ -276,7 +276,7 @@ Page({
               name: this.generate60sAudioName(item),
               date: this.formatDate(item.updated_at || item.created_at),
               duration: item.duration_seconds || 60,
-              url: item.file_path || item.audio_url || item.url || 'no-url',
+              url: item.url || item.audio_url || item.file_path || 'no-url',  // 优先使用带token的url
               image: '/images/default-music-cover.svg',
               type: '60s_generated',
               created_at: item.created_at,
@@ -770,6 +770,14 @@ Page({
       if (success) {
         // 获取最新的分类数据，过滤掉冥想疗愈分类（AI生成音频，单独收费）
         const allCategories = unifiedMusicManager.getAllCategories()
+        try {
+          const longSeqIds = this.detectLongSequenceCategoryIds(allCategories)
+          if (longSeqIds.length > 0) {
+            console.log('[首页] 检测到长序列相关分类ID:', longSeqIds.join(', '))
+          }
+        } catch (e) {
+          console.warn('[首页] 长序列分类检测失败:', e)
+        }
         const categories = this.filterCategories(allCategories)
         
         this.setData({
@@ -848,6 +856,14 @@ Page({
       if (result && result.success) {
         const allCategories = result.data || unifiedMusicManager.getAllCategories()
         // 过滤掉冥想疗愈分类（AI生成音频，单独收费）
+        try {
+          const longSeqIds = this.detectLongSequenceCategoryIds(allCategories)
+          if (longSeqIds.length > 0) {
+            console.log('[首页-刷新] 检测到长序列相关分类ID:', longSeqIds.join(', '))
+          }
+        } catch (e) {
+          console.warn('[首页-刷新] 长序列分类检测失败:', e)
+        }
         const categories = this.filterCategories(allCategories)
         
         this.setData({
@@ -1604,8 +1620,40 @@ Page({
    */
   filterCategories(categories) {
     if (!categories || !Array.isArray(categories)) return []
-    // 过滤掉冥想疗愈分类（ID=4，AI生成音频，单独收费）
-    return categories.filter(cat => cat.id !== 4)
+    // 过滤掉冥想疗愈分类（ID=4，AI生成音频，单独收费）以及“长序列冥想”等长序列相关分类
+    const isLongSequenceCategory = (cat) => {
+      const name = (cat.name || '').toString().toLowerCase()
+      const code = (cat.code || cat.scale_type || cat.type || '').toString().toLowerCase()
+      return (
+        name.includes('长序列') ||
+        (name.includes('long') && name.includes('sequence')) ||
+        code.includes('long_sequence') ||
+        code.includes('longsequence')
+      )
+    }
+    // 显式屏蔽ID=4、ID=6（长序列冥想），以及名称/code匹配到的长序列类目
+    return categories.filter(cat => cat.id !== 4 && cat.id !== 6 && !isLongSequenceCategory(cat))
+  },
+
+  /**
+   * 运行时检测：识别接口返回的“长序列冥想”相关分类ID
+   */
+  detectLongSequenceCategoryIds(categories) {
+    if (!Array.isArray(categories)) return []
+    const toStr = (v) => (v || '').toString().toLowerCase()
+    return categories
+      .filter(cat => {
+        const name = toStr(cat.name)
+        const code = toStr(cat.code || cat.scale_type || cat.type)
+        return (
+          name.includes('长序列') ||
+          (name.includes('long') && name.includes('sequence')) ||
+          code.includes('long_sequence') ||
+          code.includes('longsequence')
+        )
+      })
+      .map(cat => cat.id)
+      .filter(id => id !== undefined && id !== null)
   },
 
   // 分类处理缓存
@@ -1625,7 +1673,17 @@ Page({
 
     // 一次性完成filter+map，避免两次遍历
     const processed = rawCategories
-      .filter(cat => cat.id !== 4) // 过滤不需要的分类
+      .filter(cat => {
+        const name = (cat.name || '').toString().toLowerCase()
+        const code = (cat.code || cat.scale_type || cat.type || '').toString().toLowerCase()
+        const isLongSeq = (
+          name.includes('长序列') ||
+          (name.includes('long') && name.includes('sequence')) ||
+          code.includes('long_sequence') ||
+          code.includes('longsequence')
+        )
+        return cat.id !== 4 && cat.id !== 6 && !isLongSeq
+      }) // 过滤不需要的分类
       .map(cat => ({
         id: cat.id,
         name: cat.name,

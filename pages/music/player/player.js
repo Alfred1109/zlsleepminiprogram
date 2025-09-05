@@ -166,7 +166,9 @@ Page({
    * 使用全局播放器加载音乐
    */
   loadMusicToPlayer(musicInfo) {
-    if (!musicInfo.file_path) {
+    // 优先使用带token的url字段，回退到file_path
+    const audioSource = musicInfo.url || musicInfo.file_path
+    if (!audioSource) {
       wx.showToast({
         title: '音乐文件不存在',
         icon: 'error'
@@ -175,7 +177,7 @@ Page({
     }
 
     // 构建正确的音频URL
-    let audioUrl = musicInfo.file_path
+    let audioUrl = audioSource
     if (audioUrl.indexOf('/') === 0) {
       // 如果是相对路径，使用静态资源基础URL而不是API基础URL
       const baseUrl = (app.globalData.apiBaseUrl || 'https://medsleep.cn/api').replace('/api', '')

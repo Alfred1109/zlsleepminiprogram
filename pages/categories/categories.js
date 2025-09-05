@@ -28,7 +28,29 @@ Page({
     }
 
     // 执行过滤操作并缓存结果
-    const filtered = allCategories.filter(cat => cat.id !== 4)
+    const isLongSequenceCategory = (cat) => {
+      const name = (cat.name || '').toString().toLowerCase()
+      const code = (cat.code || cat.scale_type || cat.type || '').toString().toLowerCase()
+      return (
+        name.includes('长序列') ||
+        (name.includes('long') && name.includes('sequence')) ||
+        code.includes('long_sequence') ||
+        code.includes('longsequence')
+      )
+    }
+    // 显式屏蔽ID=4、ID=6（长序列冥想），以及名称/code匹配到的长序列类目
+    const filtered = allCategories.filter(cat => cat.id !== 4 && cat.id !== 6 && !isLongSequenceCategory(cat))
+    try {
+      const detectedIds = allCategories
+        .filter(isLongSequenceCategory)
+        .map(cat => cat.id)
+        .filter(id => id !== undefined && id !== null)
+      if (detectedIds.length > 0) {
+        console.log('[全部分类] 检测到长序列相关分类ID:', detectedIds.join(', '))
+      }
+    } catch (e) {
+      console.warn('[全部分类] 长序列分类检测失败:', e)
+    }
     this._filteredCategoriesCache = filtered
     this._lastCategoriesData = allCategories
     return filtered

@@ -143,8 +143,8 @@ class UnifiedMusicManager {
               id: music.id || `db_${categoryId}_${Date.now()}_${Math.random()}`,
               title: music.title || music.name || '未知音乐',
               name: music.title || music.name || '未知音乐',
-              url: music.file_path || music.url,
-              path: music.file_path || music.url,
+              url: music.url || music.file_path,  // 优先使用带token的url
+              path: music.url || music.file_path,
               image: this.fixImagePath(music.cover_image) || '/images/default-music-cover.svg',
               duration: music.duration || 0,
               category: category.name || '音乐',

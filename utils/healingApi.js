@@ -170,7 +170,7 @@ const MusicAPI = {
     if (originalUrl && originalUrl.includes('cdn.medsleep.cn')) {
       const urlParts = originalUrl.split('/')
       if (urlParts.length >= 4) {
-        const filePath = urlParts.slice(4).join('/') // 提取域名后的路径部分
+        const filePath = urlParts.slice(3).join('/') // 修复：正确提取完整路径
         console.log('🔄 从URL提取文件路径:', filePath)
         
         // 使用七牛云签名URL API

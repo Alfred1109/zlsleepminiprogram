@@ -754,31 +754,16 @@ Component({
         // 确保分类管理器已初始化
         await categoryManager.init()
         
-        // 获取所有分类并构建映射
+        // 获取所有分类并构建映射（仅基于接口实际返回的类目）
         const categories = categoryManager.getAllCategories()
         const categoryMap = {}
         
         categories.forEach(category => {
-          // 支持通过ID和旧的分类名称映射
+          if (!category || !category.name) return
+          // 仅映射存在的类目：按ID与后端提供的code
           categoryMap[category.id] = category.name
-          categoryMap[category.code] = category.name
-          
-          // 兼容旧的硬编码分类名称
-          if (category.id === 1) {
-            categoryMap['自然音'] = category.name
-            categoryMap['natural_sound'] = category.name
-          } else if (category.id === 2) {
-            categoryMap['白噪音'] = category.name
-            categoryMap['white_noise'] = category.name
-          } else if (category.id === 3) {
-            categoryMap['脑波音频'] = category.name
-            categoryMap['brainwave'] = category.name
-          } else if (category.id === 4) {
-            categoryMap['AI音乐'] = category.name
-            categoryMap['ai_music'] = category.name
-          } else if (category.id === 5) {
-            categoryMap['疗愈资源'] = category.name
-            categoryMap['healing_resource'] = category.name
+          if (category.code) {
+            categoryMap[category.code] = category.name
           }
         })
         
