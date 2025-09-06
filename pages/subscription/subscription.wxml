@@ -149,25 +149,31 @@
     </view>
   </view>
 
-  <!-- 用户次数显示 -->
-  <view class="user-counts" wx:if="{{userCounts && currentTab === 'package'}}">
-    <view class="counts-header">我的剩余次数</view>
-    <view class="counts-list">
+  <!-- 用户次数显示和优惠券兑换 -->
+  <view class="counts-coupon-section" wx:if="{{currentTab === 'package'}}">
+    <!-- 剩余次数和兑换按钮在同一行 -->
+    <view class="counts-coupon-header">
+      <view class="counts-header-left">我的剩余次数</view>
+      <view class="coupon-btn-inline" bind:tap="onShowCouponModal">
+        🎫 兑换优惠券
+      </view>
+    </view>
+    
+    <!-- 次数列表 -->
+    <view class="counts-list" wx:if="{{userCounts}}">
       <view class="count-item" wx:for="{{userCounts}}" wx:key="type">
         <view class="count-type">{{item.type_name || item.type}}</view>
-        <view class="count-value">{{item.remaining_count}}次</view>
+        <view class="count-value">{{item.remaining_count || 0}}次</view>
         <view class="count-expire" wx:if="{{item.expire_date}}">
           到期：{{item.expire_date}}
         </view>
-        
       </view>
     </view>
-  </view>
-
-  <!-- 优惠券兑换按钮 -->
-  <view class="coupon-section" wx:if="{{currentTab === 'package'}}">
-    <view class="coupon-btn" bind:tap="onShowCouponModal">
-      🎫 兑换优惠券
+    
+    <!-- 空状态提示 -->
+    <view class="empty-counts" wx:if="{{!userCounts || userCounts.length === 0}}">
+      <view class="empty-counts-text">暂无次数记录</view>
+      <view class="empty-counts-tip">购买次数套餐或兑换优惠券后，次数将显示在这里</view>
     </view>
   </view>
 

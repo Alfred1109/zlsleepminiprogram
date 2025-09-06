@@ -197,13 +197,15 @@ page {
 .plan-badge {
   position: absolute;
   top: 0;
-  right: 30rpx;
+  left: 50%;
+  transform: translateX(-50%);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 8rpx 20rpx;
   border-radius: 0 0 15rpx 15rpx;
   font-size: 22rpx;
   font-weight: bold;
+  z-index: 1;
 }
 
 .plan-badge.discount {
@@ -384,8 +386,8 @@ page {
   font-weight: bold;
 }
 
-/* 用户次数显示 */
-.user-counts {
+/* 用户次数显示和优惠券兑换 */
+.counts-coupon-section {
   background: white;
   border-radius: 12rpx;
   padding: 30rpx;
@@ -393,12 +395,27 @@ page {
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.1);
 }
 
-.counts-header {
+.counts-coupon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.counts-header-left {
   font-size: 32rpx;
   font-weight: bold;
   color: #333;
-  margin-bottom: 20rpx;
-  text-align: center;
+}
+
+.coupon-btn-inline {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+  color: white;
+  padding: 16rpx 32rpx;
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 15rpx rgba(255, 107, 107, 0.3);
 }
 
 .counts-list {
@@ -435,22 +452,24 @@ page {
   margin-top: 4rpx;
 }
 
-/* 优惠券兑换区域 */
-.coupon-section {
-  margin: 20rpx 0;
+/* 空状态样式 */
+.empty-counts {
   text-align: center;
+  padding: 40rpx 20rpx;
+  color: #999;
 }
 
-.coupon-btn {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
-  color: white;
-  padding: 20rpx 40rpx;
-  border-radius: 25rpx;
+.empty-counts-text {
   font-size: 28rpx;
-  font-weight: bold;
-  display: inline-block;
-  box-shadow: 0 4rpx 15rpx rgba(255, 107, 107, 0.3);
+  margin-bottom: 12rpx;
 }
+
+.empty-counts-tip {
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+/* 原有的优惠券兑换区域样式已合并到 counts-coupon-section */
 
 /* 次数套餐卡片 */
 .package-card {
@@ -472,13 +491,15 @@ page {
 .package-badge {
   position: absolute;
   top: 0;
-  right: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
   background: #ff6b6b;
   color: white;
   padding: 8rpx 16rpx;
   border-radius: 0 0 12rpx 12rpx;
   font-size: 24rpx;
   font-weight: bold;
+  z-index: 1;
 }
 
 .package-badge.bonus {

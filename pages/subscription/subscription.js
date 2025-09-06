@@ -394,14 +394,43 @@ Page({
   async loadUserCounts() {
     try {
       console.log('🔢 开始加载用户次数...')
+      
+      // 检查用户登录状态
+      const AuthService = require('../../services/AuthService')
+      const isLoggedIn = AuthService.isLoggedIn()
+      const currentUser = AuthService.getCurrentUser()
+      
+      console.log('👤 用户登录状态:', isLoggedIn)
+      console.log('👤 当前用户信息:', currentUser)
+      
+      if (!isLoggedIn) {
+        console.log('⚠️ 用户未登录，跳过加载次数信息')
+        this.setData({ userCounts: null })
+        return
+      }
+      
       const result = await CountPackageAPI.getUserCounts()
+      
+      console.log('🔍 完整API响应:', result)
+      console.log('🔍 响应状态:', result.success)
+      console.log('🔍 响应数据类型:', typeof result.data)
+      console.log('🔍 响应数据长度:', Array.isArray(result.data) ? result.data.length : 'not array')
+      console.log('🔍 响应数据键:', result.data ? Object.keys(result.data) : 'no data')
       
       if (result.success) {
         console.log('✅ 用户次数加载成功')
+        console.log('📊 原始用户次数数据:', result.data)
         
         // 处理用户次数数据，确保type字段是字符串
         let processedUserCounts = null
+        
+        console.log('🔧 开始处理数据...')
+        console.log('🔧 数据是否存在:', !!result.data)
+        console.log('🔧 数据是否为数组:', Array.isArray(result.data))
+        console.log('🔧 数据是否为空对象:', result.data && Object.keys(result.data).length === 0)
+        
         if (result.data && Array.isArray(result.data)) {
+          console.log('📋 处理数组格式数据，长度:', result.data.length)
           processedUserCounts = result.data.map((countItem, index) => {
             
             // 确保type和type_name都是字符串
@@ -433,9 +462,26 @@ Page({
             return processed
           })
         } else if (result.data) {
-          // 如果不是数组，可能是对象格式
-          processedUserCounts = result.data
+          console.log('📋 处理对象格式数据')
+          
+          // 检查是否为空对象
+          if (Object.keys(result.data).length === 0) {
+            console.log('⚠️ 数据为空对象，可能原因：')
+            console.log('   1. 用户还没有购买任何次数套餐')
+            console.log('   2. 用户登录状态异常')
+            console.log('   3. 后端数据库中没有该用户的次数记录')
+            processedUserCounts = null
+          } else {
+            // 如果不是数组，可能是对象格式，尝试转换
+            console.log('📋 尝试将对象转换为数组格式')
+            processedUserCounts = result.data
+          }
+        } else {
+          console.log('⚠️ 没有任何数据返回')
+          processedUserCounts = null
         }
+        
+        console.log('🔍 处理后的用户次数数据:', processedUserCounts)
         
         this.setData({ 
           userCounts: processedUserCounts
