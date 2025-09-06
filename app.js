@@ -11,6 +11,56 @@ App({
   onLaunch: async function () {
     console.log('小程序启动')
 
+    // 注入全局拦截：定位/屏蔽包含 total_fee/totol_fee/支付JSAPI/缺少参数 的用户可见提示
+    try {
+      const keywords = ['total_fee', 'totol_fee', '支付jsapi', '缺少参数']
+      if (typeof wx !== 'undefined') {
+        // 拦截 showToast
+        if (typeof wx.showToast === 'function' && !wx.__patchedShowToast) {
+          const __origShowToast = wx.showToast
+          wx.showToast = function(opts = {}) {
+            try {
+              const title = (opts && opts.title) ? String(opts.title).toLowerCase() : ''
+              if (keywords.some(k => title.includes(k))) {
+                console.warn('🚧 捕获到包含敏感关键词的 showToast，屏蔽用户可见文本。原始参数:', opts)
+                console.warn(new Error('showToast 调用堆栈（用于定位来源）').stack)
+                // 统一替换为友好提示
+                const patched = { ...opts, title: '支付参数异常，请稍后重试或联系客服', icon: opts.icon || 'none' }
+                return __origShowToast.call(wx, patched)
+              }
+            } catch (_) {}
+            return __origShowToast.call(wx, opts)
+          }
+          wx.__patchedShowToast = true
+        }
+        // 拦截 showModal
+        if (typeof wx.showModal === 'function' && !wx.__patchedShowModal) {
+          const __origShowModal = wx.showModal
+          wx.showModal = function(opts = {}) {
+            try {
+              const content = (opts && opts.content) ? String(opts.content).toLowerCase() : ''
+              const title = (opts && opts.title) ? String(opts.title).toLowerCase() : ''
+              if (keywords.some(k => content.includes(k) || title.includes(k))) {
+                console.warn('🚧 捕获到包含敏感关键词的 showModal，屏蔽用户可见文本。原始参数:', opts)
+                console.warn(new Error('showModal 调用堆栈（用于定位来源）').stack)
+                const patched = {
+                  ...opts,
+                  title: '支付服务提示',
+                  content: '支付参数异常，请稍后重试或联系客服',
+                  icon: undefined
+                }
+                return __origShowModal.call(wx, patched)
+              }
+            } catch (_) {}
+            return __origShowModal.call(wx, opts)
+          }
+          wx.__patchedShowModal = true
+        }
+      }
+    } catch (e) {
+      console.warn('全局提示拦截注入失败（非致命）:', e)
+    }
+
     // 真机调试时先完成IP检测，再设置API配置
     await this.initDevelopmentIP()
 

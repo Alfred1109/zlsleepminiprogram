@@ -825,6 +825,16 @@ Page({
       // 根据不同错误类型提供不同的用户提示
       let errorTitle = '购买失败'
       let errorContent = error.message || '购买过程中出现错误，请稍后重试'
+
+      // 屏蔽后端/本地透传的 total_fee/totol_fee 文案（与小程序支付无关）
+      try {
+        const lowerMsg = (error.message || '').toLowerCase()
+        if (lowerMsg.includes('total_fee') || lowerMsg.includes('totol_fee')) {
+          console.warn('🚧 捕获到包含 total_fee/totol_fee 的错误信息，改为友好提示显示。原始信息:', error.message)
+          errorTitle = '支付服务暂不可用'
+          errorContent = '支付参数异常，请稍后重试或联系客服。'
+        }
+      } catch (_) {}
       
       console.error('💥 购买失败详细信息:', {
         errorMessage: error.message,
@@ -892,6 +902,9 @@ Page({
         },
         fail: (err) => {
           console.error('微信支付失败:', err)
+          if (err && err.errMsg) {
+            console.error('微信支付失败 errMsg:', err.errMsg)
+          }
           reject(err)
         }
       })

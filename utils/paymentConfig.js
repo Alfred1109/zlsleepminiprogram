@@ -149,14 +149,14 @@ class PaymentConfig {
   static formatPaymentParams(paymentData) {
     // 确保支付参数包含必要的字段
     if (!paymentData.payment_params) {
-      console.error('❌ 支付数据缺少payment_params字段')
-      console.error('🔍 完整的paymentData:', paymentData)
+      console.warn('❗ 支付数据缺少 payment_params 字段（小程序侧不需要 total_fee，仅后端统一下单使用）')
+      console.warn('🔍 完整的paymentData:', paymentData)
       
       // 检查是否是后端返回的错误信息
       if (paymentData.error && paymentData.error.includes('total_fee')) {
-        console.error('🚨 检测到后端微信支付API错误:', paymentData.error)
-        console.error('📋 问题分析: 这是后端调用微信统一下单接口时的参数问题，不是前端问题')
-        console.error('💡 建议: 检查后端微信支付统一下单接口的total_fee参数设置')
+        console.warn('🚧 检测到后端微信支付API total_fee 提示:', paymentData.error)
+        console.warn('📋 说明: total_fee 为后端统一下单必填，与小程序 wx.requestPayment 无关')
+        console.warn('💡 建议后端排查: 统一下单接口的 total_fee（单位分）是否为正整数')
       }
       
       return null
@@ -205,11 +205,21 @@ class PaymentConfig {
     
     // 构建微信小程序支付参数 (不包含total_fee，金额信息在package中)
     const paymentParams = {
-      timeStamp: params.timeStamp,
-      nonceStr: params.nonceStr,
-      package: params.package,
-      signType: params.signType,
-      paySign: params.paySign
+      timeStamp: String(params.timeStamp),
+      nonceStr: String(params.nonceStr),
+      package: String(params.package),
+      signType: String(params.signType || 'MD5').toUpperCase(),
+      paySign: String(params.paySign)
+    }
+
+    // 二次严格校验（按官方指引）
+    if (!paymentParams.package.startsWith('prepay_id=')) {
+      console.error('❌ package 参数格式错误，应为 prepay_id=... 实际为:', paymentParams.package)
+      return null
+    }
+    if (typeof paymentParams.timeStamp !== 'string') {
+      console.error('❌ timeStamp 必须为字符串')
+      return null
     }
     
     console.log('✅ 格式化后的微信支付参数:', paymentParams)
@@ -251,17 +261,14 @@ class PaymentConfig {
     
     this.logPaymentEvent('PAYMENT_ERROR', errorInfo)
     
-    // 检查是否是后端微信支付API相关的错误
+    // 检查是否是后端微信支付API相关的错误（小程序侧不需要 total_fee，不对用户提示）
     if (error.message && error.message.includes('total_fee')) {
-      console.error('🚨 检测到后端微信支付API错误（total_fee相关）')
-      console.error('📋 错误详情:', error.message)
-      console.error('💡 这是后端问题，需要检查后端微信统一下单接口的total_fee参数设置')
-      
+      console.warn('🚧 捕获到 total_fee 相关错误提示（仅记录，不向用户展示）:', error.message)
       return {
         type: 'BACKEND_PAYMENT_CONFIG_ERROR',
-        message: '支付服务配置异常，请联系客服或稍后重试',
-        showToUser: true,
-        debugInfo: '后端微信支付统一下单接口total_fee参数配置问题'
+        message: '后端支付参数提示（total_fee）',
+        showToUser: false,
+        debugInfo: '统一下单 total_fee 提示，已在前端忽略'
       }
     }
     

@@ -387,6 +387,15 @@ function handleError(error, showToast = true) {
   }
 
   if (showToast) {
+    // 全局屏蔽与 total_fee/totol_fee 相关的错误文案对用户展示（仅日志记录）
+    try {
+      const lowerMsg = (message || '').toLowerCase()
+      if (lowerMsg.includes('total_fee') || lowerMsg.includes('totol_fee')) {
+        console.warn('🚧 捕获到包含 total_fee/totol_fee 的错误信息，改为友好提示显示。原始信息:', message)
+        message = '支付参数异常，请稍后重试或联系客服'
+      }
+    } catch (_) {}
+
     wx.showToast({
       title: message,
       icon: 'error',
