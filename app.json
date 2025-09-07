@@ -51,7 +51,7 @@
       },
       {
         "pagePath": "pages/music/library/library",
-        "text": "音疗",
+        "text": "脑波",
         "iconPath": "images/tab-music.png",
         "selectedIconPath": "images/tab-music-active.png"
       },
