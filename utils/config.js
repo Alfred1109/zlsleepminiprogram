@@ -77,11 +77,11 @@ const UNIFIED_CONFIG = {
   // 支付配置 - 微信支付相关设置
   PAYMENT: {
     // 支付 API Key
-    API_KEY: 'zlkjcy19811031Medmedvaultcnsleep',
+    API_KEY: 'zhiruitechdonglixingA1B2C3D4E5F6G7H8',
     // 微信小程序 APPID (来自 project.config.json)
     WECHAT_APPID: 'wxd0f3dc2792ca55fb',
     // 微信支付商户号 (北京溢兰科技有限公司)
-    MCH_ID: '1724793034',
+    MCH_ID: '1727118040',
     // 支付回调配置
     PAYMENT_TIMEOUT: 300000, // 5分钟支付超时
     // 订单查询重试配置

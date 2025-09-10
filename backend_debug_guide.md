@@ -40,7 +40,7 @@ tail -f /var/log/your-app/error.log
   "plan_id": "premium_monthly",
   "user_id": "93",
   "payment_config": {
-    "api_key": "zlkjcy19811031Medmedvaultcnsleep",
+    "api_key": "zhiruitechdonglixingA1B2C3D4E5F6G7H8",
     "app_id": "wxd0f3dc2792ca55fb", 
     "timeout": 300000
   }
@@ -68,7 +68,7 @@ tail -f /var/log/your-app/error.log
 curl -X POST https://medsleep.cn/api/subscription/create-order \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_VALID_TOKEN" \
-  -d '{"plan_id":"premium_monthly","user_id":"93","payment_config":{"api_key":"zlkjcy19811031Medmedvaultcnsleep","app_id":"wxd0f3dc2792ca55fb","timeout":300000}}'
+  -d '{"plan_id":"premium_monthly","user_id":"93","payment_config":{"api_key":"zhiruitechdonglixingA1B2C3D4E5F6G7H8","app_id":"wxd0f3dc2792ca55fb","timeout":300000}}'
 ```
 
 ## 结论

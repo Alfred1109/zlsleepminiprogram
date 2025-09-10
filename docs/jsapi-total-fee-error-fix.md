@@ -50,7 +50,7 @@
 # 示例：后端统一下单接口参数
 {
     "appid": "wxd0f3dc2792ca55fb",
-    "mch_id": "1724793034",  # ✅ 现已配置商户号
+    "mch_id": "1727118040",  # ✅ 现已配置商户号
     "nonce_str": "随机字符串",
     "body": "订单描述",
     "out_trade_no": "订单号",
@@ -129,7 +129,7 @@ for param in required_params:
 ```bash
 # 测试统一下单接口
 curl -X POST https://api.mch.weixin.qq.com/pay/unifiedorder \
-  -d "appid=wxd0f3dc2792ca55fb&mch_id=1724793034&..." \
+  -d "appid=wxd0f3dc2792ca55fb&mch_id=1727118040&..." \
   -H "Content-Type: application/x-www-form-urlencoded"
 ```
 
