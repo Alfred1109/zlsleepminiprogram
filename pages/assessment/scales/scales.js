@@ -22,31 +22,30 @@ Page({
     console.log('- user_info:', wx.getStorageSync('user_info'))
     console.log('- AuthService.getCurrentUser():', AuthService.getCurrentUser())
 
-    // 检查页面访问权限
-    const currentPages = getCurrentPages()
-    const currentPage = currentPages[currentPages.length - 1]
-    const pagePath = '/' + currentPage.route
-
+    // 修改：允许未登录用户查看评测页面，但不强制登录
     const currentUser = AuthService.getCurrentUser()
-    if (!currentUser) {
-      console.log('❌ 没有用户信息，跳转到登录页')
-      wx.navigateTo({ url: '/pages/login/login' })
-      return
+    if (currentUser) {
+      console.log('✅ 检测到用户信息，加载完整页面数据')
+      this.setData({ userInfo: currentUser })
+      this.loadRecentAssessments()
+    } else {
+      console.log('ℹ️ 用户未登录，仅显示评测量表列表')
+      this.setData({ userInfo: null })
     }
 
-    console.log('✅ 检测到用户信息，继续加载页面数据')
-
-    // 确保按顺序执行，先检查登录状态，再加载数据
-    await this.checkUserLogin()
+    // 加载评测量表（无论是否登录都可以查看）
     this.loadScales()
-    this.loadRecentAssessments()
   },
 
   onShow() {
     // 每次显示时检查登录状态并刷新数据
-    this.checkUserLogin().then(() => {
+    const currentUser = AuthService.getCurrentUser()
+    if (currentUser) {
+      this.setData({ userInfo: currentUser })
       this.loadRecentAssessments()
-    })
+    } else {
+      this.setData({ userInfo: null, recentAssessments: [] })
+    }
   },
 
   /**
@@ -92,12 +91,16 @@ Page({
    * 加载评测量表列表
    */
   async loadScales() {
+    console.log('🔄 开始加载评测量表...')
     this.setData({ loading: true })
 
     try {
+      console.log('📡 调用 AssessmentAPI.getScales()...')
       const result = await AssessmentAPI.getScales()
+      console.log('📨 API 响应结果:', result)
       
       if (result.success) {
+        console.log('✅ 量表数据获取成功，数量:', result.data?.length || 0)
         // 为每个量表添加描述和图标
         const scalesWithInfo = result.data.map(scale => ({
           ...scale,
@@ -109,20 +112,23 @@ Page({
         this.setData({
           scales: scalesWithInfo
         })
+        console.log('✅ 量表数据已设置到页面数据中')
       } else {
+        console.error('❌ API 返回失败:', result.error)
         wx.showToast({
           title: result.error || '加载失败',
           icon: 'error'
         })
       }
     } catch (error) {
-      console.error('加载量表失败:', error)
+      console.error('💥 加载量表异常:', error)
       wx.showToast({
         title: '网络错误',
         icon: 'error'
       })
     } finally {
       this.setData({ loading: false })
+      console.log('🏁 量表加载流程结束')
     }
   },
 
@@ -256,10 +262,21 @@ Page({
   onStartAssessment(e) {
     const { scale } = e.currentTarget.dataset
     
+    // 检查登录状态，未登录时引导用户登录
     if (!this.data.userInfo) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'error'
+      wx.showModal({
+        title: '需要登录',
+        content: '进行专业评测需要先登录账户，立即前往登录页面？',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ 
+              url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/assessment/scales/scales')
+            })
+          }
+        }
       })
       return
     }

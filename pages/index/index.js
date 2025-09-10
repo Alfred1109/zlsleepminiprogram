@@ -654,8 +654,20 @@ Page({
    * 跳转到评测页面
    */
   navigateToAssessment: function() {
-    wx.navigateTo({
-      url: '/pages/assessment/scales/scales'
+    console.log('🚀 navigateToAssessment 被触发');
+    console.log('📱 准备跳转到评测页面...');
+    wx.switchTab({
+      url: '/pages/assessment/scales/scales',
+      success: function(res) {
+        console.log('✅ 跳转成功:', res);
+      },
+      fail: function(err) {
+        console.error('❌ 跳转失败:', err);
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'error'
+        });
+      }
     });
   },
   

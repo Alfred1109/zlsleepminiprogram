@@ -150,9 +150,9 @@ Page({
   },
 
   /**
-   * 生成30分钟长序列音频
+   * 跳转到长序列创建页面
    */
-  async generateLongSequence() {
+  generateLongSequence() {
     if (!this.data.assessmentId) {
       wx.showToast({
         title: '评测数据异常',
@@ -161,89 +161,10 @@ Page({
       return
     }
 
-    this.setData({ 
-      generating: true, 
-      generationType: 'long' 
+    // 跳转到长序列创建页面，并预选当前评测记录
+    wx.navigateTo({
+      url: `/pages/longSequence/create/create?assessmentId=${this.data.assessmentId}`
     })
-
-    try {
-      console.log('🎶 开始创建长序列音频...')
-      console.log('🎶 评测ID:', this.data.assessmentId)
-      console.log('🎶 时长:', 30, '分钟')
-      
-      const result = await LongSequenceAPI.createLongSequence(this.data.assessmentId, 30)
-      
-      console.log('🎶 长序列API响应:', result)
-      
-      if (result.success) {
-        console.log('🎶 长序列创建成功，会话ID:', result.data.session_id)
-        console.log('🎶 完整响应数据:', JSON.stringify(result.data, null, 2))
-        
-        this.setData({ longSequenceResult: result.data })
-        
-        // 🔍 检查响应数据的完整性
-        if (!result.data.session_id) {
-          console.error('❌ 警告：响应中缺少session_id')
-          throw new Error('生成响应异常：缺少会话ID')
-        }
-        
-        // 🔍 检查文件路径信息
-        if (result.data.final_file_path) {
-          console.log('🎵 文件路径已返回:', result.data.final_file_path)
-        } else {
-          console.warn('⚠️ 响应中暂无文件路径，可能正在异步生成')
-        }
-        
-        wx.showToast({
-          title: '长序列生成成功',
-          icon: 'success'
-        })
-
-        // 跳转到长序列播放页面
-        setTimeout(() => {
-          wx.navigateTo({
-            url: `/pages/longSequence/player/player?sessionId=${result.data.session_id}`
-          })
-        }, 1500)
-      } else {
-        console.error('❌ 长序列创建失败:', result)
-        throw new Error(result.error || '长序列生成失败')
-      }
-
-    } catch (error) {
-      console.error('生成长序列失败:', error)
-      
-      let title = '生成失败'
-      let content = error.message || '长序列生成失败，请重试'
-      
-      // 根据错误类型提供不同的提示
-      if (error.message && error.message.includes('订阅')) {
-        title = '需要订阅'
-        content = '长序列音频需要订阅用户权限，请先订阅后再生成'
-      } else if (error.message && error.message.includes('网络')) {
-        content = '网络连接失败，请检查网络后重试'
-      } else if (error.message && error.message.includes('服务器')) {
-        content = '服务器繁忙，请稍后重试'
-      }
-      
-      wx.showModal({
-        title,
-        content,
-        showCancel: true,
-        confirmText: '重试',
-        cancelText: '稍后再试',
-        success: (res) => {
-          if (res.confirm) {
-            this.generateLongSequence()
-          }
-        }
-      })
-    } finally {
-      this.setData({ 
-        generating: false, 
-        generationType: null 
-      })
-    }
   },
 
   /**

@@ -25,7 +25,7 @@
     <view class="guide-card assessment-card" bindtap="navigateToAssessment">
       <view class="card-header">
         <text class="card-title">专业评测</text>
-        <view class="card-action-button">开始评测</view>
+        <view class="card-action-button" bindtap="navigateToAssessment">开始评测</view>
       </view>
       <view class="card-body">
         <view class="history-list" wx:if="{{assessmentHistory.length > 0}}">
@@ -50,7 +50,7 @@
     <view class="guide-card brainwave-card" bindtap="navigateToGenerator">
       <view class="card-header">
         <text class="card-title">AI生成脑波</text>
-        <view class="card-action-button">立即生成</view>
+        <view class="card-action-button" bindtap="navigateToGenerator">立即生成</view>
       </view>
       <view class="card-body">
 

@@ -1,10 +1,10 @@
 <!--pages/longSequence/create/create.wxml-->
-<!-- 长序列音乐创建页面 -->
+<!-- 长序列脑波创建页面 -->
 <view class="container">
   <!-- 页面标题 -->
   <view class="page-header">
-    <view class="header-title">创建长序列音乐</view>
-    <view class="header-subtitle">基于评测结果生成长时间疗愈音乐体验</view>
+    <view class="header-title">创建AI长序列脑波</view>
+    <view class="header-subtitle">基于评测结果生成长时间AI疗愈脑波体验</view>
   </view>
 
   <!-- 加载状态 -->
@@ -16,7 +16,7 @@
   <!-- 生成进度 -->
   <view wx:elif="{{generating}}" class="generation-container">
     <view class="generation-header">
-      <view class="generation-title">正在生成您的专属音乐</view>
+      <view class="generation-title">正在生成您的专属AI脑波</view>
       <view class="generation-subtitle">{{currentPhase}}</view>
     </view>
 
@@ -29,8 +29,8 @@
 
     <view class="generation-tips">
       <view class="tip-item">• 正在分析您的心理状态</view>
-      <view class="tip-item">• 智能匹配音乐元素</view>
-      <view class="tip-item">• 生成个性化音乐序列</view>
+      <view class="tip-item">• 智能匹配脑波元素</view>
+      <view class="tip-item">• 生成个性化脑波序列</view>
       <view class="tip-item">• 优化音频质量</view>
     </view>
   </view>
@@ -41,15 +41,18 @@
     <view class="section">
       <view class="section-title">
         <text class="title-text">选择评测记录</text>
-        <text class="title-desc">基于评测结果生成音乐</text>
+        <text class="title-desc">基于评测结果生成脑波</text>
       </view>
 
       <!-- 无评测记录 -->
       <view wx:if="{{recentAssessments.length === 0}}" class="empty-state">
         <image class="empty-icon" src="/images/empty-assessment.svg" mode="aspectFit"></image>
-        <view class="empty-text">暂无评测记录</view>
-        <view class="empty-desc">请先完成心理健康评测</view>
-        <button class="btn-primary" bindtap="onGoToAssessment">去做评测</button>
+        <view wx:if="{{!userInfo}}" class="empty-text">需要登录查看评测记录</view>
+        <view wx:else class="empty-text">暂无评测记录</view>
+        <view wx:if="{{!userInfo}}" class="empty-desc">登录后可查看您的评测记录并生成脑波</view>
+        <view wx:else class="empty-desc">请先完成心理健康评测</view>
+        <button wx:if="{{!userInfo}}" class="btn-primary" bindtap="onGoToLogin">去登录</button>
+        <button wx:else class="btn-primary" bindtap="onGoToAssessment">去做评测</button>
       </view>
 
       <!-- 评测记录列表 -->
@@ -118,7 +121,7 @@
     <!-- 创建说明 -->
     <view wx:if="{{recentAssessments.length > 0}}" class="section">
       <view class="section-title">
-        <text class="title-text">长序列音乐说明</text>
+        <text class="title-text">长序列脑波说明</text>
       </view>
 
       <view class="info-content">
@@ -134,7 +137,7 @@
           <image class="info-icon" src="/images/info-sequence.svg" mode="aspectFit"></image>
           <view class="info-text">
             <view class="info-title">序列生成</view>
-            <view class="info-desc">创建多段式音乐，渐进式疗愈体验</view>
+            <view class="info-desc">创建多段式脑波，渐进式疗愈体验</view>
           </view>
         </view>
 
@@ -142,7 +145,7 @@
           <image class="info-icon" src="/images/info-personalized.svg" mode="aspectFit"></image>
           <view class="info-text">
             <view class="info-title">个性化定制</view>
-            <view class="info-desc">根据您的具体需求调整音乐风格和节奏</view>
+            <view class="info-desc">根据您的具体需求调整脑波风格和节奏</view>
           </view>
         </view>
       </view>
@@ -156,7 +159,7 @@
         bindtap="onCreateSequence"
       >
         <image class="btn-icon" src="/images/create-music.svg" mode="aspectFit"></image>
-        <text>创建长序列音乐</text>
+        <text>创建长序列脑波</text>
       </button>
 
       <view class="create-info">

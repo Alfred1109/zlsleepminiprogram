@@ -1,5 +1,5 @@
 // pages/music/library/library.js
-// 音频库页面
+// 脑波库页面
 const app = getApp()
 const { MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
@@ -18,6 +18,7 @@ Page({
     player: null,
     subscriptionInfo: null,
     canUseFeature: true,
+    isGuestMode: false, // 新增：是否为访客模式
     // 全局播放器相关
     showGlobalPlayer: false,
     isPlaying: false,
@@ -33,19 +34,9 @@ Page({
   },
 
   onLoad() {
-    console.log('音频库页面加载')
+    console.log('脑波库页面加载')
 
-    // 检查页面访问权限
-    const currentPages = getCurrentPages()
-    const currentPage = currentPages[currentPages.length - 1]
-    const pagePath = '/' + currentPage.route
-
-    if (!AuthService.getCurrentUser()) {
-      console.log('用户未登录，跳转到登录页')
-      wx.navigateTo({ url: '/pages/login/login' })
-      return // 如果没有权限，跳转到登录页
-    }
-
+    // 修改：允许未登录用户查看脑波页面，但不强制登录
     this.initPage()
   },
 
@@ -66,13 +57,27 @@ Page({
         await this.loadSubscriptionInfo()
         await this.loadSubscriptionStatus()
       } else {
-        // 登录失败，显示降级内容
-        this.showFallbackContent()
+        // 未登录，显示空状态但不跳转
+        this.showGuestContent()
       }
     } catch (error) {
       console.error('页面初始化失败:', error)
       this.showFallbackContent()
     }
+  },
+
+  /**
+   * 显示访客内容（未登录状态）
+   */
+  showGuestContent() {
+    console.log('显示访客内容')
+    this.setData({
+      musicList: [],
+      longSequenceList: [],
+      loading: false,
+      userInfo: null,
+      isGuestMode: true
+    })
   },
 
   /**
@@ -90,16 +95,23 @@ Page({
     
     // 显示引导用户登录的提示
     wx.showToast({
-      title: '请先登录查看音频库',
+      title: '请先登录查看脑波库',
       icon: 'none',
       duration: 2000
     })
   },
 
   onShow() {
-    this.loadMusicData()
-    this.updatePlayingStatus()
-    this.refreshSubscriptionStatus()
+    // 检查登录状态
+    const currentUser = AuthService.getCurrentUser()
+    if (currentUser) {
+      this.setData({ userInfo: currentUser, isGuestMode: false })
+      this.loadMusicData()
+      this.updatePlayingStatus()
+      this.refreshSubscriptionStatus()
+    } else {
+      this.showGuestContent()
+    }
   },
 
   onUnload() {
@@ -132,19 +144,16 @@ Page({
           return true
         } else {
           console.warn('用户信息无效，缺少用户ID:', userInfo)
-          // 用户信息无效，清除token并重新登录
+          // 用户信息无效，清除token
           AuthService.logout()
-          this.promptLogin('用户信息异常，请重新登录')
           return false
         }
       } else {
-        console.log('用户未登录')
-        this.promptLogin('请先登录后再查看音频库')
+        console.log('用户未登录，显示访客模式')
         return false
       }
     } catch (error) {
       console.error('检查登录状态失败:', error)
-      this.promptLogin('登录状态异常，请重新登录')
       return false
     }
   },
@@ -152,20 +161,16 @@ Page({
   /**
    * 提示用户登录
    */
-  promptLogin(message = '需要登录') {
+  promptLogin(message = '查看个人脑波库需要先登录账户') {
     wx.showModal({
       title: '需要登录',
       content: message,
       confirmText: '去登录',
-      cancelText: '返回首页',
+      cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
-          wx.redirectTo({
+          wx.navigateTo({
             url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/music/library/library')
-          })
-        } else {
-          wx.switchTab({
-            url: '/pages/index/index'
           })
         }
       }
@@ -373,7 +378,7 @@ Page({
     setTimeout(() => {
       wx.showModal({
         title: '订阅提示',
-        content: '您可以免费试听生成的音频。订阅后可享受无限制下载、更多音频库功能和专业疗愈计划。',
+        content: '您可以免费试听生成的脑波。订阅后可享受无限制下载、更多脑波库功能和专业疗愈计划。',
         confirmText: '了解订阅',
         cancelText: '稍后再说',
         success: (res) => {
@@ -1360,7 +1365,7 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: 'AI疗愈 - 我的音频库',
+      title: 'AI疗愈 - 我的脑波库',
       path: '/pages/music/library/library',
       imageUrl: '/images/share-library.png'
     }

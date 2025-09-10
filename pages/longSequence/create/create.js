@@ -1,5 +1,5 @@
 // pages/longSequence/create/create.js
-// 长序列音乐创建页面
+// 长序列脑波创建页面
 const app = getApp()
 const { AssessmentAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 
@@ -8,6 +8,7 @@ Page({
     userInfo: null,
     recentAssessments: [],
     selectedAssessment: null,
+    preselectedAssessmentId: null, // 新增：预选的评测ID
     durationMinutes: 30,
     durationOptions: [
       { value: 10, label: '10分钟', description: '短时间放松' },
@@ -23,14 +24,33 @@ Page({
     loading: false
   },
 
-  onLoad() {
-    console.log('长序列创建页面加载')
+  onLoad(options) {
+    console.log('长序列创建页面加载', options)
+    
+    // 获取传入的评测ID（从评测结果页面跳转过来时会有）
+    const { assessmentId } = options
+    if (assessmentId) {
+      this.setData({ 
+        preselectedAssessmentId: parseInt(assessmentId)
+      })
+      console.log('接收到预选评测ID:', assessmentId)
+    }
+    
+    // 修改：允许未登录用户查看脑波生成页面
     this.checkUserLogin()
     this.loadRecentAssessments()
   },
 
   onShow() {
-    this.loadRecentAssessments()
+    // 每次显示时检查登录状态
+    const AuthService = require('../../../services/AuthService')
+    const userInfo = AuthService.getCurrentUser()
+    if (userInfo) {
+      this.setData({ userInfo })
+      this.loadRecentAssessments()
+    } else {
+      this.setData({ userInfo: null, recentAssessments: [] })
+    }
   },
 
   /**
@@ -41,17 +61,11 @@ Page({
       const AuthService = require('../../../services/AuthService')
       const userInfo = AuthService.getCurrentUser()
       if (userInfo) {
+        console.log('✅ 检测到用户信息，加载完整页面数据')
         this.setData({ userInfo })
       } else {
-        wx.showToast({
-          title: '请先登录',
-          icon: 'error'
-        })
-        setTimeout(() => {
-          wx.switchTab({
-            url: '/pages/index/index'
-          })
-        }, 2000)
+        console.log('ℹ️ 用户未登录，仅显示脑波生成界面')
+        this.setData({ userInfo: null })
       }
     } catch (error) {
       console.error('检查登录状态失败:', error)
@@ -77,8 +91,26 @@ Page({
           recentAssessments: completedAssessments.slice(0, 5)
         })
 
-        // 默认选择最新的评测
-        if (completedAssessments.length > 0) {
+        // 如果有预选的评测ID，优先选择它；否则选择最新的评测
+        if (this.data.preselectedAssessmentId) {
+          const preselectedAssessment = completedAssessments.find(
+            assessment => assessment.id === this.data.preselectedAssessmentId
+          )
+          if (preselectedAssessment) {
+            console.log('找到并预选评测记录:', preselectedAssessment)
+            this.setData({
+              selectedAssessment: preselectedAssessment
+            })
+          } else {
+            console.warn('未找到预选的评测记录，使用最新的')
+            if (completedAssessments.length > 0) {
+              this.setData({
+                selectedAssessment: completedAssessments[0]
+              })
+            }
+          }
+        } else if (completedAssessments.length > 0) {
+          // 默认选择最新的评测
           this.setData({
             selectedAssessment: completedAssessments[0]
           })
@@ -108,7 +140,7 @@ Page({
   },
 
   /**
-   * 创建长序列音乐（模板调用的方法名）
+   * 创建长序列脑波（模板调用的方法名）
    */
   async onCreateSequence() {
     return this.onStartGeneration()
@@ -118,6 +150,25 @@ Page({
    * 开始生成长序列
    */
   async onStartGeneration() {
+    // 检查登录状态，未登录时引导用户登录
+    if (!this.data.userInfo) {
+      wx.showModal({
+        title: '需要登录',
+        content: '创建AI脑波需要先登录账户，立即前往登录页面？',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ 
+              url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/longSequence/create/create')
+            })
+          }
+        }
+      })
+      return
+    }
+
     if (!this.data.selectedAssessment) {
       wx.showToast({
         title: '请选择评测记录',
@@ -190,7 +241,7 @@ Page({
     return new Promise((resolve) => {
       wx.showModal({
         title: '开始生成',
-        content: `即将生成${this.data.durationMinutes}分钟的疗愈音乐，包含ISO三阶段结构。生成过程需要1-2分钟，请耐心等待。`,
+        content: `即将生成${this.data.durationMinutes}分钟的AI疗愈脑波，包含ISO三阶段结构。生成过程需要1-2分钟，请耐心等待。`,
         confirmText: '开始',
         cancelText: '取消',
         success: (res) => {
@@ -207,9 +258,9 @@ Page({
     const phases = [
       '分析评测结果...',
       '规划ISO三阶段...',
-      '生成同质阶段音乐...',
-      '生成过渡阶段音乐...',
-      '生成目标阶段音乐...',
+      '生成同质阶段脑波...',
+      '生成过渡阶段脑波...',
+      '生成目标阶段脑波...',
       '处理音频过渡...',
       '合并音频文件...',
       '完成生成'
@@ -241,8 +292,17 @@ Page({
    * 去做评测
    */
   onGoToAssessment() {
-    wx.switchTab({
+    wx.navigateTo({
       url: '/pages/assessment/scales/scales'
+    })
+  },
+
+  /**
+   * 去登录
+   */
+  onGoToLogin() {
+    wx.navigateTo({
+      url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/longSequence/create/create')
     })
   },
 
@@ -261,7 +321,7 @@ Page({
   onLearnISO() {
     wx.showModal({
       title: 'ISO疗愈原理',
-      content: 'ISO（Iso-Principle）是疗愈的核心原理：\n\n1. 同质阶段：音乐匹配当前情绪状态\n2. 过渡阶段：音乐逐渐引导情绪变化\n3. 目标阶段：音乐帮助达到理想状态\n\n通过这种渐进式的音乐引导，可以有效调节情绪，达到疗愈效果。',
+      content: 'ISO（Iso-Principle）是疗愈的核心原理：\n\n1. 同质阶段：脑波匹配当前情绪状态\n2. 过渡阶段：脑波逐渐引导情绪变化\n3. 目标阶段：脑波帮助达到理想状态\n\n通过这种渐进式的AI脑波引导，可以有效调节情绪，达到疗愈效果。',
       showCancel: false,
       confirmText: '了解了'
     })
