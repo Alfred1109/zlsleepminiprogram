@@ -369,8 +369,19 @@ const PaymentUtils = {
     if (typeof price !== 'number') {
       price = parseFloat(price) || 0
     }
-    // 如果价格是分为单位，转换为元
-    const yuan = price > 999 ? (price / 100).toFixed(2) : price.toFixed(2)
+    
+    // 判断价格单位：
+    // 1. 如果价格>=100且是整数，认为是分为单位，需要转换为元
+    // 2. 如果价格<100或有小数，认为是元为单位，直接显示
+    let yuan
+    if (price >= 100 && price % 1 === 0) {
+      // 价格>=100且是整数，认为是分为单位，转换为元
+      yuan = (price / 100).toFixed(2)
+    } else {
+      // 价格<100或有小数，认为是元为单位
+      yuan = price.toFixed(2)
+    }
+    
     return `${currency}${yuan}`
   },
   
