@@ -4,7 +4,7 @@ const app = getApp()
 const { MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
 const AuthService = require('../../../services/AuthService')
-const { requireSubscription, getSubscriptionInfo } = require('../../../utils/subscription')
+const { requireSubscription, getSubscriptionInfo, getUnifiedSubscriptionStatus } = require('../../../utils/subscription')
 
 Page({
   data: {
@@ -1532,58 +1532,49 @@ Page({
    */
   async loadSubscriptionStatus() {
     try {
-      const subscriptionInfo = await getSubscriptionInfo()
+      // 使用统一的订阅状态获取方法
+      const unifiedStatus = await getUnifiedSubscriptionStatus()
       
+      // 根据统一状态构建显示状态
       let status = {
-        type: 'free',
-        displayName: '免费用户',
-        expiresAt: null,
+        type: unifiedStatus.type,
+        displayName: unifiedStatus.displayName,
+        expiresAt: unifiedStatus.subscriptionEndDate || unifiedStatus.trialEndDate,
         daysLeft: 0,
         features: ['60秒音频生成'],
-        showUpgrade: true,
+        showUpgrade: !unifiedStatus.isSubscribed,
         statusColor: '#999',
         statusIcon: '👤'
       }
 
-      if (subscriptionInfo) {
-        if (subscriptionInfo.subscription_type === 'trial') {
-          status = {
-            type: 'trial',
-            displayName: '试用会员',
-            expiresAt: subscriptionInfo.trial_expires_at,
-            daysLeft: this.calculateDaysLeft(subscriptionInfo.trial_expires_at),
-            features: ['60秒音频生成', 'AI音频生成', '长序列音频'],
-            showUpgrade: true,
-            statusColor: '#f59e0b',
-            statusIcon: '⭐'
-          }
-        } else if (subscriptionInfo.subscription_type === 'premium') {
-          status = {
-            type: 'premium',
-            displayName: '高级会员',
-            expiresAt: subscriptionInfo.premium_expires_at,
-            daysLeft: this.calculateDaysLeft(subscriptionInfo.premium_expires_at),
-            features: ['60秒音频生成', 'AI音频生成', '长序列音频', '无限播放'],
-            showUpgrade: false,
-            statusColor: '#10b981',
-            statusIcon: '💎'
-          }
-        } else if (subscriptionInfo.subscription_type === 'vip') {
-          status = {
-            type: 'vip',
-            displayName: 'VIP会员',
-            expiresAt: subscriptionInfo.vip_expires_at,
-            daysLeft: this.calculateDaysLeft(subscriptionInfo.vip_expires_at),
-            features: ['60秒音频生成', 'AI音频生成', '长序列音频', '无限播放', '专属客服'],
-            showUpgrade: false,
-            statusColor: '#8b5cf6',
-            statusIcon: '👑'
-          }
+      // 根据订阅类型设置详细信息
+      if (unifiedStatus.isSubscribed) {
+        if (unifiedStatus.type === 'premium') {
+          status.features = ['60秒音频生成', 'AI音频生成', '长序列音频', '无限播放']
+          status.statusColor = '#10b981'
+          status.statusIcon = '💎'
+        } else if (unifiedStatus.type === 'vip') {
+          status.features = ['60秒音频生成', 'AI音频生成', '长序列音频', '无限播放', '专属客服']
+          status.statusColor = '#8b5cf6'
+          status.statusIcon = '👑'
         }
+        status.showUpgrade = false
+        status.daysLeft = this.calculateDaysLeft(unifiedStatus.subscriptionEndDate)
+      } else if (unifiedStatus.isInTrial) {
+        status.features = ['60秒音频生成', 'AI音频生成', '长序列音频']
+        status.statusColor = '#f59e0b'
+        status.statusIcon = '⭐'
+        status.daysLeft = unifiedStatus.trialDaysLeft
       }
 
+      console.log('🎵 音乐库页面订阅状态:', {
+        '统一状态': unifiedStatus,
+        '显示状态': status
+      })
+
       this.setData({
-        subscriptionStatus: status
+        subscriptionStatus: status,
+        unifiedStatus: unifiedStatus // 保存统一状态用于其他地方引用
       })
 
     } catch (error) {

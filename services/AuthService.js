@@ -63,7 +63,16 @@ class AuthService {
 
   getCurrentUser() {
     try {
-      return wx.getStorageSync(this.keys.userInfo) || null
+      // 优先读取 user_info，如果没有则读取 userInfo（兼容性）
+      let userInfo = wx.getStorageSync(this.keys.userInfo)
+      if (!userInfo) {
+        userInfo = wx.getStorageSync('userInfo')
+        // 如果从 userInfo 读到了数据，同步到 user_info
+        if (userInfo) {
+          wx.setStorageSync(this.keys.userInfo, userInfo)
+        }
+      }
+      return userInfo || null
     } catch (error) {
       console.error('获取用户信息失败:', error)
       return null
@@ -73,6 +82,8 @@ class AuthService {
   setCurrentUser(userInfo) {
     try {
       wx.setStorageSync(this.keys.userInfo, userInfo)
+      // 同时保存到 userInfo key 以保证兼容性
+      wx.setStorageSync('userInfo', userInfo)
     } catch (error) {
       console.error('保存用户信息失败:', error)
     }
@@ -292,7 +303,10 @@ class AuthService {
         }
 
         console.log('账号登录成功，返回数据:', response)
-        this.emitter.emit('auth:changed', { status: 'logged_in', user })
+        
+        // 同步完整用户信息
+        await this.saveAuthResponse(response)
+        
         return response // 返回完整的响应对象，包含success字段
       } else {
         throw new Error(response?.message || '账号登录失败')
@@ -376,6 +390,8 @@ class AuthService {
       wx.removeStorageSync(this.keys.tokenExpires)
       wx.removeStorageSync(this.keys.refreshExpires)
       wx.removeStorageSync(this.keys.userInfo)
+      // 同时清理兼容性key
+      wx.removeStorageSync('userInfo')
     } catch (error) {
       console.error('清理token失败:', error)
     }
@@ -443,9 +459,9 @@ class AuthService {
 
       if (response?.success) {
         console.log('微信登录成功')
-        this.saveAuthResponse(response)
+        await this.saveAuthResponse(response)
         
-        console.log('基础登录完成，如需用户信息请在个人中心授权')
+        console.log('登录完成，用户信息已同步')
         
         return response
       } else {
@@ -458,7 +474,7 @@ class AuthService {
   }
 
   // 保存登录响应（微信登录、账号登录等使用）
-  saveAuthResponse(response) {
+  async saveAuthResponse(response) {
     try {
       const data = response.data || response
       
@@ -474,13 +490,33 @@ class AuthService {
       if (data.refresh_expires) {
         wx.setStorageSync(this.keys.refreshExpires, data.refresh_expires)
       }
-      if (data.user) {
-        this.setCurrentUser(data.user)
+
+      // 保存基本用户信息
+      let user = data.user
+      if (user) {
+        this.setCurrentUser(user)
+      }
+
+      // 登录成功后，尝试获取完整的用户信息（包括昵称、头像等）
+      try {
+        console.log('🔄 登录成功，获取完整用户信息...')
+        const completeUserInfo = await this.fetchCompleteUserInfo()
+        if (completeUserInfo) {
+          user = completeUserInfo
+          this.setCurrentUser(user)
+          console.log('✅ 完整用户信息获取成功:', {
+            hasNickname: !!(user.nickname || user.nickName),
+            hasAvatar: !!(user.avatarUrl || user.avatar_url)
+          })
+        }
+      } catch (error) {
+        console.warn('⚠️ 获取完整用户信息失败，使用基础信息:', error.message)
+        // 不影响登录流程，继续使用基础用户信息
       }
       
-      const user = data.user || this.getCurrentUser()
-      if (user) {
-        this.emitter.emit('auth:changed', { status: 'logged_in', user })
+      const finalUser = user || this.getCurrentUser()
+      if (finalUser) {
+        this.emitter.emit('auth:changed', { status: 'logged_in', user: finalUser })
       }
     } catch (error) {
       console.error('保存认证响应失败:', error)
@@ -573,6 +609,78 @@ class AuthService {
     } catch (e) {
       console.log('用户拒绝授权:', e.errMsg)
       return { success: false, error: '用户拒绝授权' }
+    }
+  }
+
+  /**
+   * 获取完整的用户信息（从数据库）
+   */
+  async fetchCompleteUserInfo() {
+    try {
+      // 确保有有效的token
+      await this.ensureValidToken()
+      
+      // 获取API基础URL
+      const app = getApp()
+      let apiBaseUrl = app.globalData.apiBaseUrl
+      
+      if (!apiBaseUrl) {
+        try {
+          const { getApiBaseUrl } = require('../utils/config')
+          apiBaseUrl = getApiBaseUrl()
+        } catch (error) {
+          console.error('获取API基础URL失败:', error)
+          apiBaseUrl = 'https://medsleep.cn/api'
+        }
+      }
+
+      const token = this.getAccessToken()
+      const response = await new Promise((resolve, reject) => {
+        wx.request({
+          url: `${apiBaseUrl}/user/info`,
+          method: 'GET',
+          header: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json' 
+          },
+          success: (res) => {
+            if (res.statusCode === 200) {
+              resolve(res.data)
+            } else {
+              reject(new Error(`获取用户信息失败: ${res.data?.message || 'HTTP ' + res.statusCode}`))
+            }
+          },
+          fail: reject
+        })
+      })
+
+      if (response?.success && response?.data) {
+        console.log('📋 从数据库获取的完整用户信息:', response.data)
+        return response.data
+      }
+      
+      return null
+    } catch (error) {
+      console.error('获取完整用户信息失败:', error)
+      return null
+    }
+  }
+
+  /**
+   * 刷新当前用户信息（手动调用）
+   */
+  async refreshUserInfo() {
+    try {
+      const completeUserInfo = await this.fetchCompleteUserInfo()
+      if (completeUserInfo) {
+        this.setCurrentUser(completeUserInfo)
+        this.emitter.emit('auth:changed', { status: 'user_updated', user: completeUserInfo })
+        return completeUserInfo
+      }
+      return null
+    } catch (error) {
+      console.error('刷新用户信息失败:', error)
+      return null
     }
   }
 }

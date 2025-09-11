@@ -381,10 +381,16 @@ function notifySubscriptionChange() {
     if (page.refreshSubscriptionStatus) {
       page.refreshSubscriptionStatus()
     }
+    // 同时调用新的统一加载方法
+    if (page.loadSubscriptionStatus) {
+      page.loadSubscriptionStatus()
+    }
   })
   
   // 发送全局事件
   getApp().globalData.subscriptionChanged = Date.now()
+  
+  console.log('📢 订阅状态变更通知已发送，缓存已清除')
 }
 
 /**
@@ -425,6 +431,88 @@ function getSubscriptionTypeName(type) {
   return typeNames[type] || type
 }
 
+/**
+ * 统一的订阅状态解析器
+ * 解决不同页面状态判断不一致的问题
+ */
+function parseSubscriptionStatus(subscriptionInfo) {
+  if (!subscriptionInfo) {
+    return {
+      isSubscribed: false,
+      isInTrial: false,
+      isFree: true,
+      type: 'free',
+      displayName: '免费用户',
+      status: 'inactive',
+      trialAvailable: true,
+      trialDaysLeft: 0,
+      subscriptionEndDate: null,
+      trialEndDate: null
+    }
+  }
+
+  // 统一处理时间字段
+  const now = new Date()
+  const trialEndDate = subscriptionInfo.trial_end_date ? new Date(subscriptionInfo.trial_end_date) : null
+  const subscriptionEndDate = subscriptionInfo.subscription_end_date ? new Date(subscriptionInfo.subscription_end_date) : null
+
+  // 判断是否正在试用中（综合多个字段判断）
+  const isInTrial = (
+    subscriptionInfo.status === 'active' &&
+    trialEndDate &&
+    trialEndDate > now &&
+    !subscriptionInfo.is_subscribed && // 没有付费订阅
+    (subscriptionInfo.subscription_type === 'trial' || subscriptionInfo.type === 'trial')
+  )
+
+  // 判断是否已订阅（付费订阅）
+  const isSubscribed = subscriptionInfo.is_subscribed === true || 
+    (subscriptionInfo.status === 'active' && 
+     subscriptionEndDate && 
+     subscriptionEndDate > now && 
+     !isInTrial)
+
+  // 确定订阅类型
+  let type = 'free'
+  let displayName = '免费用户'
+  
+  if (isSubscribed) {
+    type = subscriptionInfo.subscription_type || subscriptionInfo.type || 'premium'
+    displayName = getSubscriptionTypeName(type)
+  } else if (isInTrial) {
+    type = 'trial'
+    displayName = '试用会员'
+  }
+
+  // 计算试用剩余天数
+  const trialDaysLeft = isInTrial && trialEndDate ? 
+    Math.max(0, Math.ceil((trialEndDate - now) / (1000 * 60 * 60 * 24))) : 0
+
+  return {
+    isSubscribed,
+    isInTrial,
+    isFree: !isSubscribed && !isInTrial,
+    type,
+    displayName,
+    status: subscriptionInfo.status || 'inactive',
+    trialAvailable: subscriptionInfo.trial_available || false,
+    trialDaysLeft,
+    subscriptionEndDate,
+    trialEndDate,
+    // 保留原始数据用于兼容
+    raw: subscriptionInfo
+  }
+}
+
+/**
+ * 获取统一的订阅状态信息
+ * 所有页面应该使用这个方法获取标准化的订阅状态
+ */
+async function getUnifiedSubscriptionStatus(forceRefresh = false) {
+  const subscriptionInfo = await getSubscriptionInfo(forceRefresh)
+  return parseSubscriptionStatus(subscriptionInfo)
+}
+
 module.exports = {
   getSubscriptionInfo,
   checkFeaturePermission,
@@ -434,5 +522,7 @@ module.exports = {
   clearSubscriptionCache,
   notifySubscriptionChange,
   formatRemainingTime,
-  getSubscriptionTypeName
+  getSubscriptionTypeName,
+  parseSubscriptionStatus,
+  getUnifiedSubscriptionStatus
 }

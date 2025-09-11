@@ -2,7 +2,7 @@
 const app = getApp()
 const AuthService = require('../../services/AuthService')
 const { UserAPI } = require('../../utils/healingApi')
-const { getSubscriptionInfo } = require('../../utils/subscription')
+const { getSubscriptionInfo, getUnifiedSubscriptionStatus } = require('../../utils/subscription')
 // const unifiedLoginManager = require('../../utils/unifiedLoginManager') // 已迁移到 AuthService
 
 Page({
@@ -65,7 +65,8 @@ Page({
   },
 
   onShow() {
-    this.checkLoginStatus()
+    // 检查登录状态，但不覆盖临时修改
+    this.checkLoginStatusWithoutOverride()
     this.loadUserStats()
     this.loadSubscriptionStatus()
     
@@ -128,16 +129,65 @@ Page({
       })
 
       if (res && res.success) {
-        const updated = {
-          ...user,
-          nickname: res.data.nickname,
-          avatar_url: res.data.avatar_url
+        // 同步成功后，从数据库重新获取最新的用户信息
+        console.log('🔄 微信资料同步成功，重新获取完整用户信息...')
+        
+        try {
+          const completeUserInfo = await AuthService.refreshUserInfo()
+          if (completeUserInfo) {
+            this.setData({ 
+              userInfo: completeUserInfo, 
+              hasUserInfo: true, 
+              lastSyncAt: now,
+              // 清除临时状态，因为已同步到服务器
+              tempAvatar: '',
+              tempNickname: '',
+              hasChanges: false
+            })
+            wx.showToast({ title: '微信资料已保存到账户', icon: 'success' })
+          } else {
+            // 降级处理：使用服务器返回的数据
+            const updated = {
+              ...user,
+              nickname: res.data.nickname,
+              nickName: res.data.nickname,
+              avatar_url: res.data.avatar_url,
+              avatarUrl: res.data.avatar_url
+            }
+            
+            AuthService.setCurrentUser(updated)
+            this.setData({ 
+              userInfo: updated, 
+              hasUserInfo: true, 
+              lastSyncAt: now,
+              tempAvatar: '',
+              tempNickname: '',
+              hasChanges: false
+            })
+            wx.showToast({ title: '已同步微信资料', icon: 'success' })
+          }
+        } catch (error) {
+          console.warn('获取完整用户信息失败，使用返回数据:', error)
+          // 降级处理
+          const updated = {
+            ...user,
+            nickname: res.data.nickname,
+            nickName: res.data.nickname,
+            avatar_url: res.data.avatar_url,
+            avatarUrl: res.data.avatar_url
+          }
+          
+          AuthService.setCurrentUser(updated)
+          this.setData({ 
+            userInfo: updated, 
+            hasUserInfo: true, 
+            lastSyncAt: now,
+            tempAvatar: '',
+            tempNickname: '',
+            hasChanges: false
+          })
+          wx.showToast({ title: '已同步微信资料', icon: 'success' })
         }
-        // 同时保存到两个key以保证兼容性
-        wx.setStorageSync('userInfo', updated)    // 兼容旧代码
-        wx.setStorageSync('user_info', updated)   // tokenManager期望的key
-        this.setData({ userInfo: updated, hasUserInfo: true, lastSyncAt: now })
-        wx.showToast({ title: '已同步微信资料', icon: 'success' })
       } else {
         wx.showToast({ title: res?.message || '同步失败', icon: 'none' })
       }
@@ -189,6 +239,55 @@ Page({
       },
       hasUserInfo: !!userInfo
     })
+  },
+
+  /**
+   * 检查登录状态但不覆盖临时修改
+   */
+  async checkLoginStatusWithoutOverride() {
+    const loggedIn = AuthService.isLoggedIn()
+    let userInfo = AuthService.getCurrentUser()
+
+    // 只更新登录状态，如果有临时修改则保持当前用户信息
+    const updateData = {
+      isLoggedIn: loggedIn,
+      hasUserInfo: !!userInfo
+    }
+
+    // 如果已登录但用户信息不完整（缺少昵称或头像），尝试从数据库获取
+    if (loggedIn && userInfo && this.isUserInfoIncomplete(userInfo) && !this.data.hasChanges) {
+      console.log('🔄 用户信息不完整，从数据库获取完整信息...')
+      try {
+        const completeUserInfo = await AuthService.refreshUserInfo()
+        if (completeUserInfo && this.isUserInfoMoreComplete(userInfo, completeUserInfo)) {
+          userInfo = completeUserInfo
+          updateData.userInfo = userInfo
+          console.log('✅ 已从数据库获取完整用户信息')
+        }
+      } catch (error) {
+        console.warn('从数据库获取用户信息失败:', error)
+      }
+    }
+
+    // 如果没有临时修改，则更新用户信息
+    if (!this.data.hasChanges && !this.data.tempAvatar && !this.data.tempNickname && !updateData.userInfo) {
+      updateData.userInfo = userInfo || {
+        avatarUrl: '/images/default-avatar.svg',
+        nickName: '未登录'
+      }
+    }
+
+    console.log('📱 页面显示时检查登录状态:', {
+      isLoggedIn: loggedIn,
+      hasStoredUserInfo: !!userInfo,
+      userInfoComplete: !this.isUserInfoIncomplete(userInfo),
+      hasChanges: this.data.hasChanges,
+      tempAvatar: !!this.data.tempAvatar,
+      tempNickname: !!this.data.tempNickname,
+      willUpdateUserInfo: !!updateData.userInfo
+    })
+
+    this.setData(updateData)
   },
 
   /**
@@ -688,8 +787,14 @@ Page({
     updatedUserInfo.avatar_url = avatarUrl
     this.setData({ userInfo: updatedUserInfo })
     
+    // 立即保存到本地存储，避免页面切换时丢失
+    this.saveUserInfoToStorage(updatedUserInfo)
+    
+    // 自动保存到服务器（异步进行，不影响用户体验）
+    this.autoSyncToServer('avatar', avatarUrl)
+    
     wx.showToast({
-      title: '头像已选择，请保存',
+      title: '头像已更新',
       icon: 'success'
     })
   },
@@ -710,6 +815,12 @@ Page({
       updatedUserInfo.nickname = nickname
       updatedUserInfo.nickName = nickname
       this.setData({ userInfo: updatedUserInfo })
+      
+      // 立即保存到本地存储，避免页面切换时丢失
+      this.saveUserInfoToStorage(updatedUserInfo)
+      
+      // 自动保存到服务器（异步进行，不影响用户体验）
+      this.autoSyncToServer('nickname', nickname)
     }
   },
 
@@ -754,10 +865,9 @@ Page({
         
         // 稍微延迟显示完成效果
         setTimeout(() => {
-          // 更新本地存储（同时保存到两个key以保证兼容性）
+          // 使用AuthService统一保存，确保数据一致性
           const updatedUserInfo = { ...user, ...res.data }
-          wx.setStorageSync('userInfo', updatedUserInfo)    // 兼容旧代码
-          wx.setStorageSync('user_info', updatedUserInfo)   // tokenManager期望的key
+          AuthService.setCurrentUser(updatedUserInfo)
           
           this.setData({ 
             userInfo: updatedUserInfo,
@@ -862,58 +972,49 @@ Page({
     }
 
     try {
-      const subscriptionInfo = await getSubscriptionInfo()
+      // 使用统一的订阅状态获取方法
+      const unifiedStatus = await getUnifiedSubscriptionStatus()
       
+      // 根据统一状态构建显示状态
       let status = {
-        type: 'free',
-        displayName: '免费用户',
-        expiresAt: null,
+        type: unifiedStatus.type,
+        displayName: unifiedStatus.displayName,
+        expiresAt: unifiedStatus.subscriptionEndDate || unifiedStatus.trialEndDate,
         daysLeft: 0,
         features: ['60秒音乐生成'],
-        showUpgrade: true,
+        showUpgrade: !unifiedStatus.isSubscribed,
         statusColor: '#999',
         statusIcon: '👤'
       }
 
-      if (subscriptionInfo) {
-        if (subscriptionInfo.subscription_type === 'trial') {
-          status = {
-            type: 'trial',
-            displayName: '试用会员',
-            expiresAt: subscriptionInfo.trial_expires_at,
-            daysLeft: this.calculateDaysLeft(subscriptionInfo.trial_expires_at),
-            features: ['60秒音乐生成', 'AI音乐生成', '长序列音乐'],
-            showUpgrade: true,
-            statusColor: '#f59e0b',
-            statusIcon: '⭐'
-          }
-        } else if (subscriptionInfo.subscription_type === 'premium') {
-          status = {
-            type: 'premium',
-            displayName: '高级会员',
-            expiresAt: subscriptionInfo.premium_expires_at,
-            daysLeft: this.calculateDaysLeft(subscriptionInfo.premium_expires_at),
-            features: ['60秒音乐生成', 'AI音乐生成', '长序列音乐', '无限播放'],
-            showUpgrade: false,
-            statusColor: '#10b981',
-            statusIcon: '💎'
-          }
-        } else if (subscriptionInfo.subscription_type === 'vip') {
-          status = {
-            type: 'vip',
-            displayName: 'VIP会员',
-            expiresAt: subscriptionInfo.vip_expires_at,
-            daysLeft: this.calculateDaysLeft(subscriptionInfo.vip_expires_at),
-            features: ['60秒音乐生成', 'AI音乐生成', '长序列音乐', '无限播放', '专属客服'],
-            showUpgrade: false,
-            statusColor: '#8b5cf6',
-            statusIcon: '👑'
-          }
+      // 根据订阅类型设置详细信息
+      if (unifiedStatus.isSubscribed) {
+        if (unifiedStatus.type === 'premium') {
+          status.features = ['60秒音乐生成', 'AI音乐生成', '长序列音乐', '无限播放']
+          status.statusColor = '#10b981'
+          status.statusIcon = '💎'
+        } else if (unifiedStatus.type === 'vip') {
+          status.features = ['60秒音乐生成', 'AI音乐生成', '长序列音乐', '无限播放', '专属客服']
+          status.statusColor = '#8b5cf6'
+          status.statusIcon = '👑'
         }
+        status.showUpgrade = false
+        status.daysLeft = this.calculateDaysLeft(unifiedStatus.subscriptionEndDate)
+      } else if (unifiedStatus.isInTrial) {
+        status.features = ['60秒音乐生成', 'AI音乐生成', '长序列音乐']
+        status.statusColor = '#f59e0b'
+        status.statusIcon = '⭐'
+        status.daysLeft = unifiedStatus.trialDaysLeft
       }
 
+      console.log('📋 个人信息页面订阅状态:', {
+        '统一状态': unifiedStatus,
+        '显示状态': status
+      })
+
       this.setData({
-        subscriptionStatus: status
+        subscriptionStatus: status,
+        unifiedStatus: unifiedStatus // 保存统一状态用于其他地方引用
       })
 
     } catch (error) {
@@ -942,5 +1043,143 @@ Page({
     wx.navigateTo({
       url: '/pages/subscription/subscription'
     })
+  },
+
+  /**
+   * 保存用户信息到本地存储
+   */
+  saveUserInfoToStorage(userInfo) {
+    try {
+      // 使用AuthService统一保存，确保数据一致性
+      AuthService.setCurrentUser(userInfo)
+      console.log('💾 用户信息已保存到本地存储')
+    } catch (error) {
+      console.error('保存用户信息到本地存储失败:', error)
+    }
+  },
+
+  /**
+   * 同步用户信息到服务器（可选，在用户明确保存时调用）
+   */
+  async syncUserInfoToServer() {
+    if (!this.data.hasChanges) return
+
+    const user = AuthService.getCurrentUser() || {}
+    const updateData = {
+      user_id: user.id
+    }
+    
+    // 添加需要同步的字段
+    if (this.data.tempAvatar) {
+      updateData.avatar_url = this.data.tempAvatar
+    }
+    
+    if (this.data.tempNickname) {
+      updateData.nickname = this.data.tempNickname
+    }
+    
+    try {
+      const res = await UserAPI.updateUserInfo(updateData)
+      if (res && res.success) {
+        const updatedUserInfo = { ...user, ...res.data }
+        this.saveUserInfoToStorage(updatedUserInfo)
+        
+        this.setData({ 
+          userInfo: updatedUserInfo,
+          hasChanges: false,
+          tempAvatar: '',
+          tempNickname: ''
+        })
+        
+        return true
+      }
+    } catch (error) {
+      console.error('同步用户信息到服务器失败:', error)
+    }
+    
+    return false
+  },
+
+  /**
+   * 自动同步到服务器（防抖处理）
+   */
+  autoSyncToServer(type, value) {
+    // 取消之前的定时器
+    if (this.syncTimer) {
+      clearTimeout(this.syncTimer)
+    }
+
+    // 设置新的定时器（2秒后同步，避免频繁请求）
+    this.syncTimer = setTimeout(async () => {
+      try {
+        const user = AuthService.getCurrentUser() || {}
+        const updateData = {
+          user_id: user.id
+        }
+
+        if (type === 'avatar') {
+          updateData.avatar_url = value
+        } else if (type === 'nickname') {
+          updateData.nickname = value
+        }
+
+        console.log('🔄 自动同步用户信息到服务器:', updateData)
+        
+        const res = await UserAPI.updateUserInfo(updateData)
+        if (res && res.success) {
+          console.log('✅ 用户信息已自动同步到数据库')
+          
+          // 同步成功后，从数据库获取最新信息
+          const completeUserInfo = await AuthService.refreshUserInfo()
+          if (completeUserInfo) {
+            this.setData({ 
+              userInfo: completeUserInfo,
+              hasChanges: false,
+              tempAvatar: '',
+              tempNickname: ''
+            })
+          }
+        }
+      } catch (error) {
+        console.warn('自动同步失败:', error)
+        // 同步失败不影响用户使用，保持本地状态
+      }
+    }, 2000) // 2秒防抖
+  },
+
+  /**
+   * 检查用户信息是否不完整
+   */
+  isUserInfoIncomplete(userInfo) {
+    if (!userInfo) return true
+    
+    const hasNickname = !!(userInfo.nickname || userInfo.nickName)
+    const hasAvatar = !!(userInfo.avatarUrl || userInfo.avatar_url)
+    
+    // 如果既没有昵称也没有头像，或者只有默认头像，认为不完整
+    const hasDefaultAvatar = userInfo.avatarUrl === '/images/default-avatar.svg' || 
+                            userInfo.avatar_url === '/images/default-avatar.svg'
+    
+    return !hasNickname || !hasAvatar || hasDefaultAvatar
+  },
+
+  /**
+   * 检查新的用户信息是否比旧的更完整
+   */
+  isUserInfoMoreComplete(oldInfo, newInfo) {
+    if (!oldInfo || !newInfo) return false
+    
+    const oldHasNickname = !!(oldInfo.nickname || oldInfo.nickName)
+    const oldHasAvatar = !!(oldInfo.avatarUrl || oldInfo.avatar_url) && 
+                        oldInfo.avatarUrl !== '/images/default-avatar.svg' &&
+                        oldInfo.avatar_url !== '/images/default-avatar.svg'
+    
+    const newHasNickname = !!(newInfo.nickname || newInfo.nickName)
+    const newHasAvatar = !!(newInfo.avatarUrl || newInfo.avatar_url) && 
+                        newInfo.avatarUrl !== '/images/default-avatar.svg' &&
+                        newInfo.avatar_url !== '/images/default-avatar.svg'
+    
+    // 如果新信息有更多完整的字段，返回true
+    return (newHasNickname && !oldHasNickname) || (newHasAvatar && !oldHasAvatar)
   }
 })

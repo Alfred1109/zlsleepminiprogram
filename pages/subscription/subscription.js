@@ -2,7 +2,7 @@
 // 订阅管理页面
 const app = getApp()
 const { SubscriptionAPI, CountPackageAPI } = require('../../utils/healingApi')
-const { getSubscriptionInfo, startFreeTrial, notifySubscriptionChange } = require('../../utils/subscription')
+const { getSubscriptionInfo, startFreeTrial, notifySubscriptionChange, getUnifiedSubscriptionStatus } = require('../../utils/subscription')
 const { getPaymentConfig, getPaymentTimeout, getOrderQueryConfig } = require('../../utils/config')
 const { PaymentConfig, PaymentUtils } = require('../../utils/paymentConfig')
 
@@ -64,49 +64,39 @@ Page({
    */
   async loadSubscriptionInfo() {
     try {
-      const subscriptionInfo = await getSubscriptionInfo()
-      
-      // 判断当前是否正在试用中
-      const isInTrial = this.isInTrial(subscriptionInfo)
-      
-      // 获取试用剩余天数（优先使用后端计算的）
-      const trialDaysLeft = subscriptionInfo.trial_days_left !== undefined ? 
-                            subscriptionInfo.trial_days_left : 
-                            this.getTrialDaysLeft(subscriptionInfo)
+      // 使用统一的订阅状态获取方法
+      const unifiedStatus = await getUnifiedSubscriptionStatus()
+      const subscriptionInfo = unifiedStatus.raw // 保持兼容性
       
       // 只有满足以下条件才显示试用按钮：
       // 1. 试用可用（从未用过试用期）
       // 2. 没有付费订阅
       // 3. 不在试用期内
-      const showTrialOption = subscriptionInfo.trial_available && 
-                              !subscriptionInfo.is_subscribed &&
-                              !isInTrial
+      const showTrialOption = unifiedStatus.trialAvailable && 
+                              !unifiedStatus.isSubscribed &&
+                              !unifiedStatus.isInTrial
       
-      console.log('🔍 订阅状态详细检查:', {
+      console.log('🔍 统一订阅状态详细检查:', {
+        '统一解析结果': unifiedStatus,
         '后端返回原始数据': subscriptionInfo,
-        '计算结果': {
-          trial_available: subscriptionInfo.trial_available,
-          is_subscribed: subscriptionInfo.is_subscribed,
-          status: subscriptionInfo.status,
-          trial_end_date: subscriptionInfo.trial_end_date,
-          subscription_end_date: subscriptionInfo.subscription_end_date,
-          type: subscriptionInfo.type,
-          isInTrial: isInTrial,
-          trialDaysLeft: trialDaysLeft,
+        '显示逻辑': {
+          isSubscribed: unifiedStatus.isSubscribed,
+          isInTrial: unifiedStatus.isInTrial,
+          isFree: unifiedStatus.isFree,
+          type: unifiedStatus.type,
+          displayName: unifiedStatus.displayName,
+          trialDaysLeft: unifiedStatus.trialDaysLeft,
           showTrialOption: showTrialOption
         }
       })
       
-      // 🔍 数据一致性检查
-      console.warn('⚠️ 数据一致性提醒：')
-      console.warn('如果 trial_available=true 且 trial_end_date=null，说明可以试用')
-      console.warn('如果点击试用按钮仍然报错，说明后端接口数据不一致')
-      
       this.setData({ 
         subscriptionInfo,
         showTrialOption,
-        isInTrial: isInTrial,
-        trialDaysLeft: trialDaysLeft
+        isInTrial: unifiedStatus.isInTrial,
+        trialDaysLeft: unifiedStatus.trialDaysLeft,
+        // 新增：统一状态对象
+        unifiedStatus: unifiedStatus
       })
     } catch (error) {
       console.error('加载订阅信息失败:', error)
@@ -145,35 +135,24 @@ Page({
    */
   async refreshSubscriptionInfo() {
     try {
-      const subscriptionInfo = await getSubscriptionInfo(true) // 强制刷新
+      // 使用统一的订阅状态获取方法，强制刷新
+      const unifiedStatus = await getUnifiedSubscriptionStatus(true)
+      const subscriptionInfo = unifiedStatus.raw // 保持兼容性
       
-      // 判断当前是否正在试用中
-      const isInTrial = this.isInTrial(subscriptionInfo)
+      // 只有满足以下条件才显示试用按钮
+      const showTrialOption = unifiedStatus.trialAvailable && 
+                              !unifiedStatus.isSubscribed &&
+                              !unifiedStatus.isInTrial
       
-      // 获取试用剩余天数（优先使用后端计算的）
-      const trialDaysLeft = subscriptionInfo.trial_days_left !== undefined ? 
-                            subscriptionInfo.trial_days_left : 
-                            this.getTrialDaysLeft(subscriptionInfo)
-      
-      // 只有满足以下条件才显示试用按钮：
-      // 1. 试用可用（从未用过试用期）
-      // 2. 没有付费订阅
-      // 3. 不在试用期内
-      const showTrialOption = subscriptionInfo.trial_available && 
-                              !subscriptionInfo.is_subscribed &&
-                              !isInTrial
-      
-      console.log('🔄 刷新订阅状态详细检查:', {
-        '后端返回原始数据': subscriptionInfo,
-        '计算结果': {
-          trial_available: subscriptionInfo.trial_available,
-          is_subscribed: subscriptionInfo.is_subscribed,
-          status: subscriptionInfo.status,
-          trial_end_date: subscriptionInfo.trial_end_date,
-          subscription_end_date: subscriptionInfo.subscription_end_date,
-          type: subscriptionInfo.type,
-          isInTrial: isInTrial,
-          trialDaysLeft: trialDaysLeft,
+      console.log('🔄 刷新统一订阅状态详细检查:', {
+        '统一解析结果': unifiedStatus,
+        '显示逻辑': {
+          isSubscribed: unifiedStatus.isSubscribed,
+          isInTrial: unifiedStatus.isInTrial,
+          isFree: unifiedStatus.isFree,
+          type: unifiedStatus.type,
+          displayName: unifiedStatus.displayName,
+          trialDaysLeft: unifiedStatus.trialDaysLeft,
           showTrialOption: showTrialOption
         }
       })
@@ -181,8 +160,10 @@ Page({
       this.setData({ 
         subscriptionInfo,
         showTrialOption,
-        isInTrial: isInTrial,
-        trialDaysLeft: trialDaysLeft
+        isInTrial: unifiedStatus.isInTrial,
+        trialDaysLeft: unifiedStatus.trialDaysLeft,
+        // 更新统一状态对象
+        unifiedStatus: unifiedStatus
       })
     } catch (error) {
       console.error('刷新订阅信息失败:', error)
