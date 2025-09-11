@@ -637,7 +637,7 @@ class AuthService {
       const token = this.getAccessToken()
       const response = await new Promise((resolve, reject) => {
         wx.request({
-          url: `${apiBaseUrl}/api/user/profile`,
+          url: `${apiBaseUrl}/user/profile`,
           method: 'GET',
           header: { 
             'Authorization': `Bearer ${token}`,
