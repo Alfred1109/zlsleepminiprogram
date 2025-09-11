@@ -607,7 +607,7 @@ const UserAPI = {
   async getUserInfo() {
     try {
       const response = await request({
-      url: '/user/info',
+      url: '/api/user/profile',
         method: 'GET'
       })
       return response
@@ -622,7 +622,7 @@ const UserAPI = {
   async updateUserInfo(data) {
     try {
       const response = await request({
-      url: '/auth/user/update',
+      url: '/api/auth/user/update',
         method: 'PUT',
         data: data
       })
@@ -792,7 +792,7 @@ const UserAPI = {
   async getPlayHistory() {
     try {
       const response = await request({
-        url: '/user/play-history',
+        url: '/api/user/play-history',
         method: 'GET'
       })
       return response
@@ -807,7 +807,7 @@ const UserAPI = {
   async recordPlayHistory(itemId, itemType = 'music', duration = 0) {
     try {
       const response = await request({
-        url: '/user/play-history',
+        url: '/api/user/play-history',
         method: 'POST',
         data: {
           item_id: itemId,
