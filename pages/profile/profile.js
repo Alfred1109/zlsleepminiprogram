@@ -36,8 +36,6 @@ Page({
     tempAvatar: '',
     tempNickname: '',
 
-    syncing: false,
-    lastSyncAt: 0,
 
     // 订阅状态
     subscriptionStatus: {
@@ -79,129 +77,6 @@ Page({
     this.removeStatsListener()
   },
 
-  /**
-   * 同步微信昵称与头像
-   */
-  async onSyncWechatProfile() {
-    // 节流：5秒内只允许一次
-    const now = Date.now()
-    if (now - (this.data.lastSyncAt || 0) < 5000 || this.data.syncing) {
-      wx.showToast({ title: '操作太频繁，请稍候', icon: 'none' })
-      return
-    }
-
-    this.setData({ syncing: true })
-
-    try {
-      if (!AuthService.getCurrentUser()) {
-        this.showLoginTip()
-        return
-      }
-
-      // 确保有有效token（必要时自动刷新/登录）
-      try {
-        await AuthService.ensureValidToken()
-      } catch (e) {
-        try {
-          // 触发一次微信登录获取可用token（已经不请求用户信息）
-          const result = await AuthService.wechatLogin()
-          if (!result || !result.success) throw new Error('登录失败')
-        } catch (e2) {
-          wx.showToast({ title: '请先完成微信登录', icon: 'none' })
-          return
-        }
-      }
-
-      // 获取微信用户信息
-      const profile = await new Promise((resolve, reject) => {
-        wx.getUserProfile({
-          desc: '用于完善会员资料',
-          success: resolve,
-          fail: reject
-        })
-      })
-
-      const user = AuthService.getCurrentUser() || {}
-      const res = await UserAPI.updateUserInfo({
-        user_id: user.id,
-        nickname: profile.userInfo.nickName,
-        avatar_url: profile.userInfo.avatarUrl
-      })
-
-      if (res && res.success) {
-        // 同步成功后，从数据库重新获取最新的用户信息
-        console.log('🔄 微信资料同步成功，重新获取完整用户信息...')
-        
-        try {
-          const completeUserInfo = await AuthService.refreshUserInfo()
-          if (completeUserInfo) {
-            this.setData({ 
-              userInfo: completeUserInfo, 
-              hasUserInfo: true, 
-              lastSyncAt: now,
-              // 清除临时状态，因为已同步到服务器
-              tempAvatar: '',
-              tempNickname: '',
-              hasChanges: false
-            })
-            wx.showToast({ title: '微信资料已保存到账户', icon: 'success' })
-          } else {
-            // 降级处理：使用服务器返回的数据
-            const updated = {
-              ...user,
-              nickname: res.data.nickname,
-              nickName: res.data.nickname,
-              avatar_url: res.data.avatar_url,
-              avatarUrl: res.data.avatar_url
-            }
-            
-            AuthService.setCurrentUser(updated)
-            this.setData({ 
-              userInfo: updated, 
-              hasUserInfo: true, 
-              lastSyncAt: now,
-              tempAvatar: '',
-              tempNickname: '',
-              hasChanges: false
-            })
-            wx.showToast({ title: '已同步微信资料', icon: 'success' })
-          }
-        } catch (error) {
-          console.warn('获取完整用户信息失败，使用返回数据:', error)
-          // 降级处理
-          const updated = {
-            ...user,
-            nickname: res.data.nickname,
-            nickName: res.data.nickname,
-            avatar_url: res.data.avatar_url,
-            avatarUrl: res.data.avatar_url
-          }
-          
-          AuthService.setCurrentUser(updated)
-          this.setData({ 
-            userInfo: updated, 
-            hasUserInfo: true, 
-            lastSyncAt: now,
-            tempAvatar: '',
-            tempNickname: '',
-            hasChanges: false
-          })
-          wx.showToast({ title: '已同步微信资料', icon: 'success' })
-        }
-      } else {
-        wx.showToast({ title: res?.message || '同步失败', icon: 'none' })
-      }
-    } catch (e) {
-      const msg = (e && e.errMsg) || ''
-      if (msg.includes('too frequently')) {
-        wx.showToast({ title: '操作太频繁，请稍候再试', icon: 'none' })
-      } else {
-        wx.showToast({ title: '同步失败，请重试', icon: 'none' })
-      }
-    } finally {
-      this.setData({ syncing: false })
-    }
-  },
 
   /**
    * 格式化日期
@@ -254,6 +129,8 @@ Page({
         const completeUserInfo = await AuthService.refreshUserInfo()
         
         if (completeUserInfo) {
+          console.log('📋 数据库返回的完整用户信息详细内容:', completeUserInfo)
+          
           this.setData({
             isLoggedIn: true,
             hasUserInfo: true,
@@ -263,10 +140,15 @@ Page({
             tempAvatar: this.data.hasChanges ? this.data.tempAvatar : '',
             tempNickname: this.data.hasChanges ? this.data.tempNickname : ''
           })
-          console.log('✅ 已从数据库获取完整用户信息:', {
+          
+          console.log('✅ 页面切换 - 从数据库获取用户信息成功:', {
             hasNickname: !!(completeUserInfo.nickname || completeUserInfo.nickName),
-            hasAvatar: !!(completeUserInfo.avatarUrl || completeUserInfo.avatar_url)
+            hasAvatar: !!(completeUserInfo.avatarUrl || completeUserInfo.avatar_url),
+            nickname: completeUserInfo.nickname || completeUserInfo.nickName,
+            avatar: completeUserInfo.avatarUrl || completeUserInfo.avatar_url
           })
+          
+          console.log('📱 当前页面显示的userInfo:', this.data.userInfo)
         } else {
           // 数据库获取失败，使用本地缓存
           const localUserInfo = AuthService.getCurrentUser()
@@ -787,24 +669,33 @@ Page({
   // 头像选择处理
   async onChooseAvatar(e) {
     const { avatarUrl } = e.detail
-    console.log('选择头像:', avatarUrl)
+    console.log('🖼️ 用户选择头像:', avatarUrl)
     
     // 显示加载状态
-    wx.showLoading({ title: '更新头像中...' })
+    wx.showLoading({ title: '保存头像到数据库...' })
     
     try {
-      // 立即同步到服务器
+      // 立即同步到数据库
       const user = AuthService.getCurrentUser() || {}
-      const updateData = {
+      console.log('🔄 准备保存头像到数据库:', {
         user_id: user.id,
         avatar_url: avatarUrl
-      }
+      })
+      
+      const res = await UserAPI.updateUserInfo({
+        user_id: user.id,
+        avatar_url: avatarUrl
+      })
+      
+      console.log('📡 头像保存API响应:', res)
 
-      const res = await UserAPI.updateUserInfo(updateData)
       if (res && res.success) {
-        // 同步成功后，从服务器获取最新的完整用户信息
+        // 同步成功后，从数据库获取最新的完整用户信息
+        console.log('✅ 头像保存成功，从数据库获取最新用户信息...')
         const completeUserInfo = await AuthService.refreshUserInfo()
+        
         if (completeUserInfo) {
+          console.log('📋 数据库返回的用户信息:', completeUserInfo)
           this.setData({ 
             userInfo: completeUserInfo,
             hasUserInfo: true,
@@ -812,17 +703,18 @@ Page({
             tempAvatar: '',
             tempNickname: ''
           })
-          wx.showToast({ title: '头像更新成功', icon: 'success' })
+          console.log('✅ 头像已从数据库更新到页面')
+          wx.showToast({ title: '头像已保存', icon: 'success' })
         } else {
-          throw new Error('获取最新用户信息失败')
+          throw new Error('从数据库获取用户信息失败')
         }
       } else {
-        throw new Error(res?.message || '更新头像失败')
+        throw new Error(res?.message || '保存头像失败')
       }
     } catch (error) {
-      console.error('更新头像失败:', error)
+      console.error('❌ 头像保存失败:', error)
       wx.showToast({ 
-        title: error.message || '更新失败，请重试', 
+        title: error.message || '保存失败，请重试', 
         icon: 'none' 
       })
     } finally {
@@ -830,63 +722,70 @@ Page({
     }
   },
 
-  // 昵称输入处理 - 使用防抖，避免频繁请求
-  onNicknameChange(e) {
+  // 昵称输入处理 - 立即同步到数据库
+  async onNicknameChange(e) {
     const nickname = e.detail.value.trim()
-    console.log('昵称输入:', nickname)
+    console.log('✏️ 用户输入昵称:', nickname)
     
-    // 只更新临时显示，不立即保存
-    if (nickname !== (this.data.userInfo.nickname || this.data.userInfo.nickName || this.data.userInfo.username)) {
-      this.setData({ 
-        tempNickname: nickname,
-        hasChanges: true
+    // 检查昵称是否有变化
+    const currentNickname = this.data.userInfo.nickname || this.data.userInfo.nickName || this.data.userInfo.username || ''
+    if (nickname === currentNickname) {
+      console.log('📝 昵称无变化，跳过保存')
+      return
+    }
+
+    if (!nickname) {
+      console.log('📝 昵称为空，跳过保存')
+      return
+    }
+
+    // 显示保存状态
+    wx.showLoading({ title: '保存昵称到数据库...' })
+    
+    try {
+      // 立即同步到数据库
+      const user = AuthService.getCurrentUser() || {}
+      console.log('🔄 准备保存昵称到数据库:', {
+        user_id: user.id,
+        nickname: nickname
       })
       
-      // 临时更新显示
-      const updatedUserInfo = { ...this.data.userInfo }
-      updatedUserInfo.nickname = nickname
-      updatedUserInfo.nickName = nickname
-      this.setData({ userInfo: updatedUserInfo })
+      const res = await UserAPI.updateUserInfo({
+        user_id: user.id,
+        nickname: nickname
+      })
       
-      // 防抖处理：500ms后同步到服务器
-      this.debouncedSyncNickname(nickname)
-    }
-  },
+      console.log('📡 昵称保存API响应:', res)
 
-  // 防抖同步昵称
-  debouncedSyncNickname(nickname) {
-    // 清除之前的定时器
-    if (this.nicknameTimer) {
-      clearTimeout(this.nicknameTimer)
-    }
-    
-    // 设置新的定时器
-    this.nicknameTimer = setTimeout(async () => {
-      try {
-        const user = AuthService.getCurrentUser() || {}
-        const updateData = {
-          user_id: user.id,
-          nickname: nickname
+      if (res && res.success) {
+        // 同步成功后，从数据库获取最新信息
+        console.log('✅ 昵称保存成功，从数据库获取最新用户信息...')
+        const completeUserInfo = await AuthService.refreshUserInfo()
+        
+        if (completeUserInfo) {
+          console.log('📋 数据库返回的用户信息:', completeUserInfo)
+          this.setData({ 
+            userInfo: completeUserInfo,
+            hasChanges: false,
+            tempNickname: ''
+          })
+          console.log('✅ 昵称已从数据库更新到页面')
+          wx.showToast({ title: '昵称已保存', icon: 'success', duration: 1000 })
+        } else {
+          throw new Error('从数据库获取用户信息失败')
         }
-
-        const res = await UserAPI.updateUserInfo(updateData)
-        if (res && res.success) {
-          // 同步成功后，从服务器获取最新信息
-          const completeUserInfo = await AuthService.refreshUserInfo()
-          if (completeUserInfo) {
-            this.setData({ 
-              userInfo: completeUserInfo,
-              hasChanges: false,
-              tempNickname: ''
-            })
-            console.log('✅ 昵称已同步到数据库')
-          }
-        }
-      } catch (error) {
-        console.error('同步昵称失败:', error)
-        // 失败时保持 hasChanges 状态，用户可以手动保存
+      } else {
+        throw new Error(res?.message || '保存昵称失败')
       }
-    }, 500)
+    } catch (error) {
+      console.error('❌ 昵称保存失败:', error)
+      wx.showToast({ 
+        title: error.message || '保存失败，请重试', 
+        icon: 'none' 
+      })
+    } finally {
+      wx.hideLoading()
+    }
   },
 
   // 保存资料

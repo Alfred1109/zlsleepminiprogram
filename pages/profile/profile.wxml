@@ -248,15 +248,6 @@
           <view class="list-item-action">▶</view>
         </view>
 
-        <!-- 同步微信资料 -->
-        <view wx:if="{{isLoggedIn}}" class="list-item" bindtap="onSyncWechatProfile">
-          <view class="list-item-icon">🔄</view>
-          <view class="list-item-content">
-            <view class="list-item-title">同步微信资料</view>
-            <view class="list-item-subtitle">更新昵称与头像</view>
-          </view>
-          <view class="list-item-action">▶</view>
-        </view>
       </view>
     </view>
   </view>
