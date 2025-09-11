@@ -242,52 +242,65 @@ Page({
   },
 
   /**
-   * 检查登录状态但不覆盖临时修改
+   * 检查登录状态并从数据库获取最新用户信息
    */
   async checkLoginStatusWithoutOverride() {
     const loggedIn = AuthService.isLoggedIn()
-    let userInfo = AuthService.getCurrentUser()
 
-    // 只更新登录状态，如果有临时修改则保持当前用户信息
-    const updateData = {
-      isLoggedIn: loggedIn,
-      hasUserInfo: !!userInfo
-    }
-
-    // 如果已登录但用户信息不完整（缺少昵称或头像），尝试从数据库获取
-    if (loggedIn && userInfo && this.isUserInfoIncomplete(userInfo) && !this.data.hasChanges) {
-      console.log('🔄 用户信息不完整，从数据库获取完整信息...')
+    if (loggedIn) {
       try {
+        // 总是从数据库获取最新的用户信息
+        console.log('🔄 从数据库获取最新用户信息...')
         const completeUserInfo = await AuthService.refreshUserInfo()
-        if (completeUserInfo && this.isUserInfoMoreComplete(userInfo, completeUserInfo)) {
-          userInfo = completeUserInfo
-          updateData.userInfo = userInfo
-          console.log('✅ 已从数据库获取完整用户信息')
+        
+        if (completeUserInfo) {
+          this.setData({
+            isLoggedIn: true,
+            hasUserInfo: true,
+            userInfo: completeUserInfo,
+            // 清理临时状态（如果没有正在进行的修改）
+            hasChanges: this.data.hasChanges && (this.data.tempAvatar || this.data.tempNickname),
+            tempAvatar: this.data.hasChanges ? this.data.tempAvatar : '',
+            tempNickname: this.data.hasChanges ? this.data.tempNickname : ''
+          })
+          console.log('✅ 已从数据库获取完整用户信息:', {
+            hasNickname: !!(completeUserInfo.nickname || completeUserInfo.nickName),
+            hasAvatar: !!(completeUserInfo.avatarUrl || completeUserInfo.avatar_url)
+          })
+        } else {
+          // 数据库获取失败，使用本地缓存
+          const localUserInfo = AuthService.getCurrentUser()
+          this.setData({
+            isLoggedIn: true,
+            hasUserInfo: !!localUserInfo,
+            userInfo: localUserInfo || {
+              avatarUrl: '/images/default-avatar.svg',
+              nickName: '用户'
+            }
+          })
         }
       } catch (error) {
-        console.warn('从数据库获取用户信息失败:', error)
+        console.warn('从数据库获取用户信息失败，使用本地缓存:', error)
+        const localUserInfo = AuthService.getCurrentUser()
+        this.setData({
+          isLoggedIn: true,
+          hasUserInfo: !!localUserInfo,
+          userInfo: localUserInfo || {
+            avatarUrl: '/images/default-avatar.svg',
+            nickName: '用户'
+          }
+        })
       }
+    } else {
+      this.setData({
+        isLoggedIn: false,
+        hasUserInfo: false,
+        userInfo: {
+          avatarUrl: '/images/default-avatar.svg',
+          nickName: '未登录'
+        }
+      })
     }
-
-    // 如果没有临时修改，则更新用户信息
-    if (!this.data.hasChanges && !this.data.tempAvatar && !this.data.tempNickname && !updateData.userInfo) {
-      updateData.userInfo = userInfo || {
-        avatarUrl: '/images/default-avatar.svg',
-        nickName: '未登录'
-      }
-    }
-
-    console.log('📱 页面显示时检查登录状态:', {
-      isLoggedIn: loggedIn,
-      hasStoredUserInfo: !!userInfo,
-      userInfoComplete: !this.isUserInfoIncomplete(userInfo),
-      hasChanges: this.data.hasChanges,
-      tempAvatar: !!this.data.tempAvatar,
-      tempNickname: !!this.data.tempNickname,
-      willUpdateUserInfo: !!updateData.userInfo
-    })
-
-    this.setData(updateData)
   },
 
   /**
@@ -772,56 +785,108 @@ Page({
   },
 
   // 头像选择处理
-  onChooseAvatar(e) {
+  async onChooseAvatar(e) {
     const { avatarUrl } = e.detail
     console.log('选择头像:', avatarUrl)
     
-    this.setData({ 
-      tempAvatar: avatarUrl,
-      hasChanges: true
-    })
+    // 显示加载状态
+    wx.showLoading({ title: '更新头像中...' })
     
-    // 立即更新显示
-    const updatedUserInfo = { ...this.data.userInfo }
-    updatedUserInfo.avatarUrl = avatarUrl
-    updatedUserInfo.avatar_url = avatarUrl
-    this.setData({ userInfo: updatedUserInfo })
-    
-    // 立即保存到本地存储，避免页面切换时丢失
-    this.saveUserInfoToStorage(updatedUserInfo)
-    
-    // 自动保存到服务器（异步进行，不影响用户体验）
-    this.autoSyncToServer('avatar', avatarUrl)
-    
-    wx.showToast({
-      title: '头像已更新',
-      icon: 'success'
-    })
+    try {
+      // 立即同步到服务器
+      const user = AuthService.getCurrentUser() || {}
+      const updateData = {
+        user_id: user.id,
+        avatar_url: avatarUrl
+      }
+
+      const res = await UserAPI.updateUserInfo(updateData)
+      if (res && res.success) {
+        // 同步成功后，从服务器获取最新的完整用户信息
+        const completeUserInfo = await AuthService.refreshUserInfo()
+        if (completeUserInfo) {
+          this.setData({ 
+            userInfo: completeUserInfo,
+            hasUserInfo: true,
+            hasChanges: false,
+            tempAvatar: '',
+            tempNickname: ''
+          })
+          wx.showToast({ title: '头像更新成功', icon: 'success' })
+        } else {
+          throw new Error('获取最新用户信息失败')
+        }
+      } else {
+        throw new Error(res?.message || '更新头像失败')
+      }
+    } catch (error) {
+      console.error('更新头像失败:', error)
+      wx.showToast({ 
+        title: error.message || '更新失败，请重试', 
+        icon: 'none' 
+      })
+    } finally {
+      wx.hideLoading()
+    }
   },
 
-  // 昵称输入处理
+  // 昵称输入处理 - 使用防抖，避免频繁请求
   onNicknameChange(e) {
     const nickname = e.detail.value.trim()
-    console.log('昵称更改:', nickname)
+    console.log('昵称输入:', nickname)
     
-    if (nickname && nickname !== (this.data.userInfo.nickname || this.data.userInfo.nickName || this.data.userInfo.username)) {
+    // 只更新临时显示，不立即保存
+    if (nickname !== (this.data.userInfo.nickname || this.data.userInfo.nickName || this.data.userInfo.username)) {
       this.setData({ 
         tempNickname: nickname,
         hasChanges: true
       })
       
-      // 立即更新显示
+      // 临时更新显示
       const updatedUserInfo = { ...this.data.userInfo }
       updatedUserInfo.nickname = nickname
       updatedUserInfo.nickName = nickname
       this.setData({ userInfo: updatedUserInfo })
       
-      // 立即保存到本地存储，避免页面切换时丢失
-      this.saveUserInfoToStorage(updatedUserInfo)
-      
-      // 自动保存到服务器（异步进行，不影响用户体验）
-      this.autoSyncToServer('nickname', nickname)
+      // 防抖处理：500ms后同步到服务器
+      this.debouncedSyncNickname(nickname)
     }
+  },
+
+  // 防抖同步昵称
+  debouncedSyncNickname(nickname) {
+    // 清除之前的定时器
+    if (this.nicknameTimer) {
+      clearTimeout(this.nicknameTimer)
+    }
+    
+    // 设置新的定时器
+    this.nicknameTimer = setTimeout(async () => {
+      try {
+        const user = AuthService.getCurrentUser() || {}
+        const updateData = {
+          user_id: user.id,
+          nickname: nickname
+        }
+
+        const res = await UserAPI.updateUserInfo(updateData)
+        if (res && res.success) {
+          // 同步成功后，从服务器获取最新信息
+          const completeUserInfo = await AuthService.refreshUserInfo()
+          if (completeUserInfo) {
+            this.setData({ 
+              userInfo: completeUserInfo,
+              hasChanges: false,
+              tempNickname: ''
+            })
+            console.log('✅ 昵称已同步到数据库')
+          }
+        }
+      } catch (error) {
+        console.error('同步昵称失败:', error)
+        // 失败时保持 hasChanges 状态，用户可以手动保存
+      }
+    }, 500)
   },
 
   // 保存资料
@@ -1045,18 +1110,6 @@ Page({
     })
   },
 
-  /**
-   * 保存用户信息到本地存储
-   */
-  saveUserInfoToStorage(userInfo) {
-    try {
-      // 使用AuthService统一保存，确保数据一致性
-      AuthService.setCurrentUser(userInfo)
-      console.log('💾 用户信息已保存到本地存储')
-    } catch (error) {
-      console.error('保存用户信息到本地存储失败:', error)
-    }
-  },
 
   /**
    * 同步用户信息到服务器（可选，在用户明确保存时调用）
@@ -1079,57 +1132,9 @@ Page({
     }
     
     try {
-      const res = await UserAPI.updateUserInfo(updateData)
-      if (res && res.success) {
-        const updatedUserInfo = { ...user, ...res.data }
-        this.saveUserInfoToStorage(updatedUserInfo)
-        
-        this.setData({ 
-          userInfo: updatedUserInfo,
-          hasChanges: false,
-          tempAvatar: '',
-          tempNickname: ''
-        })
-        
-        return true
-      }
-    } catch (error) {
-      console.error('同步用户信息到服务器失败:', error)
-    }
-    
-    return false
-  },
-
-  /**
-   * 自动同步到服务器（防抖处理）
-   */
-  autoSyncToServer(type, value) {
-    // 取消之前的定时器
-    if (this.syncTimer) {
-      clearTimeout(this.syncTimer)
-    }
-
-    // 设置新的定时器（2秒后同步，避免频繁请求）
-    this.syncTimer = setTimeout(async () => {
-      try {
-        const user = AuthService.getCurrentUser() || {}
-        const updateData = {
-          user_id: user.id
-        }
-
-        if (type === 'avatar') {
-          updateData.avatar_url = value
-        } else if (type === 'nickname') {
-          updateData.nickname = value
-        }
-
-        console.log('🔄 自动同步用户信息到服务器:', updateData)
-        
         const res = await UserAPI.updateUserInfo(updateData)
         if (res && res.success) {
-          console.log('✅ 用户信息已自动同步到数据库')
-          
-          // 同步成功后，从数据库获取最新信息
+          // 同步成功后，从数据库获取最新的完整用户信息
           const completeUserInfo = await AuthService.refreshUserInfo()
           if (completeUserInfo) {
             this.setData({ 
@@ -1139,13 +1144,15 @@ Page({
               tempNickname: ''
             })
           }
+          return true
         }
-      } catch (error) {
-        console.warn('自动同步失败:', error)
-        // 同步失败不影响用户使用，保持本地状态
-      }
-    }, 2000) // 2秒防抖
+    } catch (error) {
+      console.error('同步用户信息到服务器失败:', error)
+    }
+    
+    return false
   },
+
 
   /**
    * 检查用户信息是否不完整
