@@ -63,6 +63,14 @@
       }
     ]
   },
+  "permission": {
+    "scope.bluetooth": {
+      "desc": "用于连接蓝牙音频设备，提供个性化音乐疗愈体验"
+    }
+  },
+  "requiredBackgroundModes": [
+    "audio"
+  ],
 
   "networkTimeout": {
     "request": 30000,

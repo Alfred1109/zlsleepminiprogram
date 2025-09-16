@@ -380,26 +380,104 @@ class BluetoothManager {
   _handleBluetoothError(err) {
     let title = '蓝牙错误';
     let content = '蓝牙功能暂时不可用';
+    let showSettings = false;
     
-    if (err.errMsg) {
+    // 检查是否为发布环境的权限问题
+    if (this._isPermissionError(err)) {
+      title = '蓝牙权限不足';
+      content = '请确保已授权小程序使用蓝牙功能，并检查系统蓝牙权限设置';
+      showSettings = true;
+    } else if (err.errMsg) {
       if (err.errMsg.includes('not available')) {
         title = '蓝牙不可用';
         content = '请确认设备支持蓝牙功能';
       } else if (err.errMsg.includes('not enabled')) {
         title = '蓝牙未开启';
         content = '请在设备设置中开启蓝牙功能';
-      } else if (err.errMsg.includes('unauthorized')) {
+        showSettings = true;
+      } else if (err.errMsg.includes('unauthorized') || err.errMsg.includes('permission')) {
         title = '蓝牙权限';
         content = '请授权小程序使用蓝牙功能';
+        showSettings = true;
+      } else if (err.errCode === 10001) {
+        title = '蓝牙未开启';
+        content = '请在设备设置中开启蓝牙功能后重试';
+        showSettings = true;
+      } else if (err.errCode === 10012) {
+        title = '蓝牙服务异常';
+        content = '蓝牙操作不可用，建议重启应用或检查系统蓝牙设置';
+        showSettings = true;
       }
     }
     
-    wx.showModal({
-      title: title,
-      content: content,
-      showCancel: false,
-      confirmText: '我知道了'
-    });
+    // 在发布环境中，提供更详细的解决方案
+    if (showSettings) {
+      wx.showModal({
+        title: title,
+        content: content,
+        confirmText: '打开设置',
+        cancelText: '我知道了',
+        success: (res) => {
+          if (res.confirm) {
+            // 尝试打开设置页面
+            wx.openSetting({
+              success: (settingRes) => {
+                console.log('打开设置页面成功', settingRes);
+              },
+              fail: (settingErr) => {
+                console.log('打开设置页面失败', settingErr);
+                wx.showToast({
+                  title: '请手动前往设置页面',
+                  icon: 'none'
+                });
+              }
+            });
+          }
+        }
+      });
+    } else {
+      wx.showModal({
+        title: title,
+        content: content,
+        showCancel: false,
+        confirmText: '我知道了'
+      });
+    }
+  }
+  
+  /**
+   * 检查是否为权限相关错误
+   * @param {Object} err 错误对象
+   * @returns {boolean} 是否为权限错误
+   * @private
+   */
+  _isPermissionError(err) {
+    if (!err) return false;
+    
+    // 检查错误码
+    const permissionErrorCodes = [10001, 10012];
+    if (permissionErrorCodes.includes(err.errCode)) {
+      return true;
+    }
+    
+    // 检查错误信息
+    if (err.errMsg) {
+      const permissionKeywords = [
+        'permission',
+        'unauthorized',
+        'not enabled',
+        'not available',
+        '权限',
+        '未授权',
+        '未开启'
+      ];
+      const errMsgLower = err.errMsg.toLowerCase();
+      return permissionKeywords.some(keyword => 
+        errMsgLower.includes(keyword.toLowerCase())
+      );
+    }
+    
+    return false;
   }
 
   /**
