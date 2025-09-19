@@ -10,17 +10,6 @@
 
   <!-- 新版引导功能区 -->
   <view class="guide-section">
-    <!-- 模块一：随机播放 -->
-    <view class="guide-card random-listen" bindtap="onRandomListen">
-      <view class="card-content">
-        <text class="card-title">随机播放</text>
-        <text class="card-desc">——探索为您精选的疗愈脑波</text>
-      </view>
-      <view class="card-action">
-        <image class="play-icon" src="/images/play-white.svg" />
-      </view>
-    </view>
-
     <!-- 模块二：专业评测 -->
     <view class="guide-card assessment-card" bindtap="navigateToAssessment">
       <view class="card-header">

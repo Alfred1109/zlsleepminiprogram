@@ -107,53 +107,6 @@
   box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.1), 0 2rpx 4rpx rgba(0, 0, 0, 0.08);
 }
 
-/* 模块一：随机播放 - 品牌橙色主题设计 */
-.random-listen {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #FFFFFF;
-  border: 2rpx solid #C0A9BD;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
-}
-
-.random-listen .card-content {
-  color: #2D3A36; /* 深色文字 */
-  position: relative;
-  z-index: 2;
-}
-
-.random-listen .card-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  margin-bottom: 8rpx;
-  color: #2D3A36;
-}
-
-.random-listen .card-desc {
-  font-size: 24rpx;
-  color: #5A6B5F;
-  opacity: 0.8;
-}
-
-/* 添加品牌橙色背景装饰 */
-.random-listen::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 24rpx; /* 缩窄强调色块，避免与按钮重叠 */
-  height: 100%;
-  background-color: #C0A9BD;
-  border-radius: 0 24rpx 24rpx 0;
-}
-
-.random-listen .card-action .play-icon {
-  width: 80rpx;
-  height: 80rpx;
-}
 
 /* 模块二：专业评测 - 紫粉色点缀设计 */
 .assessment-card {
@@ -245,19 +198,6 @@
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* 随机播放按钮使用主色 */
-.random-listen .card-action-button {
-  background: #FFFFFF;
-  color: #C0A9BD;
-  border: 1rpx solid #C0A9BD;
-  font-weight: 600;
-}
-
-/* 随机播放按钮 */
-.random-listen .card-action-button {
-  background: rgba(255, 255, 255, 0.3);
-  color: #64766A;
-}
 
 /* 专业评测按钮 */
 .assessment-card .card-action-button {
