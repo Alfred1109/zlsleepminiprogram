@@ -1,0 +1,122 @@
+<!-- pages/scene/detail/detail.wxml -->
+<view class="container">
+  <!-- 场景头部信息 -->
+  <view class="scene-header">
+    <view class="scene-title-section">
+      <text class="scene-title">{{sceneName}}</text>
+      <text class="scene-subtitle">{{sceneTheme}}</text>
+    </view>
+  </view>
+
+  <!-- 未登录提示 -->
+  <view class="login-prompt" wx:if="{{!isLoggedIn}}">
+    <view class="prompt-card">
+      <view class="prompt-icon">🔐</view>
+      <view class="prompt-content">
+        <text class="prompt-title">登录后解锁完整体验</text>
+        <text class="prompt-desc">登录账户以查看评测记录和个性化脑波</text>
+      </view>
+      <view class="prompt-action">
+        <view class="login-btn" bindtap="promptLogin" data-message="查看场景详情需要先登录账户">立即登录</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 已登录内容 -->
+  <block wx:if="{{isLoggedIn}}">
+    <!-- 专业评测模块 -->
+    <view class="section-card assessment-section">
+      <view class="section-header">
+        <text class="section-title">专业评测</text>
+        <view class="section-action" bindtap="navigateToAssessment">开始评测</view>
+      </view>
+      
+      <view class="section-body">
+        <!-- 加载状态 -->
+        <view class="loading-state" wx:if="{{loadingAssessments}}">
+          <text class="loading-text">加载评测记录中...</text>
+        </view>
+        
+        <!-- 评测历史列表 -->
+        <view class="history-list" wx:elif="{{assessmentHistory.length > 0}}">
+          <view class="history-item" wx:for="{{assessmentHistory}}" wx:key="id">
+            <view class="history-info">
+              <text class="history-name">{{item.scaleName}} · {{item.result}}</text>
+              <text class="history-date">{{item.date}}</text>
+            </view>
+            <view class="history-action" data-id="{{item.id}}" bindtap="onViewAssessmentResult">
+              <text class="action-text">查看报告</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 空状态 -->
+        <view class="empty-state" wx:else>
+          <image class="empty-icon" src="/images/empty-assessment.svg" />
+          <text class="empty-text">暂无相关评测记录</text>
+          <text class="empty-hint">完成专业评测后，可生成个性化脑波</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- AI生成脑波模块 -->
+    <view class="section-card brainwave-section">
+      <view class="section-header">
+        <text class="section-title">AI生成脑波</text>
+        <view class="section-action" bindtap="navigateToGenerator">立即生成</view>
+      </view>
+      
+      <view class="section-body">
+        <!-- 加载状态 -->
+        <view class="loading-state" wx:if="{{loadingBrainwaves}}">
+          <text class="loading-text">加载脑波记录中...</text>
+        </view>
+        
+        <!-- 脑波历史列表 -->
+        <view class="history-list" wx:elif="{{brainwaveHistory.length > 0}}">
+          <view class="history-item brainwave-item" wx:for="{{brainwaveHistory}}" wx:key="id">
+            <view class="history-info">
+              <text class="history-name">{{item.name}}</text>
+              <view class="history-meta">
+                <text class="history-date">{{item.date}}</text>
+                <text class="history-type {{item.type === '60s_generated' ? 'type-60s' : 'type-long'}}">
+                  {{item.type === '60s_generated' ? '60秒定制' : '长序列'}}
+                </text>
+              </view>
+            </view>
+            <view class="history-action play-action" data-music="{{item}}" bindtap="onPlayHistoryBrainwave">
+              <image class="play-icon" src="/images/play.svg" />
+            </view>
+          </view>
+        </view>
+        
+        <!-- 空状态 -->
+        <view class="empty-state" wx:else>
+          <image class="empty-icon" src="/images/empty-music.svg" />
+          <text class="empty-text">暂无生成的脑波</text>
+          <text class="empty-hint">基于评测结果生成个性化疗愈脑波</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 使用提示 -->
+  <view class="usage-tip">
+    <view class="tip-icon">💡</view>
+    <view class="tip-content">
+      <text class="tip-title">个性化疗愈流程</text>
+      <text class="tip-desc">1. 完成专业评测 → 2. 生成AI脑波 → 3. 开始疗愈体验</text>
+    </view>
+  </view>
+</view>
+
+<!-- 全局播放器 -->
+<global-player 
+  id="globalPlayer"
+  visible="{{showGlobalPlayer}}"
+  bind:playStateChange="onGlobalPlayerStateChange"
+  bind:nextTrack="onNextTrack"
+  bind:previousTrack="onPreviousTrack"
+  bind:closePlayer="onCloseGlobalPlayer"
+  bind:expandPlayer="onExpandGlobalPlayer"
+/>

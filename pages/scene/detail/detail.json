@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "疗愈场景",
+  "navigationBarBackgroundColor": "#4A90E2",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#F4F2F3",
+  "backgroundTextStyle": "light",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "global-player": "/components/global-player/global-player"
+  }
+}

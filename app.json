@@ -21,7 +21,8 @@
     "pages/subscription/subscription",
     "pages/device/device",
     "pages/device/bind/bind",
-    "pages/device/control/control"
+    "pages/device/control/control",
+    "pages/scene/detail/detail"
   ],
   "window": {
     "backgroundTextStyle": "light",

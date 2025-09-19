@@ -8,145 +8,46 @@
     </view>
   </view>
 
-  <!-- 新版引导功能区 -->
-  <view class="guide-section">
-    <!-- 模块二：专业评测 -->
-    <view class="guide-card assessment-card" bindtap="navigateToAssessment">
-      <view class="card-header">
-        <text class="card-title">专业评测</text>
-        <view class="card-action-button" bindtap="navigateToAssessment">开始评测</view>
-      </view>
-      <view class="card-body">
-        <view class="history-list" wx:if="{{assessmentHistory.length > 0}}">
-          <view class="history-item" wx:for="{{assessmentHistory}}" wx:key="id">
-            <view class="history-info">
-              <text class="history-name">{{item.scaleName}} · {{item.result}}</text>
-              <text class="history-date">{{item.date}}</text>
-            </view>
-            <view class="assessment-view-button" data-id="{{item.id}}" catchtap="viewAssessmentResult">
-              <text class="view-text">查看报告</text>
-            </view>
-          </view>
-        </view>
-        <view class="empty-history" wx:else>
-          <image class="empty-icon" src="/images/empty-assessment.svg" />
-          <text class="empty-history-text">暂无评测记录</text>
-        </view>
-      </view>
-    </view>
 
-    <!-- 模块三：自定义脑波 -->
-    <view class="guide-card brainwave-card" bindtap="navigateToGenerator">
-      <view class="card-header">
-        <text class="card-title">AI生成脑波</text>
-        <view class="card-action-button" bindtap="navigateToGenerator">立即生成</view>
-      </view>
-      <view class="card-body">
-
-        <view class="history-list" wx:if="{{brainwaveHistory.length > 0}}">
-          <view class="history-item" wx:for="{{brainwaveHistory}}" wx:key="id">
-            <view class="history-info">
-              <text class="history-name">{{item.name}}</text>
-              <view class="history-meta">
-                <text class="history-date">{{item.date}}</text>
-                <text class="history-type {{item.type === '60s_generated' ? 'type-60s' : 'type-long'}}">
-                  {{item.type === '60s_generated' ? '60秒定制' : '长序列'}}
-                </text>
-              </view>
-            </view>
-            <view class="play-button" data-music="{{item}}" catchtap="playHistoryBrainwave">
-              <image class="play-icon-small" src="/images/play.svg" />
-            </view>
-          </view>
-        </view>
-        <view class="empty-history" wx:else>
-          <image class="empty-icon" src="/images/empty-music.svg" />
-          <text class="empty-history-text">暂无生成记录</text>
-          <view style="margin-top: 20rpx; padding: 20rpx; background: rgba(255,255,255,0.2); border-radius: 8rpx; font-size: 20rpx;">
-            <view style="display: flex; flex-direction: column; gap: 8rpx;">
-              <text style="color: #64766A;">🔍 调试信息:</text>
-              <text style="color: #374151;">登录状态: {{isLoggedIn ? '✅ 已登录' : '❌ 未登录'}}</text>
-              <text style="color: #374151;">用户ID: {{userInfo.id || userInfo.user_id || '无'}}</text>
-              <text style="color: #374151;">脑波数据: {{brainwaveHistory.length}}条</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 疗愈分类 -->
+  <!-- 疗愈场景 -->
   <view class="section-header">
-    <text class="section-title">疗愈分类</text>
+    <text class="section-title">疗愈场景</text>
     <view class="section-actions">
-      <view class="section-more" bindtap="showAllCategories">查看全部</view>
+      <view class="section-more" bindtap="showAllScenes">查看全部</view>
     </view>
   </view>
   
-  <!-- 三个分类一排布局 -->
-  <view class="sound-categories">
+  <!-- 疗愈场景布局 -->
+  <view class="scene-categories">
     <view wx:for="{{categories}}" wx:key="id" 
-          class="sound-category-item {{selectedCategory === item.id ? 'selected' : ''}}" 
-          bindtap="onCategoryTap" 
+          class="scene-category-item" 
+          bindtap="onSceneTap" 
           data-id="{{item.id}}"
           data-name="{{item.name}}"
+          data-scale-type="{{item.scaleType}}"
+          data-scene-name="{{item.sceneName}}"
           data-index="{{index}}">
-      <view class="sound-category-icon category-icon-{{item.id}}">
-        <text class="category-emoji">{{item.icon || '🎵'}}</text>
+      <view class="scene-category-icon category-icon-{{item.id}}">
+        <text class="category-emoji">{{item.icon || '🎯'}}</text>
       </view>
-      <text class="category-name">{{item.name || '未知分类'}}</text>
-      <text class="category-count" wx:if="{{item.count > 0}}">{{item.count}}首</text>
-    </view>
-  </view>
-
-
-
-  <!-- 分类推荐脑波区域 -->
-  <view class="category-recommendations" wx:if="{{selectedCategory && categoryRecommendations.length > 0}}">
-    <view class="section-header">
-      <text class="section-title">{{getCategoryName(selectedCategory)}} · 推荐</text>
-    </view>
-    
-    <!-- 垂直排列的推荐列表 -->
-    <view class="recommendations-vertical-list">
-      <view wx:for="{{categoryRecommendations}}" wx:key="id" wx:if="{{index < 3}}"
-            class="recommendation-vertical-item {{playingSoundId === item.id ? 'playing' : ''}}"
-            bindtap="onRecommendationTap"
-            data-music="{{item}}">
-        
-        <!-- 脑波封面 -->
-        <view class="music-cover-vertical">
-          <image 
-            class="cover-image-vertical" 
-            src="{{item.image || '/images/default-music-cover.svg'}}" 
-            mode="aspectFill"
-          />
-        </view>
-        
-        <!-- 脑波信息 -->
-        <view class="music-info-vertical">
-          <text class="music-title-vertical">{{item.title}}</text>
-          <text class="music-duration-vertical" wx:if="{{item.duration}}">{{formatDuration(item.duration)}}</text>
-        </view>
-        
-        <!-- 播放按钮 -->
-        <view class="play-button-vertical" 
-              catchtap="onPlayRecommendation" 
-              data-music="{{item}}">
-          <text class="play-icon-vertical">▶</text>
-        </view>
+      <view class="scene-info">
+        <text class="scene-name">{{item.name || '未知场景'}}</text>
+        <text class="scene-desc">{{item.description || '疗愈场景'}}</text>
+      </view>
+      <view class="scene-arrow">
+        <text class="arrow-icon">→</text>
       </view>
     </view>
   </view>
 
 
 
-  <!-- 使用提示 -->
-  <view class="usage-tip" wx:if="{{!selectedCategory}}">
-    <view class="tip-icon">💡</view>
+  <!-- 场景使用提示 -->
+  <view class="usage-tip">
+    <view class="tip-icon">🎯</view>
     <view class="tip-content">
       <text class="tip-title">开始您的疗愈之旅</text>
-      <text class="tip-desc">选择一个分类，查看推荐脑波并开始播放</text>
+      <text class="tip-desc">点击场景卡片，查看评测记录并开始个性化疗愈</text>
     </view>
   </view>
 </view>
