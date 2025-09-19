@@ -8,6 +8,55 @@
     </view>
   </view>
 
+  <!-- 用户信息展示模块 -->
+  <view class="user-info-section">
+    <!-- 未登录状态 -->
+    <view class="user-card login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="goToLogin">
+      <view class="user-avatar">
+        <text class="avatar-icon">👋</text>
+      </view>
+      <view class="user-details">
+        <text class="user-name">点击登录</text>
+        <text class="user-status">登录后享受个性化疗愈体验</text>
+      </view>
+      <view class="user-action">
+        <text class="action-arrow">→</text>
+      </view>
+    </view>
+
+    <!-- 已登录状态 -->
+    <view class="user-card" wx:else>
+      <view class="user-avatar">
+        <image class="avatar-image" src="{{userInfo.avatar || '/images/default-avatar.png'}}" wx:if="{{userInfo.avatar}}" />
+        <text class="avatar-icon" wx:else>{{subscriptionStatus.statusIcon || '👤'}}</text>
+      </view>
+      <view class="user-details">
+        <text class="user-name">{{userInfo.nickname || userInfo.name || '用户'}}</text>
+        <view class="user-status">
+          <!-- 已订阅状态 -->
+          <text class="status-text subscribed" wx:if="{{unifiedStatus.isSubscribed}}" style="color: {{subscriptionStatus.statusColor}}">
+            {{subscriptionStatus.displayName}} · {{subscriptionStatus.description}}
+          </text>
+          <!-- 试用状态 -->
+          <text class="status-text trial" wx:elif="{{unifiedStatus.isInTrial}}" style="color: {{subscriptionStatus.statusColor}}">
+            {{subscriptionStatus.displayName}} · {{subscriptionStatus.description}}
+          </text>
+          <!-- 免费用户 -->
+          <text class="status-text free" wx:else>
+            {{subscriptionStatus.description || '免费版用户'}}
+          </text>
+        </view>
+      </view>
+      <!-- 订阅引导按钮 -->
+      <view class="user-action" wx:if="{{subscriptionStatus.showUpgrade}}" bindtap="goToSubscription">
+        <text class="upgrade-text">升级</text>
+      </view>
+      <!-- 已订阅用户显示状态图标 -->
+      <view class="user-action" wx:else>
+        <text class="status-icon" style="color: {{subscriptionStatus.statusColor}}">{{subscriptionStatus.statusIcon}}</text>
+      </view>
+    </view>
+  </view>
 
   <!-- 疗愈场景 -->
   <view class="section-header">

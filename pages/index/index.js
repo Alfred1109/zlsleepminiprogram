@@ -5,6 +5,7 @@ const { unifiedMusicManager } = require('../../utils/unifiedMusicManager')
 const AuthService = require('../../services/AuthService')
 const { getCurrentConfig } = require('../../utils/config')
 const { MusicAPI, LongSequenceAPI } = require('../../utils/healingApi')
+const { getUnifiedSubscriptionStatus } = require('../../utils/subscription')
 
 Page({
   data: {
@@ -14,6 +15,10 @@ Page({
     sounds: [],
     
     categories: [],
+    
+    // 订阅状态相关
+    subscriptionStatus: null,
+    unifiedStatus: null,
     
     // 全局播放器相关
     showGlobalPlayer: false,
@@ -324,13 +329,26 @@ Page({
         userInfo: userInfo
       });
 
+      // 如果已登录，加载订阅状态
+      if (loggedIn) {
+        this.loadSubscriptionStatus();
+      } else {
+        // 未登录时清空订阅状态
+        this.setData({
+          subscriptionStatus: null,
+          unifiedStatus: null
+        });
+      }
+
       return loggedIn;
     } catch (error) {
       console.error('检查登录状态失败:', error);
       // 发生错误时，设置为未登录状态
       this.setData({
         isLoggedIn: false,
-        userInfo: null
+        userInfo: null,
+        subscriptionStatus: null,
+        unifiedStatus: null
       });
       return false;
     }
@@ -342,6 +360,75 @@ Page({
   goToLogin: function() {
     wx.navigateTo({
       url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/index/index')
+    });
+  },
+
+  /**
+   * 加载订阅状态
+   */
+  async loadSubscriptionStatus() {
+    if (!this.data.isLoggedIn) {
+      return;
+    }
+
+    try {
+      console.log('🔍 首页加载订阅状态...');
+      
+      // 使用统一的订阅状态获取方法
+      const unifiedStatus = await getUnifiedSubscriptionStatus();
+      
+      // 根据统一状态构建显示状态
+      let subscriptionStatus = {
+        type: unifiedStatus.type,
+        displayName: unifiedStatus.displayName,
+        showUpgrade: !unifiedStatus.isSubscribed,
+        statusColor: '#999',
+        statusIcon: '👤',
+        description: ''
+      };
+
+      // 根据订阅类型设置详细信息
+      if (unifiedStatus.isSubscribed) {
+        if (unifiedStatus.type === 'premium') {
+          subscriptionStatus.statusColor = '#10b981';
+          subscriptionStatus.statusIcon = '💎';
+          subscriptionStatus.description = '畅享所有高级功能';
+        } else if (unifiedStatus.type === 'vip') {
+          subscriptionStatus.statusColor = '#8b5cf6';
+          subscriptionStatus.statusIcon = '👑';
+          subscriptionStatus.description = '专享VIP特权';
+        }
+        subscriptionStatus.showUpgrade = false;
+      } else if (unifiedStatus.isInTrial) {
+        subscriptionStatus.statusColor = '#f59e0b';
+        subscriptionStatus.statusIcon = '⭐';
+        subscriptionStatus.description = `试用期剩余${unifiedStatus.trialDaysLeft}天`;
+        subscriptionStatus.showUpgrade = false;
+      } else {
+        subscriptionStatus.description = '升级解锁更多功能';
+      }
+
+      console.log('🔍 首页订阅状态加载完成:', {
+        '统一状态': unifiedStatus,
+        '显示状态': subscriptionStatus
+      });
+
+      this.setData({
+        subscriptionStatus,
+        unifiedStatus
+      });
+
+    } catch (error) {
+      console.error('首页加载订阅状态失败:', error);
+    }
+  },
+
+  /**
+   * 跳转到订阅页面
+   */
+  goToSubscription: function() {
+    wx.navigateTo({
+      url: '/pages/subscription/subscription'
     });
   },
 
