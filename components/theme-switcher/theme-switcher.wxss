@@ -2,11 +2,11 @@
 
 .theme-switcher-container {
   position: fixed;
-  top: 100rpx;
-  right: 30rpx;
+  top: 120rpx;
+  left: 0;
   z-index: 1000;
   opacity: 0;
-  transform: translateX(100%);
+  transform: translateX(-100%);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -15,51 +15,96 @@
   transform: translateX(0);
 }
 
-/* 切换按钮 */
+/* 切换按钮 - 书签样式 */
 .theme-toggle-btn {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
+  justify-content: center;
+  background: linear-gradient(135deg, #DC143C, #B91C1C);
   backdrop-filter: blur(10px);
-  border-radius: 30rpx;
-  padding: 16rpx 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
-  border: 1rpx solid rgba(192, 169, 189, 0.2);
+  border-radius: 0 12rpx 12rpx 0;
+  padding: 16rpx 8rpx;
+  width: 60rpx;
+  height: 120rpx;
+  box-shadow: 2rpx 0 20rpx rgba(220, 20, 60, 0.3);
+  border: 1rpx solid rgba(220, 20, 60, 0.4);
+  border-left: none;
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
+/* 书签切口效果 */
+.theme-toggle-btn::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15rpx solid transparent;
+  border-right: 15rpx solid transparent;
+  border-top: 16rpx solid #DC143C;
+}
+
+/* 书签阴影加强 */
+.theme-toggle-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15rpx solid transparent;
+  border-right: 15rpx solid transparent;
+  border-top: 16rpx solid rgba(0, 0, 0, 0.1);
+  z-index: -1;
+}
+
 .theme-toggle-btn:hover {
-  background: rgba(192, 169, 189, 0.1);
-  transform: translateY(-2rpx);
-  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #FF1744, #DC143C);
+  transform: translateX(8rpx);
+  box-shadow: 4rpx 0 24rpx rgba(220, 20, 60, 0.4);
+}
+
+.theme-toggle-btn:hover::before {
+  border-top-color: #FF1744;
 }
 
 .theme-icon {
   font-size: 32rpx;
-  margin-right: 8rpx;
+  margin-bottom: 6rpx;
+  color: #FFD700;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
 }
 
 .theme-text {
-  font-size: 26rpx;
-  font-weight: 500;
-  color: #4B5563;
+  font-size: 16rpx;
+  font-weight: 600;
+  color: #FFD700;
+  text-align: center;
+  line-height: 1.1;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+  letter-spacing: 1rpx;
 }
 
 /* 主题选项面板 */
 .theme-panel {
   position: absolute;
-  top: 80rpx;
-  right: 0;
+  top: -20rpx;
+  left: 80rpx;
   width: 500rpx;
-  max-height: 80vh;
+  max-height: 90vh;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.15);
   border: 1rpx solid rgba(255, 255, 255, 0.5);
-  overflow: hidden;
-  transform: translateY(-20rpx) scale(0.95);
+  overflow-y: auto;
+  transform: translateX(-20rpx) scale(0.95);
   opacity: 0;
   visibility: hidden;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -67,7 +112,7 @@
 }
 
 .theme-panel.show {
-  transform: translateY(0) scale(1);
+  transform: translateX(0) scale(1);
   opacity: 1;
   visibility: visible;
 }
@@ -95,9 +140,7 @@
 
 /* 主题选项 */
 .theme-options {
-  padding: 24rpx;
-  max-height: 400rpx;
-  overflow-y: auto;
+  padding: 24rpx 24rpx 0;
 }
 
 .theme-option {
@@ -166,7 +209,7 @@
 
 /* 时间主题 */
 .time-themes {
-  padding: 0 24rpx 24rpx;
+  padding: 0 24rpx 48rpx;
 }
 
 .section-divider {
@@ -228,7 +271,7 @@
 
 /* 智能推荐 */
 .smart-recommendation {
-  margin: 16rpx 24rpx 24rpx;
+  margin: 16rpx 24rpx 48rpx;
   padding: 20rpx;
   background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
   border-radius: 16rpx;
@@ -300,8 +343,8 @@
 /* 响应式适配 */
 @media (max-width: 600px) {
   .theme-panel {
-    width: calc(100vw - 60rpx);
-    right: -200rpx;
+    width: calc(100vw - 100rpx);
+    left: 80rpx;
   }
   
   .time-options {

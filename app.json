@@ -23,6 +23,7 @@
     "pages/device/bind/bind",
     "pages/device/control/control",
     "pages/scene/detail/detail",
+    "pages/scene/list/list",
     "pages/scene-mapping-test/scene-mapping-test"
   ],
   "window": {

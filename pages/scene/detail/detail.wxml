@@ -8,6 +8,15 @@
     </view>
   </view>
 
+  <!-- 个性化疗愈流程 -->
+  <view class="usage-tip">
+    <view class="tip-icon">💡</view>
+    <view class="tip-content">
+      <text class="tip-title">个性化疗愈流程</text>
+      <text class="tip-desc">1. 完成专业评测 → 2. 生成AI脑波 → 3. 开始疗愈体验</text>
+    </view>
+  </view>
+
   <!-- 未登录提示 -->
   <view class="login-prompt" wx:if="{{!isLoggedIn}}">
     <view class="prompt-card">
@@ -22,16 +31,23 @@
     </view>
   </view>
 
-  <!-- 已登录内容 -->
-  <block wx:if="{{isLoggedIn}}">
-    <!-- 专业评测模块 -->
-    <view class="section-card assessment-section">
-      <view class="section-header">
-        <text class="section-title">专业评测</text>
-        <view class="section-action" bindtap="navigateToAssessment">开始评测</view>
+  <!-- 专业评测模块 -->
+  <view class="section-card assessment-section">
+    <view class="section-header">
+      <text class="section-title">专业评测</text>
+      <view class="section-action" bindtap="navigateToAssessment">开始评测</view>
+    </view>
+    
+    <view class="section-body">
+      <!-- 未登录状态 -->
+      <view class="empty-state" wx:if="{{!isLoggedIn}}">
+        <image class="empty-icon" src="/images/empty-assessment.svg" />
+        <text class="empty-text">请先登录查看评测记录</text>
+        <text class="empty-hint">登录后可查看专业评测历史</text>
       </view>
       
-      <view class="section-body">
+      <!-- 已登录状态 -->
+      <block wx:else>
         <!-- 加载状态 -->
         <view class="loading-state" wx:if="{{loadingAssessments}}">
           <text class="loading-text">加载评测记录中...</text>
@@ -56,17 +72,27 @@
           <text class="empty-text">暂无相关评测记录</text>
           <text class="empty-hint">完成专业评测后，可生成个性化脑波</text>
         </view>
-      </view>
+      </block>
     </view>
+  </view>
 
-    <!-- AI生成脑波模块 -->
-    <view class="section-card brainwave-section">
-      <view class="section-header">
-        <text class="section-title">AI生成脑波</text>
-        <view class="section-action" bindtap="navigateToGenerator">立即生成</view>
+  <!-- AI生成脑波模块 -->
+  <view class="section-card brainwave-section">
+    <view class="section-header">
+      <text class="section-title">AI生成脑波</text>
+      <view class="section-action" bindtap="navigateToGenerator">立即生成</view>
+    </view>
+    
+    <view class="section-body">
+      <!-- 未登录状态 -->
+      <view class="empty-state" wx:if="{{!isLoggedIn}}">
+        <image class="empty-icon" src="/images/empty-music.svg" />
+        <text class="empty-text">请先登录查看脑波记录</text>
+        <text class="empty-hint">登录后可查看AI生成的个性化脑波</text>
       </view>
       
-      <view class="section-body">
+      <!-- 已登录状态 -->
+      <block wx:else>
         <!-- 加载状态 -->
         <view class="loading-state" wx:if="{{loadingBrainwaves}}">
           <text class="loading-text">加载脑波记录中...</text>
@@ -96,16 +122,7 @@
           <text class="empty-text">暂无生成的脑波</text>
           <text class="empty-hint">基于评测结果生成个性化疗愈脑波</text>
         </view>
-      </view>
-    </view>
-  </block>
-
-  <!-- 使用提示 -->
-  <view class="usage-tip">
-    <view class="tip-icon">💡</view>
-    <view class="tip-content">
-      <text class="tip-title">个性化疗愈流程</text>
-      <text class="tip-desc">1. 完成专业评测 → 2. 生成AI脑波 → 3. 开始疗愈体验</text>
+      </block>
     </view>
   </view>
 </view>

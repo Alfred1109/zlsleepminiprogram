@@ -3,7 +3,7 @@
   <!-- 切换按钮 -->
   <view class="theme-toggle-btn" bindtap="toggleThemeSwitcher">
     <text class="theme-icon">🎨</text>
-    <text class="theme-text">疗愈主题</text>
+    <text class="theme-text">主题</text>
   </view>
 
   <!-- 主题选项面板 -->
