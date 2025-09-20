@@ -3,17 +3,27 @@
 const app = getApp()
 const { AssessmentAPI, UserAPI } = require('../../../utils/healingApi')
 const AuthService = require('../../../services/AuthService')
+const { sceneContextManager } = require('../../../utils/sceneContextManager')
 
 Page({
   data: {
     scales: [],
+    filteredScales: [], // 过滤后的量表
     loading: false,
     userInfo: null,
-    recentAssessments: []
+    recentAssessments: [],
+    
+    // 场景上下文相关
+    sceneContext: null,
+    isInSceneMode: false,
+    sceneHint: ''
   },
 
   async onLoad() {
     console.log('📱 评测量表页面加载')
+
+    // 检查场景上下文
+    this.checkSceneContext()
 
     // 调试：检查存储中的所有认证相关信息
     console.log('🔍 调试信息:')
@@ -38,6 +48,9 @@ Page({
   },
 
   onShow() {
+    // 检查场景上下文变化
+    this.checkSceneContext()
+    
     // 每次显示时检查登录状态并刷新数据
     const currentUser = AuthService.getCurrentUser()
     if (currentUser) {
@@ -46,6 +59,78 @@ Page({
     } else {
       this.setData({ userInfo: null, recentAssessments: [] })
     }
+  },
+
+  /**
+   * 检查场景上下文
+   */
+  checkSceneContext() {
+    const context = sceneContextManager.getCurrentContext()
+    const isInSceneMode = sceneContextManager.isInSceneMode()
+    const sceneHint = sceneContextManager.getSceneNavigationHint()
+    
+    console.log('🎯 检查场景上下文:', { context, isInSceneMode, sceneHint })
+    
+    this.setData({
+      sceneContext: context,
+      isInSceneMode,
+      sceneHint
+    })
+    
+    // 如果量表已加载，重新过滤
+    if (this.data.scales.length > 0) {
+      this.filterScalesByScene()
+    }
+  },
+
+  /**
+   * 根据场景过滤量表
+   */
+  filterScalesByScene() {
+    const { scales, sceneContext, isInSceneMode } = this.data
+    
+    if (!isInSceneMode || !sceneContext || !sceneContext.scaleType) {
+      // 没有场景限制，显示所有量表
+      this.setData({ filteredScales: scales })
+      console.log('📋 显示所有量表，共', scales.length, '个')
+      return
+    }
+    
+    // 根据场景的scaleType过滤量表
+    const filtered = scales.filter(scale => 
+      scale.scale_type === sceneContext.scaleType
+    )
+    
+    this.setData({ filteredScales: filtered })
+    
+    console.log(`🎯 场景「${sceneContext.sceneName}」过滤后显示量表:`, {
+      scaleType: sceneContext.scaleType,
+      原始数量: scales.length,
+      过滤后数量: filtered.length,
+      过滤结果: filtered.map(s => s.name)
+    })
+  },
+
+  /**
+   * 退出场景模式
+   */
+  exitSceneMode() {
+    wx.showModal({
+      title: '退出场景模式',
+      content: '是否退出当前场景模式，查看所有评测量表？',
+      confirmText: '退出',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          sceneContextManager.clearSceneContext()
+          this.checkSceneContext()
+          wx.showToast({
+            title: '已退出场景模式',
+            icon: 'success'
+          })
+        }
+      }
+    })
   },
 
   /**
@@ -113,6 +198,9 @@ Page({
           scales: scalesWithInfo
         })
         console.log('✅ 量表数据已设置到页面数据中')
+        
+        // 根据场景上下文过滤量表
+        this.filterScalesByScene()
       } else {
         console.error('❌ API 返回失败:', result.error)
         wx.showToast({

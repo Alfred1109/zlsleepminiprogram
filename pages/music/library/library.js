@@ -5,12 +5,15 @@ const { MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
 const AuthService = require('../../../services/AuthService')
 const { requireSubscription, getSubscriptionInfo, getUnifiedSubscriptionStatus } = require('../../../utils/subscription')
+const { sceneContextManager } = require('../../../utils/sceneContextManager')
 
 Page({
   data: {
     userInfo: null,
     musicList: [],
     longSequenceList: [],
+    filteredMusicList: [], // 过滤后的60秒脑波
+    filteredLongSequenceList: [], // 过滤后的长序列脑波
     currentTab: 'music', // 'music' or 'longSequence'
     loading: false,
     currentPlayingId: null,
@@ -30,14 +33,30 @@ Page({
       daysLeft: 0,
       features: [],
       showUpgrade: false
-    }
+    },
+    
+    // 场景上下文相关
+    sceneContext: null,
+    isInSceneMode: false,
+    sceneHint: ''
   },
 
   onLoad() {
     console.log('脑波库页面加载')
 
+    // 检查场景上下文
+    this.checkSceneContext()
+
     // 修改：允许未登录用户查看脑波页面，但不强制登录
     this.initPage()
+  },
+
+  onShow() {
+    // 检查场景上下文变化
+    this.checkSceneContext()
+    
+    // 更新播放状态
+    this.updatePlayingStatus()
   },
 
   /**
@@ -64,6 +83,124 @@ Page({
       console.error('页面初始化失败:', error)
       this.showFallbackContent()
     }
+  },
+
+  /**
+   * 检查场景上下文
+   */
+  checkSceneContext() {
+    const context = sceneContextManager.getCurrentContext()
+    const isInSceneMode = sceneContextManager.isInSceneMode()
+    const sceneHint = sceneContextManager.getSceneNavigationHint()
+    
+    console.log('🎯 脑波页面检查场景上下文:', { context, isInSceneMode, sceneHint })
+    
+    this.setData({
+      sceneContext: context,
+      isInSceneMode,
+      sceneHint
+    })
+    
+    // 如果脑波数据已加载，重新过滤
+    if (this.data.musicList.length > 0 || this.data.longSequenceList.length > 0) {
+      this.filterBrainwavesByScene()
+    }
+  },
+
+  /**
+   * 根据场景过滤脑波数据
+   */
+  filterBrainwavesByScene() {
+    const { musicList, longSequenceList, sceneContext, isInSceneMode } = this.data
+    
+    if (!isInSceneMode || !sceneContext) {
+      // 没有场景限制，显示所有脑波
+      this.setData({ 
+        filteredMusicList: musicList,
+        filteredLongSequenceList: longSequenceList
+      })
+      console.log('🧠 显示所有脑波数据:', {
+        音频数量: musicList.length,
+        长序列数量: longSequenceList.length
+      })
+      return
+    }
+    
+    // 根据场景过滤脑波数据
+    // 这里可以根据实际需求添加更复杂的过滤逻辑
+    // 目前基于评测量表类型过滤（如果脑波数据中有相关字段）
+    const filteredMusic = musicList.filter(music => {
+      // 检查音频是否与场景相关
+      return this.isBrainwaveMatchingScene(music, sceneContext)
+    })
+    
+    const filteredLongSequence = longSequenceList.filter(sequence => {
+      // 检查长序列是否与场景相关
+      return this.isBrainwaveMatchingScene(sequence, sceneContext)
+    })
+    
+    this.setData({ 
+      filteredMusicList: filteredMusic,
+      filteredLongSequenceList: filteredLongSequence
+    })
+    
+    console.log(`🎯 场景「${sceneContext.sceneName}」过滤后脑波数据:`, {
+      scaleType: sceneContext.scaleType,
+      原始音频数量: musicList.length,
+      过滤后音频数量: filteredMusic.length,
+      原始长序列数量: longSequenceList.length,
+      过滤后长序列数量: filteredLongSequence.length
+    })
+  },
+
+  /**
+   * 检查脑波是否匹配当前场景
+   */
+  isBrainwaveMatchingScene(brainwave, sceneContext) {
+    if (!sceneContext || !sceneContext.scaleType) return true
+    
+    // 检查脑波的评测量表类型是否匹配场景
+    const brainwaveScaleType = brainwave.assessment_scale_name || 
+                               brainwave.scale_type || 
+                               brainwave.scale_name
+    
+    if (brainwaveScaleType) {
+      // 直接匹配量表类型
+      if (brainwaveScaleType === sceneContext.scaleType) {
+        return true
+      }
+      
+      // 模糊匹配（例如 HAMD-17 与 HAMD）
+      if (brainwaveScaleType.includes(sceneContext.scaleType) || 
+          sceneContext.scaleType.includes(brainwaveScaleType)) {
+        return true
+      }
+    }
+    
+    // 如果没有明确的量表信息，暂时保留（可根据需求调整）
+    return false
+  },
+
+  /**
+   * 退出场景模式
+   */
+  exitSceneMode() {
+    wx.showModal({
+      title: '退出场景模式',
+      content: '是否退出当前场景模式，查看所有脑波？',
+      confirmText: '退出',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          sceneContextManager.clearSceneContext()
+          this.checkSceneContext()
+          wx.showToast({
+            title: '已退出场景模式',
+            icon: 'success'
+          })
+        }
+      }
+    })
   },
 
   /**
@@ -327,6 +464,9 @@ Page({
         musicData: processedMusicList,
         longSequenceData: processedLongSequenceList
       })
+
+      // 根据场景上下文过滤脑波数据
+      this.filterBrainwavesByScene()
 
     } catch (error) {
       console.error('加载音频数据失败:', error)

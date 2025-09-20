@@ -3,6 +3,7 @@
 const app = getApp()
 const { AssessmentAPI, MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 const AuthService = require('../../../services/AuthService')
+const { sceneContextManager } = require('../../../utils/sceneContextManager')
 
 Page({
   data: {
@@ -232,6 +233,21 @@ Page({
       return
     }
     
+    // 设置场景上下文
+    sceneContextManager.setSceneContext({
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      scaleType: this.data.scaleType,
+      sceneTheme: this.data.sceneTheme,
+      source: '/pages/scene/detail/detail'
+    })
+    
+    console.log('🎯 设置场景上下文后跳转到评测页面:', {
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      scaleType: this.data.scaleType
+    })
+    
     wx.switchTab({
       url: '/pages/assessment/scales/scales'
     })
@@ -249,8 +265,49 @@ Page({
       return
     }
     
+    // 设置场景上下文
+    sceneContextManager.setSceneContext({
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      scaleType: this.data.scaleType,
+      sceneTheme: this.data.sceneTheme,
+      source: '/pages/scene/detail/detail'
+    })
+    
+    console.log('🎯 设置场景上下文后跳转到脑波生成页面:', {
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      scaleType: this.data.scaleType
+    })
+    
     wx.navigateTo({
       url: '/pages/longSequence/create/create'
+    })
+  },
+
+  /**
+   * 跳转到脑波库页面
+   */
+  navigateToMusicLibrary() {
+    console.log('🧠 跳转到脑波库页面')
+    
+    // 设置场景上下文
+    sceneContextManager.setSceneContext({
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      scaleType: this.data.scaleType,
+      sceneTheme: this.data.sceneTheme,
+      source: '/pages/scene/detail/detail'
+    })
+    
+    console.log('🎯 设置场景上下文后跳转到脑波库页面:', {
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      scaleType: this.data.scaleType
+    })
+    
+    wx.switchTab({
+      url: '/pages/music/library/library'
     })
   },
 

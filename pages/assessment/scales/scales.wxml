@@ -7,6 +7,20 @@
     <view class="page-subtitle">了解您的心理状态，获得个性化疗愈</view>
   </view>
 
+  <!-- 场景状态指示器 -->
+  <view wx:if="{{isInSceneMode}}" class="scene-indicator">
+    <view class="scene-indicator-content">
+      <view class="scene-indicator-icon">🎯</view>
+      <view class="scene-indicator-text">
+        <text class="scene-indicator-title">{{sceneHint}}</text>
+        <text class="scene-indicator-subtitle">只显示相关评测量表</text>
+      </view>
+      <view class="scene-indicator-action" bindtap="exitSceneMode">
+        <text class="exit-text">退出</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 页面内容 -->
   <view class="page-content">
     <!-- 加载状态 -->
@@ -20,11 +34,15 @@
       <view class="content-section">
         <view class="section-header">
           <view class="section-title">选择评测量表</view>
+          <view wx:if="{{isInSceneMode}}" class="section-subtitle">
+            共 {{filteredScales.length}} 个相关量表
+          </view>
         </view>
 
-        <view class="list-container">
+        <!-- 量表列表 -->
+        <view wx:if="{{filteredScales.length > 0}}" class="list-container">
           <view
-            wx:for="{{scales}}"
+            wx:for="{{filteredScales}}"
             wx:key="id"
             class="list-item"
             data-scale="{{item}}"
@@ -42,6 +60,20 @@
             <view class="list-item-action">
               <text style="color: #5D9E7E; font-size: 24rpx;">▶</text>
             </view>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view wx:else class="empty-state">
+          <view class="empty-icon">📋</view>
+          <view class="empty-title">
+            {{isInSceneMode ? '暂无相关评测量表' : '暂无评测量表'}}
+          </view>
+          <view class="empty-subtitle">
+            {{isInSceneMode ? '当前场景暂无对应的评测量表' : '请稍后重试或联系客服'}}
+          </view>
+          <view wx:if="{{isInSceneMode}}" class="empty-action">
+            <button class="empty-button" bindtap="exitSceneMode">查看所有量表</button>
           </view>
         </view>
       </view>

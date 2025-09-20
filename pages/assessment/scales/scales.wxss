@@ -325,4 +325,206 @@
   line-height: 1.4;
 }
 
+/* 场景状态指示器 */
+.scene-indicator {
+  margin: 0 24rpx 32rpx;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
+  overflow: hidden;
+}
+
+.scene-indicator-content {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx;
+}
+
+.scene-indicator-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+  opacity: 0.8;
+}
+
+.scene-indicator-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.scene-indicator-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2D3A36;
+  line-height: 1.3;
+}
+
+.scene-indicator-subtitle {
+  font-size: 24rpx;
+  color: #94A7AE;
+  opacity: 0.8;
+}
+
+.scene-indicator-action {
+  padding: 12rpx 20rpx;
+  background: rgba(192, 169, 189, 0.1);
+  border: 1rpx solid rgba(192, 169, 189, 0.2);
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.scene-indicator-action:active {
+  transform: scale(0.95);
+  background: rgba(192, 169, 189, 0.2);
+}
+
+.exit-text {
+  font-size: 24rpx;
+  color: #C0A9BD;
+  font-weight: 500;
+}
+
+/* 区块子标题 */
+.section-subtitle {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 8rpx;
+  opacity: 0.9;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 40rpx;
+  margin: 0 24rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2D3A36;
+  margin-bottom: 12rpx;
+  text-align: center;
+}
+
+.empty-subtitle {
+  font-size: 26rpx;
+  color: #94A7AE;
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 32rpx;
+  opacity: 0.8;
+}
+
+.empty-action {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.empty-button {
+  padding: 16rpx 32rpx;
+  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 24rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  box-shadow: 0 4rpx 16rpx rgba(192, 169, 189, 0.3);
+  transition: all 0.3s ease;
+}
+
+.empty-button:active {
+  transform: scale(0.95) translateY(2rpx);
+  box-shadow: 0 2rpx 8rpx rgba(192, 169, 189, 0.4);
+}
+
+/* 列表项统一样式调整 */
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  background: transparent;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:active {
+  background: rgba(192, 169, 189, 0.05);
+  transform: scale(0.995);
+}
+
+.list-item-icon {
+  font-size: 48rpx;
+  margin-right: 24rpx;
+  opacity: 0.8;
+}
+
+.list-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.list-item-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2D3A36;
+  line-height: 1.3;
+}
+
+.list-item-subtitle {
+  font-size: 24rpx;
+  color: #C0A9BD;
+  opacity: 0.8;
+}
+
+.card-content {
+  font-size: 26rpx;
+  color: #64766A;
+  line-height: 1.4;
+  margin: 8rpx 0;
+}
+
+.list-item-meta {
+  font-size: 22rpx;
+  color: #94A7AE;
+  opacity: 0.7;
+}
+
+.list-item-action {
+  padding: 8rpx;
+  opacity: 0.6;
+}
+
+/* 调整卡片样式 */
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  margin: 0 24rpx;
+  padding: 32rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
+}
+
 

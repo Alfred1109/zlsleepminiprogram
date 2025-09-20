@@ -7,6 +7,20 @@
     <view class="page-header-subtitle">您的专属AI疗愈脑波</view>
   </view>
 
+  <!-- 场景状态指示器 -->
+  <view wx:if="{{isInSceneMode}}" class="scene-indicator">
+    <view class="scene-indicator-content">
+      <view class="scene-indicator-icon">🎯</view>
+      <view class="scene-indicator-text">
+        <text class="scene-indicator-title">{{sceneHint}}</text>
+        <text class="scene-indicator-subtitle">只显示相关脑波</text>
+      </view>
+      <view class="scene-indicator-action" bindtap="exitSceneMode">
+        <text class="exit-text">退出</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 页面内容 -->
   <view class="page-content">
 
@@ -19,7 +33,10 @@
       >
         <view class="tab-icon">🎵</view>
         <text class="tab-text">60秒脑波</text>
-        <view wx:if="{{musicList.length > 0}}" class="tab-badge">{{musicList.length}}</view>
+        <view wx:if="{{filteredMusicList.length > 0}}" class="tab-badge">{{filteredMusicList.length}}</view>
+        <view wx:if="{{isInSceneMode && filteredMusicList.length !== musicList.length}}" class="tab-filter-hint">
+          /{{musicList.length}}
+        </view>
       </view>
       <view
         class="tab-item {{currentTab === 'longSequence' ? 'active' : ''}}"
@@ -28,7 +45,10 @@
       >
         <view class="tab-icon">🎼</view>
         <text class="tab-text">长序列脑波</text>
-        <view wx:if="{{longSequenceList.length > 0}}" class="tab-badge">{{longSequenceList.length}}</view>
+        <view wx:if="{{filteredLongSequenceList.length > 0}}" class="tab-badge">{{filteredLongSequenceList.length}}</view>
+        <view wx:if="{{isInSceneMode && filteredLongSequenceList.length !== longSequenceList.length}}" class="tab-filter-hint">
+          /{{longSequenceList.length}}
+        </view>
       </view>
     </view>
 
@@ -73,14 +93,33 @@
   <!-- 60秒脑波列表 -->
   <view wx:elif="{{currentTab === 'music'}}" class="content-container">
     <!-- 空状态 -->
-    <view wx:if="{{musicList.length === 0}}" class="empty-state">
+    <view wx:if="{{filteredMusicList.length === 0}}" class="empty-state">
       <image class="empty-icon" src="/images/empty-music.svg" mode="aspectFit" />
-      <view wx:if="{{isGuestMode}}" class="empty-text">请先登录查看您的脑波</view>
-      <view wx:else class="empty-text">暂无脑波</view>
-      <view wx:if="{{isGuestMode}}" class="empty-desc">登录后可查看您生成的专属AI疗愈脑波</view>
-      <view wx:else class="empty-desc">快去生成您的专属AI疗愈脑波吧</view>
-      <button wx:if="{{isGuestMode}}" class="btn-primary" bindtap="promptLogin">去登录</button>
-      <button wx:else class="btn-primary" bindtap="onGoToGenerate">生成脑波</button>
+      
+      <!-- 访客模式 -->
+      <block wx:if="{{isGuestMode}}">
+        <view class="empty-text">请先登录查看您的脑波</view>
+        <view class="empty-desc">登录后可查看您生成的专属AI疗愈脑波</view>
+        <button class="btn-primary" bindtap="promptLogin">去登录</button>
+      </block>
+      
+      <!-- 场景模式下无匹配脑波 -->
+      <block wx:elif="{{isInSceneMode && musicList.length > 0}}">
+        <view class="empty-text">当前场景暂无相关脑波</view>
+        <view class="empty-desc">您可以生成更多脑波或退出场景模式查看全部</view>
+        <view class="empty-actions">
+          <button class="btn-secondary" bindtap="exitSceneMode">查看全部脑波</button>
+          <button class="btn-primary" bindtap="onGoToGenerate">生成脑波</button>
+        </view>
+      </block>
+      
+      <!-- 普通空状态 -->
+      <block wx:else>
+        <view class="empty-text">暂无脑波</view>
+        <view class="empty-desc">快去生成您的专属AI疗愈脑波吧</view>
+        <button class="btn-primary" bindtap="onGoToGenerate">生成脑波</button>
+      </block>
+      
       <!-- 调试信息 -->
       <view wx:if="{{userInfo}}" class="debug-info" style="margin-top: 20rpx; font-size: 24rpx; color: #999;">
         用户ID: {{userInfo.id || userInfo.user_id || userInfo.userId || '未知'}}
@@ -90,7 +129,7 @@
     <!-- 脑波列表 -->
     <view wx:else class="music-list">
       <view 
-        wx:for="{{musicList}}" 
+        wx:for="{{filteredMusicList}}" 
         wx:key="id"
         class="music-item"
         data-music="{{item}}"
@@ -176,20 +215,38 @@
   <!-- 长序列脑波列表 -->
   <view wx:elif="{{currentTab === 'longSequence'}}" class="content-container">
     <!-- 空状态 -->
-    <view wx:if="{{longSequenceList.length === 0}}" class="empty-state">
+    <view wx:if="{{filteredLongSequenceList.length === 0}}" class="empty-state">
       <image class="empty-icon" src="/images/empty-sequence.svg" mode="aspectFit" />
-      <view wx:if="{{isGuestMode}}" class="empty-text">请先登录查看您的长序列脑波</view>
-      <view wx:else class="empty-text">暂无长序列脑波</view>
-      <view wx:if="{{isGuestMode}}" class="empty-desc">登录后可查看您创建的专属长时间AI疗愈脑波</view>
-      <view wx:else class="empty-desc">创建您的专属长时间AI疗愈脑波</view>
-      <button wx:if="{{isGuestMode}}" class="btn-primary" bindtap="promptLogin">去登录</button>
-      <button wx:else class="btn-primary" bindtap="onGoToCreateSequence">创建长序列</button>
+      
+      <!-- 访客模式 -->
+      <block wx:if="{{isGuestMode}}">
+        <view class="empty-text">请先登录查看您的长序列脑波</view>
+        <view class="empty-desc">登录后可查看您创建的专属长时间AI疗愈脑波</view>
+        <button class="btn-primary" bindtap="promptLogin">去登录</button>
+      </block>
+      
+      <!-- 场景模式下无匹配脑波 -->
+      <block wx:elif="{{isInSceneMode && longSequenceList.length > 0}}">
+        <view class="empty-text">当前场景暂无相关长序列脑波</view>
+        <view class="empty-desc">您可以创建更多长序列脑波或退出场景模式查看全部</view>
+        <view class="empty-actions">
+          <button class="btn-secondary" bindtap="exitSceneMode">查看全部脑波</button>
+          <button class="btn-primary" bindtap="onGoToCreateSequence">创建长序列</button>
+        </view>
+      </block>
+      
+      <!-- 普通空状态 -->
+      <block wx:else>
+        <view class="empty-text">暂无长序列脑波</view>
+        <view class="empty-desc">创建您的专属长时间AI疗愈脑波</view>
+        <button class="btn-primary" bindtap="onGoToCreateSequence">创建长序列</button>
+      </block>
     </view>
 
     <!-- 长序列列表 -->
     <view wx:else class="sequence-list">
       <view 
-        wx:for="{{longSequenceList}}" 
+        wx:for="{{filteredLongSequenceList}}" 
         wx:key="id"
         class="sequence-item"
         data-sequence="{{item}}"
