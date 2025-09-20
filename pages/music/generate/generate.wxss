@@ -3,8 +3,9 @@
 
 .page-container {
   min-height: 1334rpx;
-  background: #C0A9BD;
+  /* 背景由主题系统控制，移除硬编码颜色 */
   padding-bottom: 200rpx;
+  transition: background 0.3s ease;
 }
 
 .page-content {

@@ -4,5 +4,8 @@
   "navigationBarTextStyle": "white",
   "backgroundColor": "#f8f9fa",
   "enablePullDownRefresh": false,
-  "disableScroll": false
+  "disableScroll": false,
+  "usingComponents": {
+    "theme-switcher": "/components/theme-switcher/theme-switcher"
+  }
 }

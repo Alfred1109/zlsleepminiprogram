@@ -66,7 +66,7 @@ const naturalSounds = [
     description: '城市中的雨声，雨滴打在窗户和屋顶的声音',
     duration: '60:00',
     plays: 7823,
-    image: '/assets/images/city_rain.jpg',
+    image: '/assets/images/sounds/city_rain.jpg',
     audioUrl: 'https://example.com/audio/city_rain.mp3', // 占位符，将由后端API提供实际URL
     tags: ['放松', '睡眠', '自然']
   }
@@ -89,7 +89,7 @@ const whiteNoise = [
     description: '低频增强的噪音，更加柔和，适合睡眠',
     duration: '60:00',
     plays: 12345,
-    image: '/assets/images/pink_noise.jpg',
+    image: '/assets/images/sounds/pink_noise.jpg',
     audioUrl: 'https://example.com/audio/pink_noise.mp3', // 占位符，将由后端API提供实际URL
     tags: ['睡眠', '放松', '噪音']
   },
@@ -99,7 +99,7 @@ const whiteNoise = [
     description: '低频更强的噪音，类似瀑布声，遮盖力更强',
     duration: '60:00',
     plays: 9876,
-    image: '/assets/images/brown_noise.jpg',
+    image: '/assets/images/sounds/brown_noise.jpg',
     audioUrl: 'https://example.com/audio/brown_noise.mp3', // 占位符，将由后端API提供实际URL
     tags: ['睡眠', '放松', '噪音']
   },
@@ -109,7 +109,7 @@ const whiteNoise = [
     description: '稳定的风扇运转声，帮助入睡和专注',
     duration: '60:00',
     plays: 8765,
-    image: '/assets/images/fan.jpg',
+    image: '/assets/images/sounds/fan.jpg',
     audioUrl: 'https://example.com/audio/fan.mp3', // 占位符，将由后端API提供实际URL
     tags: ['睡眠', '专注', '噪音']
   },
@@ -119,7 +119,7 @@ const whiteNoise = [
     description: '空调运行的白噪音，稳定而舒适',
     duration: '60:00',
     plays: 7654,
-    image: '/assets/images/ac.jpg',
+    image: '/assets/images/sounds/ac.jpg',
     audioUrl: 'https://example.com/audio/ac.mp3', // 占位符，将由后端API提供实际URL
     tags: ['睡眠', '放松', '噪音']
   },
@@ -129,7 +129,7 @@ const whiteNoise = [
     description: '均匀的雨声白噪音，帮助集中注意力和放松',
     duration: '60:00',
     plays: 9254,
-    image: '/assets/images/rain_noise.jpg',
+    image: '/assets/images/sounds/rain_noise.jpg',
     audioUrl: 'https://example.com/audio/rain_noise.mp3', // 占位符，将由后端API提供实际URL
     tags: ['专注', '放松', '噪音']
   }
@@ -142,7 +142,7 @@ const brainwaves = [
     description: '0.5-4Hz的脑波频率，促进深度无梦睡眠和身体恢复',
     duration: '45:00',
     plays: 18765,
-    image: '/assets/images/delta.jpg',
+    image: '/assets/images/sounds/delta.jpg',
     audioUrl: 'https://example.com/audio/delta.mp3', // 占位符，将由后端API提供实际URL
     frequency: {
       main: 2, // 主频率(Hz)
@@ -157,7 +157,7 @@ const brainwaves = [
     description: '4-8Hz的脑波频率，促进放松、冥想和创造性思维',
     duration: '30:00',
     plays: 14532,
-    image: '/assets/images/theta.jpg',
+    image: '/assets/images/sounds/theta.jpg',
     audioUrl: 'https://example.com/audio/theta.mp3', // 占位符，将由后端API提供实际URL
     frequency: {
       main: 6, // 主频率(Hz)
@@ -172,7 +172,7 @@ const brainwaves = [
     description: '8-13Hz的脑波频率，促进放松清醒状态和注意力',
     duration: '30:00',
     plays: 12543,
-    image: '/assets/images/alpha.jpg',
+    image: '/assets/images/sounds/alpha.jpg',
     audioUrl: 'https://example.com/audio/alpha.mp3', // 占位符，将由后端API提供实际URL
     frequency: {
       main: 10, // 主频率(Hz)
@@ -187,7 +187,7 @@ const brainwaves = [
     description: '13-30Hz的脑波频率，促进专注、清醒和高效思考',
     duration: '25:00',
     plays: 11876,
-    image: '/assets/images/beta.jpg',
+    image: '/assets/images/sounds/beta.jpg',
     audioUrl: 'https://example.com/audio/beta.mp3', // 占位符，将由后端API提供实际URL
     frequency: {
       main: 20, // 主频率(Hz)
@@ -202,7 +202,7 @@ const brainwaves = [
     description: '特别设计的Delta和Theta波组合，帮助快速入睡和安神',
     duration: '60:00',
     plays: 21654,
-    image: '/assets/images/sleep_aid.jpg',
+    image: '/assets/images/sounds/sleep_aid.jpg',
     audioUrl: 'https://example.com/audio/sleep_aid.mp3', // 占位符，将由后端API提供实际URL
     frequency: {
       main: [2, 6], // 主频率组合(Hz)
@@ -217,7 +217,7 @@ const brainwaves = [
     description: 'Alpha和Theta波的组合，促进深度放松但保持清醒',
     duration: '40:00',
     plays: 16789,
-    image: '/assets/images/deep_relax.jpg',
+    image: '/assets/images/sounds/deep_relax.jpg',
     audioUrl: 'https://example.com/audio/deep_relax.mp3', // 占位符，将由后端API提供实际URL
     frequency: {
       main: [8, 6], // 主频率组合(Hz)

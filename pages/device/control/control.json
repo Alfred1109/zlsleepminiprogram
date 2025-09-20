@@ -1,5 +1,8 @@
 {
   "navigationBarTitleText": "设备控制",
   "navigationBarBackgroundColor": "#5D9E7E",
-  "navigationBarTextStyle": "white"
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "theme-switcher": "/components/theme-switcher/theme-switcher"
+  }
 } 

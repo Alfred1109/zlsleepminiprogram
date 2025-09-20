@@ -1,10 +1,11 @@
 /* pages/assessment/scales/scales.wxss */
 /* 评测量表选择页面样式 - 全局样式通过 app.wxss 导入，无需重复导入 */
 
-/* 页面容器 - 使用统一的主色调背景 */
+/* 页面容器 - 使用主题背景，支持动态切换 */
 .page-container {
-  background-color: #C0A9BD;
+  /* 背景由主题系统控制，移除硬编码颜色 */
   min-height: 1334rpx;
+  transition: background 0.3s ease;
 }
 
 /* 页面头部样式 */

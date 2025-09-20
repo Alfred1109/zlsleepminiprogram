@@ -1,5 +1,11 @@
 <!-- pages/history/history.wxml -->
-<view class="container">
+<!-- 主题切换器 -->
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="container {{themeClass}}">
   <!-- 页面头部 -->
   <view class="header">
     <text class="title">播放历史</text>
@@ -132,7 +138,7 @@
       <block wx:for="{{filteredHistory}}" wx:key="id">
         <view class="history-card" style="animation-delay: {{index * 0.05}}s">
           <view class="sound-info" bindtap="playAgain" data-record="{{item}}">
-            <image class="sound-image" src="{{item.coverUrl || '/assets/images/default-cover.png'}}" mode="aspectFill"/>
+            <image class="sound-image" src="{{item.coverUrl || '/assets/images/default-image.png'}}" mode="aspectFill"/>
             <view class="sound-detail">
               <text class="sound-name">{{item.soundName}}</text>
               <text class="sound-meta">{{item.category}}</text>

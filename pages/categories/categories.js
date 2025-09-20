@@ -549,7 +549,7 @@ Page({
     return {
       title: '疗愈 - 发现更多分类',
       path: '/pages/categories/categories',
-      imageUrl: '/assets/images/share-category.jpg'
+      imageUrl: '/assets/images/default-image.png'
     }
   },
 

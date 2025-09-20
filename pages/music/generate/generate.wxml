@@ -1,6 +1,12 @@
 <!--pages/music/generate/generate.wxml-->
 <!-- 音乐生成页面 -->
-<view class="page-container">
+<!-- 主题切换器 -->
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="page-container {{themeClass}}">
   <!-- 页面标题 -->
   <view class="page-header">
     <view class="header-icon">🎵</view>

@@ -2,6 +2,7 @@
 // 分类音乐列表页面
 const { unifiedMusicManager } = require('../../../utils/unifiedMusicManager')
 const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
+const themeMixin = require('../../../utils/themeMixin')
 
 Page({
   data: {
@@ -12,11 +13,16 @@ Page({
     currentPlayingId: null,
     // 全局播放器相关
     showGlobalPlayer: false,
-    isPlaying: false
+    isPlaying: false,
+    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null
   },
 
   onLoad(options) {
     console.log('分类音乐页面加载', options)
+    this.initTheme()
     
     const { categoryId, categoryName, limit } = options
     this.setData({
@@ -275,6 +281,45 @@ Page({
       title: `${this.data.categoryName} - AI疗愈`,
       path: `/pages/music/category/category?categoryId=${this.data.categoryId}&categoryName=${encodeURIComponent(this.data.categoryName)}`,
       imageUrl: '/images/share-category.png'
+    }
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    const { theme, themeConfig } = e.detail;
+    console.log('分类音乐页面接收到主题切换:', theme, themeConfig);
+    
+    this.setData({
+      currentTheme: theme,
+      themeClass: themeConfig?.class || '',
+      themeConfig: themeConfig
+    });
+    
+    // 同步到全局
+    const app = getApp();
+    if (app.globalData) {
+      app.globalData.currentTheme = theme;
+      app.globalData.themeConfig = themeConfig;
     }
   }
 })

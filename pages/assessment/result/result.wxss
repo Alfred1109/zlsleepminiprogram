@@ -42,13 +42,14 @@
   }
 }
 
-/* 结果头部 */
+/* 结果头部 - 使用主题背景，支持动态切换 */
 .result-header-new {
   position: relative;
-  background-color: #C0A9BD; /* 统一主色，去除渐变 */
+  /* 背景由主题系统控制，移除硬编码颜色 */
   color: #FFFFFF;
   padding: 120rpx 40rpx 60rpx;
   margin: 0 -32rpx 40rpx;
+  transition: background 0.3s ease;
   border-bottom-left-radius: 60rpx;
   border-bottom-right-radius: 60rpx;
   text-align: center;

@@ -4,9 +4,10 @@
 
 .container {
   min-height: 1334rpx;
-  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
+  /* 背景由主题系统控制，移除硬编码颜色 */
   padding: 30rpx 20rpx;
   box-sizing: border-box;
+  transition: background 0.3s ease;
 }
 
 /* 页面标题 */

@@ -1,12 +1,13 @@
 /* pages/profile/profile.wxss */
 /* 个人页面样式 - 页面特有样式，全局样式通过app.wxss导入 */
 
-/* 个人资料头部 */
+/* 个人资料头部 - 使用主题背景，支持动态切换 */
 .profile-header {
-  background: #C0A9BD;
+  /* 背景由主题系统控制，移除硬编码颜色 */
   color: #FFFFFF;
   padding: 50rpx 30rpx 30rpx;
   position: relative;
+  transition: background 0.3s ease;
 }
 
 .user-main-info {

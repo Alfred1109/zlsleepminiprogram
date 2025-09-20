@@ -4,6 +4,7 @@ const app = getApp()
 const { AssessmentAPI, MusicAPI } = require('../../../utils/healingApi')
 const { requireSubscription, getSubscriptionInfo } = require('../../../utils/subscription')
 const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
+const themeMixin = require('../../../utils/themeMixin')
 
 Page({
   data: {
@@ -18,11 +19,16 @@ Page({
     // 全局播放器相关
     showGlobalPlayer: false,
     isPlaying: false,
-    player: null
+    player: null,
+    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null
   },
 
   onLoad() {
     console.log('音乐生成页面加载')
+    this.initTheme()
     this.initPlayer()
     this.checkUserLogin()
     this.loadRecentAssessments()
@@ -351,6 +357,45 @@ Page({
       title: 'AI疗愈 - 个性化音乐生成',
       path: '/pages/music/generate/generate',
       imageUrl: '/images/share-music.png'
+    }
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    const { theme, themeConfig } = e.detail;
+    console.log('音乐生成页面接收到主题切换:', theme, themeConfig);
+    
+    this.setData({
+      currentTheme: theme,
+      themeClass: themeConfig?.class || '',
+      themeConfig: themeConfig
+    });
+    
+    // 同步到全局
+    const app = getApp();
+    if (app.globalData) {
+      app.globalData.currentTheme = theme;
+      app.globalData.themeConfig = themeConfig;
     }
   }
 })

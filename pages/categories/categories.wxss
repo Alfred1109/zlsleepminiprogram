@@ -2,8 +2,9 @@
 
 .container {
   padding: 24rpx;
-  background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
+  /* 背景由主题系统控制，移除硬编码颜色 */
   min-height: 1334rpx;
+  transition: background 0.3s ease;
 }
 
 /* 页面头部 */

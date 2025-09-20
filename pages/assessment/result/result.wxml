@@ -1,6 +1,12 @@
 <!--pages/assessment/result/result.wxml-->
 <!-- 评测结果页面 -->
-<view class="page-container">
+<!-- 主题切换器 -->
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="page-container {{themeClass}}">
   <!-- 页面内容 -->
   <view class="page-content">
   <view wx:if="{{loading}}" class="loading-container">
