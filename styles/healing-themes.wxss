@@ -36,6 +36,76 @@
   background: linear-gradient(135deg, #E0F2F1 0%, #F0FDF4 100%);
 }
 
+.calm-mode .section-card {
+  background: rgba(240, 253, 244, 0.9);
+}
+
+.calm-mode .assessment-section .section-header {
+  border-bottom-color: rgba(20, 184, 166, 0.2);
+}
+
+.calm-mode .assessment-section .section-action {
+  background: rgba(20, 184, 166, 0.1);
+  color: #14B8A6;
+  border-color: rgba(20, 184, 166, 0.3);
+}
+
+.calm-mode .brainwave-section .section-header {
+  border-bottom-color: rgba(16, 185, 129, 0.2);
+}
+
+.calm-mode .brainwave-section .section-action {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.calm-mode .scene-header {
+  background: rgba(240, 253, 244, 0.85);
+}
+
+/* Music Library 主题样式 */
+.calm-mode .tab-item.active {
+  background: #14B8A6;
+}
+
+.calm-mode .btn-primary {
+  background: linear-gradient(135deg, #14B8A6, #10B981);
+}
+
+.calm-mode .btn-upgrade {
+  background: linear-gradient(135deg, #14B8A6, #10B981);
+}
+
+.calm-mode .fab {
+  background: linear-gradient(135deg, #14B8A6, #10B981);
+}
+
+.calm-mode .fab.secondary {
+  background: linear-gradient(135deg, #16A34A, #14B8A6);
+}
+
+.calm-mode .page-header {
+  background: linear-gradient(135deg, #14B8A6 0%, #10B981 100%);
+}
+
+.calm-mode .scene-indicator {
+  background: linear-gradient(135deg, rgba(240, 253, 244, 0.95), rgba(240, 253, 244, 0.9));
+}
+
+.calm-mode .scene-indicator-action {
+  background: rgba(20, 184, 166, 0.1);
+  border: 1rpx solid rgba(20, 184, 166, 0.2);
+}
+
+.calm-mode .scene-indicator-action:active {
+  background: rgba(20, 184, 166, 0.2);
+}
+
+.calm-mode .exit-text {
+  color: #14B8A6;
+}
+
 .calm-mode .user-card {
   background: rgba(240, 253, 244, 0.9);
   border: 1rpx solid rgba(16, 185, 129, 0.2);
@@ -87,6 +157,76 @@
 
 .focus-mode .play-container {
   background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%);
+}
+
+.focus-mode .section-card {
+  background: rgba(243, 240, 249, 0.9);
+}
+
+.focus-mode .assessment-section .section-header {
+  border-bottom-color: rgba(124, 58, 237, 0.2);
+}
+
+.focus-mode .assessment-section .section-action {
+  background: rgba(124, 58, 237, 0.1);
+  color: #7C3AED;
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.focus-mode .brainwave-section .section-header {
+  border-bottom-color: rgba(139, 92, 246, 0.2);
+}
+
+.focus-mode .brainwave-section .section-action {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8B5CF6;
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.focus-mode .scene-header {
+  background: rgba(243, 240, 249, 0.85);
+}
+
+/* Music Library 主题样式 */
+.focus-mode .tab-item.active {
+  background: #7C3AED;
+}
+
+.focus-mode .btn-primary {
+  background: linear-gradient(135deg, #7C3AED, #8B5CF6);
+}
+
+.focus-mode .btn-upgrade {
+  background: linear-gradient(135deg, #7C3AED, #8B5CF6);
+}
+
+.focus-mode .fab {
+  background: linear-gradient(135deg, #7C3AED, #8B5CF6);
+}
+
+.focus-mode .fab.secondary {
+  background: linear-gradient(135deg, #8B5CF6, #A855F7);
+}
+
+.focus-mode .page-header {
+  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
+}
+
+.focus-mode .scene-indicator {
+  background: linear-gradient(135deg, rgba(243, 240, 249, 0.95), rgba(243, 240, 249, 0.9));
+}
+
+.focus-mode .scene-indicator-action {
+  background: rgba(124, 58, 237, 0.1);
+  border: 1rpx solid rgba(124, 58, 237, 0.2);
+}
+
+.focus-mode .scene-indicator-action:active {
+  background: rgba(124, 58, 237, 0.2);
+}
+
+.focus-mode .exit-text {
+  color: #7C3AED;
 }
 
 .focus-mode .user-card {
@@ -142,6 +282,76 @@
   background: linear-gradient(135deg, #FFF4E6 0%, #FFFBEB 100%);
 }
 
+.energy-mode .section-card {
+  background: rgba(255, 251, 235, 0.9);
+}
+
+.energy-mode .assessment-section .section-header {
+  border-bottom-color: rgba(234, 88, 12, 0.2);
+}
+
+.energy-mode .assessment-section .section-action {
+  background: rgba(234, 88, 12, 0.1);
+  color: #EA580C;
+  border-color: rgba(234, 88, 12, 0.3);
+}
+
+.energy-mode .brainwave-section .section-header {
+  border-bottom-color: rgba(249, 115, 22, 0.2);
+}
+
+.energy-mode .brainwave-section .section-action {
+  background: rgba(249, 115, 22, 0.1);
+  color: #F97316;
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.energy-mode .scene-header {
+  background: rgba(255, 251, 235, 0.85);
+}
+
+/* Music Library 主题样式 */
+.energy-mode .tab-item.active {
+  background: #EA580C;
+}
+
+.energy-mode .btn-primary {
+  background: linear-gradient(135deg, #EA580C, #F97316);
+}
+
+.energy-mode .btn-upgrade {
+  background: linear-gradient(135deg, #EA580C, #F97316);
+}
+
+.energy-mode .fab {
+  background: linear-gradient(135deg, #EA580C, #F97316);
+}
+
+.energy-mode .fab.secondary {
+  background: linear-gradient(135deg, #F97316, #FB923C);
+}
+
+.energy-mode .page-header {
+  background: linear-gradient(135deg, #EA580C 0%, #F97316 100%);
+}
+
+.energy-mode .scene-indicator {
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(255, 251, 235, 0.9));
+}
+
+.energy-mode .scene-indicator-action {
+  background: rgba(234, 88, 12, 0.1);
+  border: 1rpx solid rgba(234, 88, 12, 0.2);
+}
+
+.energy-mode .scene-indicator-action:active {
+  background: rgba(234, 88, 12, 0.2);
+}
+
+.energy-mode .exit-text {
+  color: #EA580C;
+}
+
 .energy-mode .user-card {
   background: rgba(255, 251, 235, 0.9);
   border: 1rpx solid rgba(249, 115, 22, 0.2);
@@ -193,6 +403,76 @@
 
 .relax-mode .play-container {
   background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+}
+
+.relax-mode .section-card {
+  background: rgba(236, 253, 245, 0.9);
+}
+
+.relax-mode .assessment-section .section-header {
+  border-bottom-color: rgba(34, 197, 94, 0.2);
+}
+
+.relax-mode .assessment-section .section-action {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.relax-mode .brainwave-section .section-header {
+  border-bottom-color: rgba(22, 163, 74, 0.2);
+}
+
+.relax-mode .brainwave-section .section-action {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16A34A;
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+.relax-mode .scene-header {
+  background: rgba(236, 253, 245, 0.85);
+}
+
+/* Music Library 主题样式 */
+.relax-mode .tab-item.active {
+  background: #22C55E;
+}
+
+.relax-mode .btn-primary {
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+}
+
+.relax-mode .btn-upgrade {
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+}
+
+.relax-mode .fab {
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+}
+
+.relax-mode .fab.secondary {
+  background: linear-gradient(135deg, #16A34A, #15803D);
+}
+
+.relax-mode .page-header {
+  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+}
+
+.relax-mode .scene-indicator {
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(236, 253, 245, 0.9));
+}
+
+.relax-mode .scene-indicator-action {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1rpx solid rgba(34, 197, 94, 0.2);
+}
+
+.relax-mode .scene-indicator-action:active {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.relax-mode .exit-text {
+  color: #22C55E;
 }
 
 .relax-mode .user-card {
@@ -252,6 +532,76 @@
   background: var(--bg-gradient);
 }
 
+.morning-theme .section-card {
+  background: rgba(255, 248, 225, 0.9);
+}
+
+.morning-theme .assessment-section .section-header {
+  border-bottom-color: rgba(245, 158, 11, 0.2);
+}
+
+.morning-theme .assessment-section .section-action {
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.morning-theme .brainwave-section .section-header {
+  border-bottom-color: rgba(217, 119, 6, 0.2);
+}
+
+.morning-theme .brainwave-section .section-action {
+  background: rgba(217, 119, 6, 0.1);
+  color: #D97706;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.morning-theme .scene-header {
+  background: rgba(255, 248, 225, 0.85);
+}
+
+/* Music Library 主题样式 */
+.morning-theme .tab-item.active {
+  background: #F59E0B;
+}
+
+.morning-theme .btn-primary {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+}
+
+.morning-theme .btn-upgrade {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+}
+
+.morning-theme .fab {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+}
+
+.morning-theme .fab.secondary {
+  background: linear-gradient(135deg, #D97706, #B45309);
+}
+
+.morning-theme .page-header {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+.morning-theme .scene-indicator {
+  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95), rgba(255, 248, 225, 0.9));
+}
+
+.morning-theme .scene-indicator-action {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1rpx solid rgba(245, 158, 11, 0.2);
+}
+
+.morning-theme .scene-indicator-action:active {
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.morning-theme .exit-text {
+  color: #F59E0B;
+}
+
 .morning-theme .user-card {
   background: rgba(255, 248, 225, 0.9);
   border: 1rpx solid rgba(245, 158, 11, 0.2);
@@ -308,6 +658,76 @@
   background: var(--bg-gradient);
 }
 
+.evening-theme .section-card {
+  background: rgba(232, 234, 246, 0.9);
+}
+
+.evening-theme .assessment-section .section-header {
+  border-bottom-color: rgba(55, 48, 163, 0.2);
+}
+
+.evening-theme .assessment-section .section-action {
+  background: rgba(55, 48, 163, 0.1);
+  color: #3730A3;
+  border-color: rgba(55, 48, 163, 0.3);
+}
+
+.evening-theme .brainwave-section .section-header {
+  border-bottom-color: rgba(49, 46, 129, 0.2);
+}
+
+.evening-theme .brainwave-section .section-action {
+  background: rgba(49, 46, 129, 0.1);
+  color: #312E81;
+  border-color: rgba(49, 46, 129, 0.3);
+}
+
+.evening-theme .scene-header {
+  background: rgba(232, 234, 246, 0.85);
+}
+
+/* Music Library 主题样式 */
+.evening-theme .tab-item.active {
+  background: #3730A3;
+}
+
+.evening-theme .btn-primary {
+  background: linear-gradient(135deg, #3730A3, #312E81);
+}
+
+.evening-theme .btn-upgrade {
+  background: linear-gradient(135deg, #3730A3, #312E81);
+}
+
+.evening-theme .fab {
+  background: linear-gradient(135deg, #3730A3, #312E81);
+}
+
+.evening-theme .fab.secondary {
+  background: linear-gradient(135deg, #312E81, #1E1B4B);
+}
+
+.evening-theme .page-header {
+  background: linear-gradient(135deg, #3730A3 0%, #312E81 100%);
+}
+
+.evening-theme .scene-indicator {
+  background: linear-gradient(135deg, rgba(232, 234, 246, 0.95), rgba(232, 234, 246, 0.9));
+}
+
+.evening-theme .scene-indicator-action {
+  background: rgba(55, 48, 163, 0.1);
+  border: 1rpx solid rgba(55, 48, 163, 0.2);
+}
+
+.evening-theme .scene-indicator-action:active {
+  background: rgba(55, 48, 163, 0.2);
+}
+
+.evening-theme .exit-text {
+  color: #3730A3;
+}
+
 .evening-theme .user-card {
   background: rgba(232, 234, 246, 0.9);
   border: 1rpx solid rgba(55, 48, 163, 0.2);
@@ -360,6 +780,76 @@
 
 .night-theme .play-container {
   background-color: var(--bg-primary);
+}
+
+.night-theme .section-card {
+  background: #374151;
+}
+
+.night-theme .assessment-section .section-header {
+  border-bottom-color: rgba(99, 102, 241, 0.2);
+}
+
+.night-theme .assessment-section .section-action {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366F1;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.night-theme .brainwave-section .section-header {
+  border-bottom-color: rgba(79, 70, 229, 0.2);
+}
+
+.night-theme .brainwave-section .section-action {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4F46E5;
+  border-color: rgba(79, 70, 229, 0.3);
+}
+
+.night-theme .scene-header {
+  background: rgba(55, 65, 81, 0.85);
+}
+
+/* Music Library 主题样式 */
+.night-theme .tab-item.active {
+  background: #6366F1;
+}
+
+.night-theme .btn-primary {
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+}
+
+.night-theme .btn-upgrade {
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+}
+
+.night-theme .fab {
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+}
+
+.night-theme .fab.secondary {
+  background: linear-gradient(135deg, #4F46E5, #4338CA);
+}
+
+.night-theme .page-header {
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+}
+
+.night-theme .scene-indicator {
+  background: linear-gradient(135deg, rgba(55, 65, 81, 0.95), rgba(55, 65, 81, 0.9));
+}
+
+.night-theme .scene-indicator-action {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1rpx solid rgba(99, 102, 241, 0.2);
+}
+
+.night-theme .scene-indicator-action:active {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.night-theme .exit-text {
+  color: #6366F1;
 }
 
 .night-theme .user-card {

@@ -1,18 +1,21 @@
 /* pages/music/library/library.wxss */
 /* 音频库页面样式 */
 
-/* 页面容器 - 添加统一背景 */
+/* 页面容器 - 使用主题背景，支持动态切换 */
 .page-container {
-  background-color: #F4F2F3;
+  /* 背景由主题系统控制，移除硬编码颜色 */
   min-height: 1334rpx;
+  transition: background 0.3s ease;
 }
 
-/* 页面头部样式 */
+/* 页面头部样式 - 使用主题背景，支持动态切换 */
 .page-header {
   position: relative;
   padding: 80rpx 24rpx 48rpx;
   text-align: center;
   margin-bottom: 32rpx;
+  /* 背景由主题系统控制，移除硬编码颜色 */
+  transition: background 0.3s ease;
 }
 
 .page-header-title {
@@ -57,9 +60,10 @@
 }
 
 .tab-item.active {
-  background: #C0A9BD;
+  /* 背景由主题系统控制，移除硬编码颜色 */
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
   transform: translateY(-2rpx);
+  transition: background 0.3s ease;
 }
 
 .tab-icon {
@@ -164,9 +168,10 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #4A90E2, #357ABD);
+  /* 背景由主题系统控制，移除硬编码颜色 */
   color: #ffffff;
   border: none;
+  transition: background 0.3s ease;
   border-radius: 50rpx;
   padding: 24rpx 48rpx;
   font-size: 28rpx;
@@ -440,7 +445,7 @@
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF6B35, #E5602F);
+  /* 背景由主题系统控制，移除硬编码颜色 */
   border: none;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.4);
   display: flex;
@@ -450,8 +455,9 @@
 }
 
 .fab.secondary {
-  background: linear-gradient(135deg, #FF8B5A, #FF6B35);
+  /* 背景由主题系统控制，移除硬编码颜色 */
   box-shadow: 0 6rpx 20rpx rgba(255, 139, 90, 0.35);
+  transition: background 0.3s ease;
 }
 
 .fab:active {
@@ -518,9 +524,10 @@
 }
 
 .btn-upgrade {
-  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
+  /* 背景由主题系统控制，移除硬编码颜色 */
   color: white;
   border: none;
+  transition: background 0.3s ease;
   border-radius: 32rpx;
   padding: 16rpx 32rpx;
   font-size: 26rpx;
@@ -557,14 +564,15 @@
   margin-bottom: 8rpx;
 }
 
-/* 场景状态指示器 */
+/* 场景状态指示器 - 使用主题背景，支持动态切换 */
 .scene-indicator {
   margin: 0 24rpx 32rpx;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  /* 背景由主题系统控制，移除硬编码颜色 */
   border-radius: 20rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
   overflow: hidden;
+  transition: background 0.3s ease;
 }
 
 .scene-indicator-content {
@@ -601,21 +609,21 @@
 
 .scene-indicator-action {
   padding: 12rpx 20rpx;
-  background: rgba(192, 169, 189, 0.1);
-  border: 1rpx solid rgba(192, 169, 189, 0.2);
+  /* 背景和边框由主题系统控制，移除硬编码颜色 */
   border-radius: 16rpx;
   transition: all 0.3s ease;
 }
 
 .scene-indicator-action:active {
   transform: scale(0.95);
-  background: rgba(192, 169, 189, 0.2);
+  /* 背景由主题系统控制，移除硬编码颜色 */
 }
 
 .exit-text {
   font-size: 24rpx;
-  color: #C0A9BD;
+  /* 颜色由主题系统控制，移除硬编码颜色 */
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 /* 标签页过滤提示 */
@@ -654,10 +662,11 @@
 .btn-primary {
   flex: 1;
   padding: 16rpx 24rpx;
-  background: linear-gradient(135deg, #C0A9BD, #94A7AE);
+  /* 背景由主题系统控制，移除硬编码颜色 */
   color: #FFFFFF;
   border: none;
   border-radius: 24rpx;
+  transition: background 0.3s ease;
   font-size: 28rpx;
   font-weight: 500;
   box-shadow: 0 4rpx 16rpx rgba(192, 169, 189, 0.3);

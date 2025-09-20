@@ -65,6 +65,12 @@ Page({
     this.checkLoginAndLoadData()
   },
 
+  onUnload() {
+    // 页面卸载时清除场景上下文
+    console.log('🔄 场景详情页面卸载，清除场景上下文')
+    sceneContextManager.clearSceneContext()
+  },
+
   /**
    * 检查登录状态并加载数据
    */
@@ -77,6 +83,9 @@ Page({
         userInfo,
         isLoggedIn
       })
+      
+      // 设置场景上下文，无论是否登录都要设置，这样音乐库能知道当前场景
+      this.setSceneContext()
       
       if (isLoggedIn) {
         console.log('✅ 用户已登录，加载场景数据')
@@ -94,6 +103,25 @@ Page({
       }
     } catch (error) {
       console.error('检查登录状态失败:', error)
+    }
+  },
+
+  /**
+   * 设置场景上下文
+   */
+  setSceneContext() {
+    const { sceneId, sceneName, scaleType, sceneTheme } = this.data
+    
+    if (sceneId) {
+      console.log('🎯 设置场景上下文:', { sceneId, sceneName, scaleType, sceneTheme })
+      
+      sceneContextManager.setSceneContext({
+        sceneId,
+        sceneName,
+        scaleType,
+        sceneTheme,
+        source: '/pages/scene/detail/detail'
+      })
     }
   },
 
