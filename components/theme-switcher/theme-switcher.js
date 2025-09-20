@@ -278,7 +278,12 @@ Component({
 
           // 如果页面有onThemeChange方法，调用它
           if (typeof currentPage.onThemeChange === 'function') {
-            currentPage.onThemeChange(theme, themeConfig);
+            currentPage.onThemeChange({
+              detail: {
+                theme: theme,
+                config: themeConfig
+              }
+            });
           }
         }
 

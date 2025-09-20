@@ -34,19 +34,37 @@ Page({
    * 主题切换事件处理
    */
   onThemeChange: function(e) {
-    const { theme, config } = e.detail;
-    console.log('主题切换到:', theme, config);
-    
-    this.setData({
-      currentTheme: theme
-    });
+    try {
+      // 参数验证
+      if (!e || !e.detail) {
+        console.error('主题切换事件参数错误:', e);
+        return;
+      }
 
-    // 显示主题切换反馈
-    wx.showToast({
-      title: `已应用${config.name}`,
-      icon: 'none',
-      duration: 1500
-    });
+      const { theme, config } = e.detail;
+      
+      if (!theme || !config) {
+        console.error('主题切换缺少必要参数:', { theme, config });
+        return;
+      }
+
+      console.log('主题切换到:', theme, config);
+      
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+
+      // 显示主题切换反馈
+      wx.showToast({
+        title: `已应用${config.name}`,
+        icon: 'none',
+        duration: 1500
+      });
+    } catch (error) {
+      console.error('主题切换处理失败:', error);
+    }
   },
   
   onLoad: function () {
