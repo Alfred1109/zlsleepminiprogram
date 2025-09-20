@@ -1,0 +1,165 @@
+<!--
+  色彩学优化演示页面
+  展示基于色彩理论的配色改进效果
+-->
+<view class="demo-container">
+  <!-- 顶部切换主题按钮 -->
+  <view class="theme-switcher">
+    <text class="switcher-title">🎨 配色主题演示</text>
+    <view class="theme-buttons">
+      <button class="theme-btn" data-theme="default">默认</button>
+      <button class="theme-btn" data-theme="calm-mode">平静</button>
+      <button class="theme-btn" data-theme="focus-mode">专注</button>
+      <button class="theme-btn" data-theme="energy-mode">活力</button>
+      <button class="theme-btn" data-theme="relax-mode">放松</button>
+    </view>
+  </view>
+
+  <!-- 色彩层次展示 -->
+  <view class="color-hierarchy-demo">
+    <text class="section-title text-primary">色彩层次体系演示</text>
+    
+    <!-- 紫色系展示 -->
+    <view class="color-group">
+      <text class="group-title">紫色系 (疗愈主题)</text>
+      <view class="color-swatches">
+        <view class="color-swatch bg-purple-50">
+          <text class="swatch-label">50 - 卡片背景</text>
+        </view>
+        <view class="color-swatch bg-purple-100">
+          <text class="swatch-label">100 - 区块背景</text>
+        </view>
+        <view class="color-swatch bg-theme">
+          <text class="swatch-label text-white">500 - 主题色</text>
+        </view>
+        <view class="color-swatch" style="background: #8B7E8F;">
+          <text class="swatch-label text-white">700 - 深色强调</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 橙色系展示 -->
+    <view class="color-group">
+      <text class="group-title">橙色系 (品牌活力)</text>
+      <view class="color-swatches">
+        <view class="color-swatch bg-orange-50">
+          <text class="swatch-label">50 - 提示背景</text>
+        </view>
+        <view class="color-swatch bg-orange-100">
+          <text class="swatch-label">100 - 高亮背景</text>
+        </view>
+        <view class="color-swatch bg-brand">
+          <text class="swatch-label text-white">500 - 品牌主色</text>
+        </view>
+        <view class="color-swatch bg-brand-dark">
+          <text class="swatch-label text-white">600 - 深层交互</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 语义化配色演示 -->
+  <view class="semantic-colors-demo">
+    <text class="section-title text-primary">语义化功能配色</text>
+    
+    <view class="semantic-group">
+      <view class="semantic-item bg-success-light">
+        <text class="text-success">✓ 成功状态</text>
+        <text class="item-desc">任务完成、操作成功</text>
+      </view>
+      
+      <view class="semantic-item bg-warning-light">
+        <text class="text-warning">⚠ 警告状态</text>
+        <text class="item-desc">需要注意、谨慎操作</text>
+      </view>
+      
+      <view class="semantic-item bg-error-light">
+        <text class="text-error">✕ 错误状态</text>
+        <text class="item-desc">操作失败、异常情况</text>
+      </view>
+      
+      <view class="semantic-item bg-info-light">
+        <text class="text-info">ⓘ 信息提示</text>
+        <text class="item-desc">重要信息、使用帮助</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 对比度优化展示 */
+  <view class="contrast-demo">
+    <text class="section-title text-primary">对比度优化效果</text>
+    
+    <view class="contrast-comparison">
+      <view class="contrast-card">
+        <text class="card-title">优化前</text>
+        <text style="color: #64766A;">主要文字 (对比度不足)</text>
+        <text style="color: #94A7AE;">次要文字 (可读性差)</text>
+        <text style="color: #B8C4BD;">辅助文字 (几乎看不见)</text>
+      </view>
+      
+      <view class="contrast-card">
+        <text class="card-title">优化后</text>
+        <text class="text-primary">主要文字 (AAA级对比度)</text>
+        <text class="text-secondary">次要文字 (AA级对比度)</text>
+        <text class="text-muted">辅助文字 (合规对比度)</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 情绪调节配色演示 -->
+  <view class="mood-colors-demo">
+    <text class="section-title text-primary">情绪调节配色</text>
+    
+    <view class="mood-grid">
+      <view class="mood-card calm-mode">
+        <text class="mood-title">🧘 平静模式</text>
+        <text class="mood-desc">蓝绿色调，降低心率，促进放松</text>
+        <button class="btn btn-primary">体验平静</button>
+      </view>
+      
+      <view class="mood-card focus-mode">
+        <text class="mood-title">🎯 专注模式</text>
+        <text class="mood-desc">深紫色调，提升注意力集中度</text>
+        <button class="btn btn-primary">进入专注</button>
+      </view>
+      
+      <view class="mood-card energy-mode">
+        <text class="mood-title">⚡ 活力模式</text>
+        <text class="mood-desc">暖橙色调，提升精神状态</text>
+        <button class="btn btn-primary">激发活力</button>
+      </view>
+      
+      <view class="mood-card relax-mode">
+        <text class="mood-title">🌿 放松模式</text>
+        <text class="mood-desc">柔和绿色调，缓解压力和紧张</text>
+        <button class="btn btn-primary">开始放松</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 音频可视化配色演示 -->
+  <view class="audio-viz-demo">
+    <text class="section-title text-primary">音频可视化配色</text>
+    <view class="frequency-bars">
+      <view class="frequency-bar frequency-low">
+        <text class="bar-label">低频</text>
+      </view>
+      <view class="frequency-bar frequency-mid">
+        <text class="bar-label">中频</text>
+      </view>
+      <view class="frequency-bar frequency-high">
+        <text class="bar-label">高频</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 互动效果演示 -->
+  <view class="interactive-demo">
+    <text class="section-title text-primary">互动效果演示</text>
+    <view class="interactive-buttons">
+      <button class="interactive-healing">疗愈交互</button>
+      <button class="interactive-energy">活力交互</button>
+      <button class="interactive-focus">专注交互</button>
+    </view>
+  </view>
+</view>

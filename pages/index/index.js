@@ -9,6 +9,8 @@ const { getUnifiedSubscriptionStatus } = require('../../utils/subscription')
 
 Page({
   data: {
+    // 主题相关
+    currentTheme: 'default',
     isLoggedIn: false,
     userInfo: null,
     selectedCategory: 1,
@@ -24,6 +26,25 @@ Page({
     showGlobalPlayer: false,
     isLoading: false,
 
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange: function(e) {
+    const { theme, config } = e.detail;
+    console.log('主题切换到:', theme, config);
+    
+    this.setData({
+      currentTheme: theme
+    });
+
+    // 显示主题切换反馈
+    wx.showToast({
+      title: `已应用${config.name}`,
+      icon: 'none',
+      duration: 1500
+    });
   },
   
   onLoad: function () {

@@ -1,12 +1,12 @@
 /* 首页样式 - 使用统一配色 */
 .container {
   padding: 48rpx 24rpx 200rpx;
-  background-color: #F4F2F3; /* 统一主背景，去除渐变 */
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%); /* 使用新的背景渐变 */
   min-height: 100vh;
   position: relative;
 }
 
-/* 添加背景纹理 */
+/* 优化的背景纹理 - 更科学的配色层次 */
 .container::before {
   content: '';
   position: fixed;
@@ -14,10 +14,24 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: radial-gradient(circle at 20% 20%, rgba(192, 169, 189, 0.03) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 80%, rgba(148, 167, 174, 0.03) 0%, transparent 50%);
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(192, 169, 189, 0.04) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(255, 107, 53, 0.02) 0%, transparent 60%),
+    radial-gradient(circle at 50% 50%, rgba(125, 211, 192, 0.02) 0%, transparent 40%);
   pointer-events: none;
   z-index: -1;
+  animation: subtleShift 20s ease-in-out infinite;
+}
+
+@keyframes subtleShift {
+  0%, 100% { 
+    opacity: 0.6; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.02); 
+  }
 }
 
 /* 顶部Logo区域 */
@@ -38,11 +52,15 @@
 .logo-text {
   font-size: 56rpx;
   font-weight: 600;
-  color: #2D3A36;
+  color: #1F2937; /* 使用新的主文字色，提升对比度 */
   letter-spacing: 2rpx;
-  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.8);
-  opacity: 0.9;
+  text-shadow: 0 2rpx 4rpx rgba(255, 255, 255, 0.9);
+  opacity: 1;
   position: relative;
+  background: linear-gradient(135deg, #1F2937 0%, #C0A9BD 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* 给logo添加品牌橙色点缀 */
@@ -63,7 +81,7 @@
 
 .logo-subtitle {
   font-size: 24rpx;
-  color: #5A6B5F; /* 使用正文色 */
+  color: #4B5563; /* 使用优化后的次要文字色 */
   font-weight: 500;
   letter-spacing: 1rpx;
   position: relative;
@@ -71,7 +89,7 @@
   align-items: center;
   justify-content: center;
   text-shadow: none;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .logo-subtitle::before,

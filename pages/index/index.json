@@ -2,6 +2,7 @@
   "navigationBarTitleText": "medsleep疗愈",
   "enablePullDownRefresh": false,
   "usingComponents": {
-    "global-player": "/components/global-player/global-player"
+    "global-player": "/components/global-player/global-player",
+    "theme-switcher": "/components/theme-switcher/theme-switcher"
   }
 }

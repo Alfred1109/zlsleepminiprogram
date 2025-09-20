@@ -340,8 +340,14 @@
 }
 
 .music-tag.favorite {
-  background: rgba(43, 186, 165, 0.1);
-  color: #C0A9BD;
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+}
+
+.music-tag.featured {
+  background: rgba(255, 139, 90, 0.15);
+  color: #E5602F;
+  border: 1rpx solid rgba(255, 107, 53, 0.2);
 }
 
 .sequence-description {
@@ -434,13 +440,18 @@
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4A90E2, #357ABD);
+  background: linear-gradient(135deg, #FF6B35, #E5602F);
   border: none;
-  box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.4);
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+}
+
+.fab.secondary {
+  background: linear-gradient(135deg, #FF8B5A, #FF6B35);
+  box-shadow: 0 6rpx 20rpx rgba(255, 139, 90, 0.35);
 }
 
 .fab:active {

@@ -1,0 +1,102 @@
+<!-- 语义化配色演示组件 -->
+<view class="semantic-demo-container">
+  <!-- 成功状态演示 -->
+  <view class="demo-section">
+    <text class="section-title">✅ 成功状态配色</text>
+    <view class="demo-items">
+      <button class="btn btn-success">完成任务</button>
+      <view class="status-card bg-success-light">
+        <text class="text-success">🎉 疗愈任务已完成！</text>
+        <text class="card-desc">您今天的音乐疗愈计划已全部完成</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-fill bg-success" style="width: 85%;"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 警告状态演示 -->
+  <view class="demo-section">
+    <text class="section-title">⚠️ 警告状态配色</text>
+    <view class="demo-items">
+      <button class="btn btn-warning">注意事项</button>
+      <view class="status-card bg-warning-light">
+        <text class="text-warning">⚠️ 请注意音量设置</text>
+        <text class="card-desc">建议将音量控制在适宜范围内</text>
+      </view>
+      <view class="badge bg-warning">
+        <text class="badge-text">需要关注</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 信息状态演示 -->
+  <view class="demo-section">
+    <text class="section-title">ℹ️ 信息状态配色</text>
+    <view class="demo-items">
+      <button class="btn btn-info">了解详情</button>
+      <view class="status-card bg-info-light">
+        <text class="text-info">ℹ️ 新功能上线通知</text>
+        <text class="card-desc">我们为您添加了个性化推荐功能</text>
+      </view>
+      <view class="info-tip">
+        <text class="tip-icon text-info">💡</text>
+        <text class="tip-text">小贴士：长按可收藏您喜欢的音频</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 错误状态演示 -->
+  <view class="demo-section">
+    <text class="section-title">❌ 错误状态配色</text>
+    <view class="demo-items">
+      <button class="btn btn-error">重试操作</button>
+      <view class="status-card bg-error-light">
+        <text class="text-error">❌ 网络连接失败</text>
+        <text class="card-desc">请检查网络连接后重试</text>
+      </view>
+      <view class="error-alert">
+        <text class="alert-text text-error">操作失败，请稍后重试</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 品牌色彩演示 -->
+  <view class="demo-section">
+    <text class="section-title">🎨 品牌色彩应用</text>
+    <view class="demo-items">
+      <button class="btn btn-brand">开始疗愈</button>
+      <button class="btn btn-brand-light">浅橙按钮</button>
+      <button class="btn btn-brand-dark">深橙按钮</button>
+      <button class="btn btn-brand-outline">轮廓按钮</button>
+      
+      <view class="brand-showcase">
+        <view class="showcase-item bg-brand-pale">
+          <text class="text-brand">🔥 活力橙色系</text>
+        </view>
+        <view class="showcase-item bg-theme-light">
+          <text class="text-theme">🌸 疗愈紫色系</text>
+        </view>
+        <view class="showcase-item" style="background: rgba(125, 211, 192, 0.1);">
+          <text class="text-healing">🌿 治愈绿色系</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 渐变色彩演示 -->
+  <view class="demo-section">
+    <text class="section-title">🌈 渐变效果展示</text>
+    <view class="demo-items">
+      <view class="gradient-card brand-gradient">
+        <text class="gradient-text">品牌渐变</text>
+      </view>
+      <view class="gradient-card healing-gradient">
+        <text class="gradient-text">疗愈渐变</text>
+      </view>
+      <view class="gradient-card calm-gradient">
+        <text class="gradient-text">平静渐变</text>
+      </view>
+    </view>
+  </view>
+</view>

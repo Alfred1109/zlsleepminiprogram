@@ -1,0 +1,158 @@
+<!-- 主题切换组件 - 基于色彩心理学的疗愈主题 -->
+<view class="theme-switcher-container {{isVisible ? 'visible' : ''}}" wx:if="{{showThemeSwitcher}}">
+  <!-- 切换按钮 -->
+  <view class="theme-toggle-btn" bindtap="toggleThemeSwitcher">
+    <text class="theme-icon">🎨</text>
+    <text class="theme-text">疗愈主题</text>
+  </view>
+
+  <!-- 主题选项面板 -->
+  <view class="theme-panel {{isPanelVisible ? 'show' : ''}}">
+    <view class="panel-header">
+      <text class="panel-title">选择您的疗愈配色</text>
+      <text class="panel-subtitle">基于色彩心理学的专业配色</text>
+    </view>
+
+    <view class="theme-options">
+      <!-- 默认主题 -->
+      <view 
+        class="theme-option {{currentTheme === 'default' ? 'active' : ''}}"
+        data-theme="default"
+        bindtap="switchTheme"
+      >
+        <view class="theme-preview default-preview">
+          <view class="preview-color" style="background: #C0A9BD;"></view>
+          <view class="preview-color" style="background: #FF6B35;"></view>
+          <view class="preview-color" style="background: #7DD3C0;"></view>
+        </view>
+        <view class="theme-info">
+          <text class="theme-name">🌸 默认主题</text>
+          <text class="theme-desc">温暖平衡的疗愈配色</text>
+        </view>
+      </view>
+
+      <!-- 平静模式 -->
+      <view 
+        class="theme-option {{currentTheme === 'calm-mode' ? 'active' : ''}}"
+        data-theme="calm-mode"
+        bindtap="switchTheme"
+      >
+        <view class="theme-preview calm-preview">
+          <view class="preview-color" style="background: #E0F2F1;"></view>
+          <view class="preview-color" style="background: #14B8A6;"></view>
+          <view class="preview-color" style="background: #10B981;"></view>
+        </view>
+        <view class="theme-info">
+          <text class="theme-name">🧘 平静模式</text>
+          <text class="theme-desc">蓝绿色调，降低心率</text>
+        </view>
+      </view>
+
+      <!-- 专注模式 -->
+      <view 
+        class="theme-option {{currentTheme === 'focus-mode' ? 'active' : ''}}"
+        data-theme="focus-mode"
+        bindtap="switchTheme"
+      >
+        <view class="theme-preview focus-preview">
+          <view class="preview-color" style="background: #EEE7F4;"></view>
+          <view class="preview-color" style="background: #7C3AED;"></view>
+          <view class="preview-color" style="background: #8B5CF6;"></view>
+        </view>
+        <view class="theme-info">
+          <text class="theme-name">🎯 专注模式</text>
+          <text class="theme-desc">深紫色调，提升注意力</text>
+        </view>
+      </view>
+
+      <!-- 活力模式 -->
+      <view 
+        class="theme-option {{currentTheme === 'energy-mode' ? 'active' : ''}}"
+        data-theme="energy-mode"
+        bindtap="switchTheme"
+      >
+        <view class="theme-preview energy-preview">
+          <view class="preview-color" style="background: #FFF4E6;"></view>
+          <view class="preview-color" style="background: #EA580C;"></view>
+          <view class="preview-color" style="background: #F97316;"></view>
+        </view>
+        <view class="theme-info">
+          <text class="theme-name">⚡ 活力模式</text>
+          <text class="theme-desc">暖橙色调，激发活力</text>
+        </view>
+      </view>
+
+      <!-- 放松模式 -->
+      <view 
+        class="theme-option {{currentTheme === 'relax-mode' ? 'active' : ''}}"
+        data-theme="relax-mode"
+        bindtap="switchTheme"
+      >
+        <view class="theme-preview relax-preview">
+          <view class="preview-color" style="background: #F0FDF4;"></view>
+          <view class="preview-color" style="background: #22C55E;"></view>
+          <view class="preview-color" style="background: #16A34A;"></view>
+        </view>
+        <view class="theme-info">
+          <text class="theme-name">🌿 放松模式</text>
+          <text class="theme-desc">柔和绿调，缓解压力</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时间感知主题 -->
+    <view class="time-themes">
+      <view class="section-divider"></view>
+      <text class="section-title">⏰ 时间感知主题</text>
+      
+      <view class="time-options">
+        <view 
+          class="time-option {{currentTheme === 'morning-theme' ? 'active' : ''}}"
+          data-theme="morning-theme"
+          bindtap="switchTheme"
+        >
+          <text class="time-icon">🌅</text>
+          <text class="time-name">晨间</text>
+        </view>
+        <view 
+          class="time-option {{currentTheme === 'evening-theme' ? 'active' : ''}}"
+          data-theme="evening-theme"
+          bindtap="switchTheme"
+        >
+          <text class="time-icon">🌇</text>
+          <text class="time-name">暮间</text>
+        </view>
+        <view 
+          class="time-option {{currentTheme === 'night-theme' ? 'active' : ''}}"
+          data-theme="night-theme"
+          bindtap="switchTheme"
+        >
+          <text class="time-icon">🌙</text>
+          <text class="time-name">夜间</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 智能推荐 -->
+    <view class="smart-recommendation" wx:if="{{recommendedTheme}}">
+      <view class="recommendation-header">
+        <text class="recommendation-icon">🤖</text>
+        <text class="recommendation-title">智能推荐</text>
+      </view>
+      <text class="recommendation-text">根据当前时间和使用习惯，推荐使用 {{recommendedTheme.name}}</text>
+      <button 
+        class="btn-recommendation"
+        data-theme="{{recommendedTheme.key}}"
+        bindtap="switchTheme"
+      >
+        应用推荐主题
+      </button>
+    </view>
+  </view>
+
+  <!-- 背景遮罩 -->
+  <view 
+    class="theme-overlay {{isPanelVisible ? 'show' : ''}}" 
+    bindtap="closeThemePanel"
+  ></view>
+</view>

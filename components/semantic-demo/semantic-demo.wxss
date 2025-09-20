@@ -1,0 +1,273 @@
+/* 语义化配色演示组件样式 */
+
+.semantic-demo-container {
+  padding: 40rpx;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+}
+
+/* 演示区块 */
+.demo-section {
+  margin-bottom: 60rpx;
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 30rpx;
+  display: block;
+}
+
+.demo-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* 按钮样式扩展 */
+.btn {
+  padding: 20rpx 40rpx;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  text-align: center;
+  border: none;
+  transition: all 0.3s ease;
+  min-width: 200rpx;
+}
+
+.btn:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: white;
+  box-shadow: 0 4rpx 16rpx rgba(5, 150, 105, 0.3);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #D97706, #B45309);
+  color: white;
+  box-shadow: 0 4rpx 16rpx rgba(217, 119, 6, 0.3);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  color: white;
+  box-shadow: 0 4rpx 16rpx rgba(37, 99, 235, 0.3);
+}
+
+.btn-error {
+  background: linear-gradient(135deg, #DC2626, #B91C1C);
+  color: white;
+  box-shadow: 0 4rpx 16rpx rgba(220, 38, 38, 0.3);
+}
+
+.btn-brand-outline {
+  background: transparent;
+  color: #FF6B35;
+  border: 2rpx solid #FF6B35;
+  box-shadow: none;
+}
+
+.btn-brand-outline:active {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+/* 状态卡片 */
+.status-card {
+  padding: 24rpx;
+  border-radius: 16rpx;
+  border-left: 6rpx solid;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.status-card.bg-success-light {
+  border-left-color: #059669;
+}
+
+.status-card.bg-warning-light {
+  border-left-color: #D97706;
+}
+
+.status-card.bg-info-light {
+  border-left-color: #2563EB;
+}
+
+.status-card.bg-error-light {
+  border-left-color: #DC2626;
+}
+
+.card-desc {
+  font-size: 26rpx;
+  color: #6B7280;
+  line-height: 1.4;
+}
+
+/* 进度条 */
+.progress-bar {
+  height: 12rpx;
+  background: #E5E7EB;
+  border-radius: 6rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 6rpx;
+  transition: width 0.8s ease;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 20rpx;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* 徽章 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  align-self: flex-start;
+}
+
+.badge-text {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: white;
+}
+
+/* 信息提示 */
+.info-tip {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx;
+  background: rgba(37, 99, 235, 0.05);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(37, 99, 235, 0.1);
+}
+
+.tip-icon {
+  font-size: 32rpx;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: #4B5563;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* 错误警告 */
+.error-alert {
+  padding: 16rpx 20rpx;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1rpx solid rgba(220, 38, 38, 0.2);
+  border-radius: 12rpx;
+  text-align: center;
+}
+
+.alert-text {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 品牌展示 */
+.brand-showcase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.showcase-item {
+  flex: 1;
+  min-width: 150rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* 渐变卡片 */
+.gradient-card {
+  padding: 40rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  margin: 8rpx 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-gradient {
+  background: linear-gradient(135deg, #FF6B35 0%, #E5602F 100%);
+}
+
+.healing-gradient {
+  background: linear-gradient(135deg, #7DD3C0 0%, #C0A9BD 100%);
+}
+
+.calm-gradient {
+  background: linear-gradient(135deg, #10B981 0%, #14B8A6 100%);
+}
+
+.gradient-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+/* 渐变卡片光泽效果 */
+.gradient-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* 响应式设计 */
+@media (max-width: 600rpx) {
+  .brand-showcase {
+    flex-direction: column;
+  }
+  
+  .showcase-item {
+    min-width: auto;
+  }
+}

@@ -1,0 +1,265 @@
+/* ========================================
+   疗愈专用主题配色系统
+   基于色彩心理学和音乐治疗理论
+   ======================================== */
+
+/* ========================================
+   情绪调节配色主题
+   ======================================== */
+
+/* 平静模式 - 蓝绿色调，降低心率，促进放松 */
+.calm-mode {
+  --primary-bg: #E0F2F1;        /* 极浅青绿背景 */
+  --secondary-bg: #F0FDF4;       /* 极浅绿色背景 */
+  --accent-color: #14B8A6;       /* 青绿强调色 */
+  --text-primary: #065F46;       /* 深绿色文字 */
+  --button-primary: #10B981;     /* 平静绿按钮 */
+}
+
+.calm-mode .container {
+  background: linear-gradient(135deg, #E0F2F1 0%, #F0FDF4 100%);
+}
+
+.calm-mode .btn-primary {
+  background: linear-gradient(135deg, #10B981, #059669);
+  box-shadow: 0 4rpx 16rpx rgba(16, 185, 129, 0.25);
+}
+
+/* 专注模式 - 深紫色调，提升注意力集中度 */
+.focus-mode {
+  --primary-bg: #EEE7F4;        /* 极浅紫背景 */
+  --secondary-bg: #F3F0F9;       /* 淡紫背景 */
+  --accent-color: #7C3AED;       /* 深紫强调色 */
+  --text-primary: #4C1D95;       /* 深紫色文字 */
+  --button-primary: #8B5CF6;     /* 紫色按钮 */
+}
+
+.focus-mode .container {
+  background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%);
+}
+
+.focus-mode .btn-primary {
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.25);
+}
+
+/* 活力模式 - 暖橙色调，提升精神状态 */
+.energy-mode {
+  --primary-bg: #FFF4E6;        /* 极浅橙背景 */
+  --secondary-bg: #FFFBEB;       /* 淡黄背景 */
+  --accent-color: #EA580C;       /* 活力橙强调色 */
+  --text-primary: #9A3412;       /* 深橙色文字 */
+  --button-primary: #F97316;     /* 活力橙按钮 */
+}
+
+.energy-mode .container {
+  background: linear-gradient(135deg, #FFF4E6 0%, #FFFBEB 100%);
+}
+
+.energy-mode .btn-primary {
+  background: linear-gradient(135deg, #F97316, #EA580C);
+  box-shadow: 0 4rpx 16rpx rgba(249, 115, 22, 0.25);
+}
+
+/* 放松模式 - 柔和绿色调，缓解压力和紧张 */
+.relax-mode {
+  --primary-bg: #F0FDF4;        /* 极浅绿背景 */
+  --secondary-bg: #ECFDF5;       /* 淡绿背景 */
+  --accent-color: #22C55E;       /* 自然绿强调色 */
+  --text-primary: #166534;       /* 深绿色文字 */
+  --button-primary: #16A34A;     /* 自然绿按钮 */
+}
+
+.relax-mode .container {
+  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+}
+
+.relax-mode .btn-primary {
+  background: linear-gradient(135deg, #16A34A, #15803D);
+  box-shadow: 0 4rpx 16rpx rgba(22, 197, 94, 0.25);
+}
+
+/* ========================================
+   时间感知配色主题
+   ======================================== */
+
+/* 晨间主题 - 温暖明亮，模拟日出 */
+.morning-theme {
+  --bg-gradient: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FBBF24 100%);
+  --primary-tint: #FFF8E1;      /* 晨光黄 */
+  --accent-warm: #F59E0B;       /* 金色强调 */
+}
+
+.morning-theme .container {
+  background: var(--bg-gradient);
+  color: #92400E;
+}
+
+/* 午间主题 - 平衡中性，最佳工作状态 */
+.noon-theme {
+  --bg-gradient: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  --primary-tint: #FFFFFF;      /* 纯净白 */
+  --accent-neutral: #6B7280;    /* 中性灰强调 */
+}
+
+/* 暮间主题 - 柔和紫蓝，准备休息 */
+.evening-theme {
+  --bg-gradient: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 50%, #A5B4FC 100%);
+  --primary-tint: #E8EAF6;      /* 暮光蓝 */
+  --accent-cool: #3730A3;       /* 深蓝强调 */
+}
+
+.evening-theme .container {
+  background: var(--bg-gradient);
+  color: #1E1B4B;
+}
+
+/* 夜间主题 - 深色护眼，减少蓝光 */
+.night-theme {
+  --bg-primary: #1F2937;        /* 深夜背景 */
+  --bg-secondary: #111827;      /* 更深背景 */
+  --text-primary: #F9FAFB;      /* 浅色文字 */
+  --accent-dim: #6366F1;        /* 柔和紫蓝 */
+}
+
+.night-theme .container {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.night-theme .card {
+  background: #374151;
+  border: 1rpx solid #4B5563;
+}
+
+/* ========================================
+   音频可视化配色
+   ======================================== */
+
+/* 根据音频频率的动态配色 */
+.frequency-low {
+  color: #10B981;              /* 低频-绿色，稳定感 */
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.frequency-mid {
+  color: #C0A9BD;              /* 中频-紫色，和谐感 */
+  background: rgba(192, 169, 189, 0.1);
+}
+
+.frequency-high {
+  color: #FF6B35;              /* 高频-橙色，活跃感 */
+  background: rgba(255, 107, 53, 0.1);
+}
+
+/* 音频强度可视化 */
+.amplitude-low {
+  opacity: 0.4;
+  transform: scale(0.9);
+}
+
+.amplitude-medium {
+  opacity: 0.7;
+  transform: scale(1.0);
+}
+
+.amplitude-high {
+  opacity: 1.0;
+  transform: scale(1.1);
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.3);
+}
+
+/* ========================================
+   情绪映射配色主题
+   ======================================== */
+
+/* 古典音乐主题 - 优雅高贵 */
+.classical-theme {
+  background: linear-gradient(135deg, #F3F0FF 0%, #E9E5FF 100%);
+  color: #4C1D95;
+}
+
+.classical-theme .accent {
+  color: #7C3AED;
+  background: rgba(124, 58, 237, 0.1);
+}
+
+/* 自然音效主题 - 清新自然 */
+.nature-theme {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  color: #065F46;
+}
+
+.nature-theme .accent {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+}
+
+/* 动感音乐主题 - 活力四射 */
+.dynamic-theme {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+  color: #9A3412;
+}
+
+.dynamic-theme .accent {
+  color: #EA580C;
+  background: rgba(234, 88, 12, 0.1);
+}
+
+/* ========================================
+   互动状态增强
+   ======================================== */
+
+/* 基于色彩心理学的悬停效果 */
+.interactive-healing:hover {
+  background: rgba(16, 185, 129, 0.05);
+  transform: translateY(-2rpx);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-energy:hover {
+  background: rgba(255, 107, 53, 0.05);
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 25rpx rgba(255, 107, 53, 0.15);
+}
+
+.interactive-focus:hover {
+  background: rgba(124, 58, 237, 0.05);
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 25rpx rgba(124, 58, 237, 0.15);
+}
+
+/* ========================================
+   呼吸引导动画配色
+   ======================================== */
+
+.breathing-guide {
+  animation: breathingGlow 4s ease-in-out infinite;
+}
+
+@keyframes breathingGlow {
+  0%, 100% {
+    box-shadow: 0 0 20rpx rgba(192, 169, 189, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40rpx rgba(192, 169, 189, 0.6);
+    transform: scale(1.05);
+  }
+}
+
+/* ========================================
+   可访问性增强
+   ======================================== */
+
+/* 高对比度模式 */
+.high-contrast {
+  --text-primary: #000000;
+  --bg-primary: #FFFFFF;
+  --border-primary: #000000;
+}
+
+/* 色盲友好配色 */
+.colorblind-safe .text-success { color: #2563EB; }  /* 蓝色代替绿色 */
+.colorblind-safe .text-error { color: #7C2D12; }    /* 棕色代替红色 */
+.colorblind-safe .text-warning { color: #A16207; }  /* 深黄代替橙色 */

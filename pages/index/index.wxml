@@ -1,4 +1,11 @@
 <!-- pages/index/index.wxml -->
+<!-- 主题切换器 -->
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="home"
+  bind:themechange="onThemeChange"
+/>
+
 <view class="container">
   <!-- 顶部Logo区域 -->
   <view class="header-section">

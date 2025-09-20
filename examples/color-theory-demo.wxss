@@ -1,0 +1,346 @@
+/* 色彩学优化演示页面样式 */
+@import "../styles/main.wxss";
+@import "../styles/healing-themes.wxss";
+
+.demo-container {
+  padding: 40rpx;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  min-height: 100vh;
+}
+
+/* 主题切换器 */
+.theme-switcher {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.switcher-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1F2937;
+  display: block;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.theme-buttons {
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.theme-btn {
+  padding: 16rpx 32rpx;
+  border-radius: 50rpx;
+  border: 2rpx solid #E5E7EB;
+  background: white;
+  color: #6B7280;
+  font-size: 28rpx;
+  transition: all 0.3s ease;
+}
+
+.theme-btn:active,
+.theme-btn.active {
+  background: #FF6B35;
+  color: white;
+  border-color: #FF6B35;
+  transform: scale(0.95);
+}
+
+/* 色彩层次展示 */
+.color-hierarchy-demo {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 30rpx;
+  display: block;
+}
+
+.color-group {
+  margin-bottom: 40rpx;
+}
+
+.group-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #4B5563;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  flex: 1;
+  min-width: 150rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.swatch-label {
+  font-size: 24rpx;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* 语义化配色演示 */
+.semantic-colors-demo {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.semantic-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.semantic-item {
+  padding: 24rpx;
+  border-radius: 16rpx;
+  border-left: 6rpx solid currentColor;
+}
+
+.semantic-item text:first-child {
+  font-size: 32rpx;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.item-desc {
+  font-size: 26rpx;
+  color: #6B7280;
+  line-height: 1.5;
+  display: block;
+}
+
+/* 对比度演示 */
+.contrast-demo {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.contrast-comparison {
+  display: flex;
+  gap: 30rpx;
+  flex-wrap: wrap;
+}
+
+.contrast-card {
+  flex: 1;
+  min-width: 300rpx;
+  padding: 30rpx;
+  border: 2rpx solid #E5E7EB;
+  border-radius: 16rpx;
+  background: #F9FAFB;
+}
+
+.contrast-card:last-child {
+  border-color: #10B981;
+  background: #F0FDF4;
+}
+
+.card-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.contrast-card text {
+  display: block;
+  margin-bottom: 12rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+/* 情绪调节配色演示 */
+.mood-colors-demo {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300rpx, 1fr));
+  gap: 24rpx;
+}
+
+.mood-card {
+  padding: 30rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.mood-card:active {
+  transform: scale(0.98);
+}
+
+.mood-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.mood-desc {
+  font-size: 26rpx;
+  margin-bottom: 24rpx;
+  display: block;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+/* 音频可视化演示 */
+.audio-viz-demo {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.frequency-bars {
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  gap: 30rpx;
+  height: 200rpx;
+}
+
+.frequency-bar {
+  width: 80rpx;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  padding-bottom: 16rpx;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  position: relative;
+  animation: frequencyPulse 2s ease-in-out infinite;
+}
+
+.frequency-bar.frequency-low {
+  height: 120rpx;
+  animation-delay: 0s;
+}
+
+.frequency-bar.frequency-mid {
+  height: 180rpx;
+  animation-delay: 0.3s;
+}
+
+.frequency-bar.frequency-high {
+  height: 160rpx;
+  animation-delay: 0.6s;
+}
+
+.bar-label {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+@keyframes frequencyPulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scaleY(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.1);
+  }
+}
+
+/* 互动效果演示 */
+.interactive-demo {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.interactive-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  align-items: center;
+}
+
+.interactive-buttons button {
+  width: 300rpx;
+  height: 80rpx;
+  border-radius: 50rpx;
+  border: none;
+  font-size: 32rpx;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.interactive-healing {
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: white;
+}
+
+.interactive-energy {
+  background: linear-gradient(135deg, #FF6B35, #E5602F);
+  color: white;
+}
+
+.interactive-focus {
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  color: white;
+}
+
+/* 响应式设计 */
+@media (max-width: 768rpx) {
+  .contrast-comparison {
+    flex-direction: column;
+  }
+  
+  .mood-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .frequency-bars {
+    gap: 20rpx;
+  }
+  
+  .frequency-bar {
+    width: 60rpx;
+  }
+}

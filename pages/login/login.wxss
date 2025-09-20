@@ -4,7 +4,7 @@
 
 .container {
   min-height: 1334rpx;
-  background-color: #F4F2F3; /* 与全局主背景一致 */
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%); /* 使用新的背景渐变 */
   padding: 40rpx;
   display: flex;
   flex-direction: column;
@@ -29,13 +29,14 @@
 .title {
   font-size: 48rpx;
   font-weight: bold;
-  color: #2D3A36; /* 主标题色 */
+  color: #1F2937; /* 优化后的主文字色 */
   margin-bottom: 16rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .subtitle {
   font-size: 26rpx;
-  color: #5A6B5F; /* 正文色 */
+  color: #4B5563; /* 优化后的次要文字色 */
   line-height: 1.5;
 }
 

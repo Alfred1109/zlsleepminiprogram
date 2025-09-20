@@ -23,15 +23,50 @@ page {
    设计系统：原子类
    ======================================== */
 
-/* 颜色参考 (新调色板 - 温馨舒缓主题)
-  --primary-color: #C0A9BD;      紫粉色 - 主题色
-  --primary-light: #D4C3D1;      浅紫粉色
-  --secondary-color: #94A7AE;    蓝灰色 - 次要色
-  --text-primary: #64766A;       深绿灰色 - 主要文字
-  --text-secondary: #94A7AE;     蓝灰色 - 次要文字
-  --bg-primary: #FFFFFF;         白色背景
-  --bg-secondary: #F4F2F3;       浅灰白色背景
-  --border-light: #C0A9BD;       紫粉色边框
+/* ========================================
+   色彩系统 - 基于色彩学和疗愈心理学优化
+   ======================================== */
+
+/* 主色系 - 紫粉色 (疗愈、冥想、高贵) */
+/*
+  --purple-50: #FAF7F9;        极浅紫 - 卡片背景
+  --purple-100: #F0E8ED;       浅紫 - 区块背景
+  --purple-200: #E1D1D9;       浅中紫 - 边框
+  --purple-300: #D4C3D1;       中浅紫 - 当前浅色
+  --purple-500: #C0A9BD;       主紫色 - 主题色
+  --purple-600: #A89AAA;       中深紫 - 悬停状态
+  --purple-700: #8B7E8F;       深紫 - 活跃状态
+  --purple-900: #5D5162;       极深紫 - 强调文字
+*/
+
+/* 品牌色系 - 橙色 (活力、温暖、专业可信) */
+/*
+  --orange-50: #FFF7ED;        极浅橙 - 提示背景
+  --orange-100: #FFEDD5;       浅橙 - 高亮背景
+  --orange-200: #FED7AA;       中浅橙 - 装饰元素
+  --orange-400: #FB923C;       中橙 - 交互状态
+  --orange-500: #FF6B35;       主橙色 - 品牌主色
+  --orange-600: #E5602F;       中深橙 - 深层交互
+  --orange-700: #C2410C;       深橙 - 强调状态
+*/
+
+/* 功能色系 - 语义化配色 */
+/*
+  --success: #059669;          成功绿 - 完成状态
+  --warning: #D97706;          警告橙 - 注意事项
+  --error: #DC2626;            错误红 - 异常状态
+  --info: #2563EB;             信息蓝 - 提示内容
+*/
+
+/* 中性色系 - 文字和背景 */
+/*
+  --gray-50: #F9FAFB;          极浅灰 - 背景
+  --gray-100: #F3F4F6;         浅灰 - 卡片背景
+  --gray-200: #E5E7EB;         中浅灰 - 边框
+  --gray-400: #9CA3AF;         中灰 - 占位文字
+  --gray-600: #4B5563;         中深灰 - 次要文字
+  --gray-800: #1F2937;         深灰 - 主要文字
+  --gray-900: #111827;         极深灰 - 标题文字
 */
 
 /* 1. 间距 (统一 8rpx 缩放) */
@@ -77,27 +112,62 @@ page {
 
 
 /* 2. 颜色 - 品牌配色体系 */
-.text-primary { color: #2D3A36; } /* 主标题 - 温暖深灰 */
-.text-secondary { color: #5A6B5F; } /* 正文 - 中等绿灰 */
-.text-muted { color: #8B9C91; } /* 辅助文字 - 浅绿灰 */
-.text-placeholder { color: #B8C4BD; } /* 占位文字 */
+/* 基于色彩学优化的文字配色 */
+.text-primary { color: #1F2937; } /* 主标题 - 高对比度深灰 */
+.text-secondary { color: #4B5563; } /* 正文 - 改善对比度 */
+.text-muted { color: #6B7280; } /* 辅助文字 - 优化可读性 */
+.text-placeholder { color: #9CA3AF; } /* 占位文字 - 标准中性色 */
 .text-white { color: #FFFFFF; }
-.text-brand { color: #FF6B35; } /* 品牌橙色 - medvault logo色 */
+.text-brand { color: #FF6B35; } /* 品牌橙色 - logo主色 */
+.text-brand-light { color: #FF8B5A; } /* 浅橙色 */
+.text-brand-dark { color: #E5602F; } /* 深橙色 */
 .text-theme { color: #C0A9BD; } /* 主强调色 */
 .text-healing { color: #7DD3C0; } /* 治愈绿色 */
 .text-nature { color: #85B797; } /* 自然绿色 */
-.text-error { color: #EF4444; }
+/* 扩展色彩类 - 基于色彩层次体系 */
+.text-purple-light { color: #D4C3D1; }
+.text-purple { color: #C0A9BD; }
+.text-purple-dark { color: #8B7E8F; }
+
+/* 语义化功能色彩 */
+.text-success { color: #059669; } /* 成功状态 */
+.text-warning { color: #D97706; } /* 警告状态 */
+.text-error { color: #DC2626; } /* 错误状态 */
+.text-info { color: #2563EB; } /* 信息提示 */
 
 .bg-white { background-color: #FFFFFF; }
 .bg-primary { background-color: #F4F2F3; } /* 主背景 */
 .bg-secondary { background-color: #F8F6F7; } /* 次级背景 */
 .bg-brand { background-color: #FF6B35; } /* 品牌橙色 */
-.bg-brand-light { background-color: rgba(255, 107, 53, 0.1); } /* 淡橙色背景 */
+.bg-brand-light { background-color: #FF8B5A; } /* 浅橙色背景 */
+.bg-brand-dark { background-color: #E5602F; } /* 深橙色背景 */
+.bg-brand-pale { background-color: #FFF4F0; } /* 极浅橙色背景 */
+.bg-brand-soft { background-color: rgba(255, 107, 53, 0.1); } /* 半透明橙色背景 */
+.bg-brand-hover { background-color: rgba(255, 107, 53, 0.05); } /* 悬停效果橙色 */
 .bg-theme { background-color: #C0A9BD; } /* 主强调色 */
 .bg-theme-secondary { background-color: #94A7AE; } /* 次要强调色 */
 .bg-healing { background-color: #7DD3C0; } /* 治愈绿色 */
 .bg-nature { background-color: #85B797; } /* 自然绿色 */
+/* 扩展背景色系 */
+.bg-purple-50 { background-color: #FAF7F9; } /* 极浅紫背景 */
+.bg-purple-100 { background-color: #F0E8ED; } /* 浅紫背景 */
+.bg-purple-200 { background-color: #E1D1D9; } /* 中浅紫背景 */
 .bg-theme-light { background-color: #F0E8ED; }
+
+/* 橙色系完整背景 */
+.bg-orange-50 { background-color: #FFF7ED; } /* 极浅橙背景 */
+.bg-orange-100 { background-color: #FFEDD5; } /* 浅橙背景 */
+.bg-orange-200 { background-color: #FED7AA; } /* 中浅橙背景 */
+
+/* 功能性背景色 */
+.bg-success { background-color: #059669; }
+.bg-success-light { background-color: rgba(5, 150, 105, 0.1); }
+.bg-warning { background-color: #D97706; }
+.bg-warning-light { background-color: rgba(217, 119, 6, 0.1); }
+.bg-error { background-color: #DC2626; }
+.bg-error-light { background-color: rgba(220, 38, 38, 0.1); }
+.bg-info { background-color: #2563EB; }
+.bg-info-light { background-color: rgba(37, 99, 235, 0.1); }
 
 /* 3. Flex 布局 */
 .flex { display: flex; }
@@ -160,6 +230,25 @@ page {
   background-color: #FF6B35; /* 品牌橙色按钮 */
   color: white;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+.btn-brand-light {
+  background-color: #FF8B5A; /* 浅橙色按钮 */
+  color: white;
+  box-shadow: 0 4rpx 12rpx rgba(255, 139, 90, 0.3);
+}
+
+.btn-brand-dark {
+  background-color: #E5602F; /* 深橙色按钮 */
+  color: white;
+  box-shadow: 0 4rpx 12rpx rgba(229, 96, 47, 0.3);
+}
+
+.btn-brand-outline {
+  background-color: transparent;
+  color: #FF6B35;
+  border: 2rpx solid #FF6B35;
+  box-shadow: none;
 }
 
 .btn-healing {

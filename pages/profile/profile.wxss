@@ -110,15 +110,20 @@
 }
 
 .vip-tag {
-  background: rgba(255, 255, 255, 0.9) !important;
-  color: #333;
+  background: linear-gradient(135deg, #FF6B35, #FF8B5A) !important;
+  color: white;
   padding: 6rpx 16rpx;
   border-radius: 16rpx;
   font-size: 24rpx;
   font-weight: 600;
   display: flex;
   align-items: center;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+.vip-tag.premium {
+  background: linear-gradient(135deg, #E5602F, #FF6B35) !important;
+  box-shadow: 0 3rpx 15rpx rgba(229, 96, 47, 0.4);
 }
 
 .vip-icon {
@@ -293,8 +298,19 @@
 .stat-number {
   font-size: 32rpx;
   font-weight: 600;
-  color: #C0A9BD;
+  color: #FF6B35;
   margin-bottom: 4rpx;
+}
+
+.stat-number.secondary {
+  color: #C0A9BD;
+}
+
+.stat-number.highlight {
+  color: #E5602F;
+  background: linear-gradient(135deg, #FF6B35, #FF8B5A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .stat-label {
