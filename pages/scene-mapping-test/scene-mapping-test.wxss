@@ -1,0 +1,241 @@
+/* pages/scene-mapping-test/scene-mapping-test.wxss */
+/* 场景映射测试页面样式 */
+
+.page-container {
+  padding: 32rpx;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* 页面标题 */
+.page-header {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.page-title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 16rpx;
+}
+
+.page-subtitle {
+  font-size: 28rpx;
+  color: #7f8c8d;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx 32rpx;
+  font-size: 28rpx;
+  flex: 1;
+  min-width: 160rpx;
+}
+
+.btn-primary:disabled {
+  background: #bdc3c7;
+}
+
+.btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 2rpx solid #667eea;
+  border-radius: 12rpx;
+  padding: 24rpx 32rpx;
+  font-size: 28rpx;
+  flex: 1;
+  min-width: 160rpx;
+}
+
+/* 测试结果 */
+.test-results {
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 32rpx;
+  overflow: hidden;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  background: #667eea;
+  color: white;
+}
+
+.results-title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.results-count {
+  font-size: 24rpx;
+  opacity: 0.9;
+}
+
+.results-content {
+  max-height: 800rpx;
+  overflow-y: auto;
+}
+
+.result-item {
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #ecf0f1;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-item.success {
+  background: rgba(46, 204, 113, 0.1);
+  border-left: 4rpx solid #2ecc71;
+}
+
+.result-item.error {
+  background: rgba(231, 76, 60, 0.1);
+  border-left: 4rpx solid #e74c3c;
+}
+
+.result-item.warning {
+  background: rgba(241, 196, 15, 0.1);
+  border-left: 4rpx solid #f1c40f;
+}
+
+.result-text {
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* 映射数据展示 */
+.mappings-display {
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 32rpx;
+  overflow: hidden;
+}
+
+.section-title {
+  background: #34495e;
+  color: white;
+  padding: 24rpx 32rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.mappings-content {
+  padding: 32rpx;
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.mappings-text {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 22rpx;
+  color: #2c3e50;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* 调试信息 */
+.debug-info {
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 32rpx;
+  overflow: hidden;
+}
+
+.debug-content {
+  padding: 32rpx;
+}
+
+.debug-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #ecf0f1;
+}
+
+.debug-item:last-child {
+  border-bottom: none;
+}
+
+.debug-label {
+  font-size: 28rpx;
+  color: #34495e;
+  font-weight: 500;
+}
+
+.debug-value {
+  font-size: 26rpx;
+  color: #667eea;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* 说明文档 */
+.help-section {
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.help-content {
+  padding: 32rpx;
+}
+
+.help-item {
+  margin-bottom: 32rpx;
+}
+
+.help-item:last-child {
+  margin-bottom: 0;
+}
+
+.help-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 8rpx;
+}
+
+.help-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #7f8c8d;
+  line-height: 1.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    flex: none;
+    width: 100%;
+  }
+}

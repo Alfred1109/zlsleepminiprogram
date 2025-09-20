@@ -90,6 +90,32 @@ const AssessmentAPI = {
 }
 
 /**
+ * 场景映射API
+ */
+const SceneMappingAPI = {
+  /**
+   * 获取场景映射关系
+   */
+  getMappings() {
+    return get('/scene/mappings')
+  },
+
+  /**
+   * 根据场景ID获取评测量表类型
+   */
+  getScaleTypesByScene(sceneId) {
+    return get(`/scene/${sceneId}/scale-types`)
+  },
+
+  /**
+   * 根据场景ID获取音乐类型
+   */
+  getMusicTypesByScene(sceneId) {
+    return get(`/scene/${sceneId}/music-types`)
+  }
+}
+
+/**
  * 音乐生成API
  */
 const MusicAPI = {
@@ -1322,6 +1348,7 @@ class DeviceAPI {
 
 module.exports = {
   AssessmentAPI,
+  SceneMappingAPI,
   MusicAPI,
   LongSequenceAPI,
   UserAPI,

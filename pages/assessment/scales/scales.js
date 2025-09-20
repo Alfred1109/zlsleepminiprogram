@@ -4,6 +4,7 @@ const app = getApp()
 const { AssessmentAPI, UserAPI } = require('../../../utils/healingApi')
 const AuthService = require('../../../services/AuthService')
 const { sceneContextManager } = require('../../../utils/sceneContextManager')
+const { sceneMappingService } = require('../../../utils/sceneMappingService')
 
 Page({
   data: {
@@ -84,31 +85,44 @@ Page({
   },
 
   /**
-   * 根据场景过滤量表
+   * 根据场景过滤量表（使用动态映射服务）
    */
-  filterScalesByScene() {
+  async filterScalesByScene() {
     const { scales, sceneContext, isInSceneMode } = this.data
     
-    if (!isInSceneMode || !sceneContext || !sceneContext.scaleType) {
+    if (!isInSceneMode || !sceneContext) {
       // 没有场景限制，显示所有量表
       this.setData({ filteredScales: scales })
       console.log('📋 显示所有量表，共', scales.length, '个')
       return
     }
     
-    // 根据场景的scaleType过滤量表
-    const filtered = scales.filter(scale => 
-      scale.scale_type === sceneContext.scaleType
-    )
-    
-    this.setData({ filteredScales: filtered })
-    
-    console.log(`🎯 场景「${sceneContext.sceneName}」过滤后显示量表:`, {
-      scaleType: sceneContext.scaleType,
-      原始数量: scales.length,
-      过滤后数量: filtered.length,
-      过滤结果: filtered.map(s => s.name)
-    })
+    try {
+      // 使用映射服务过滤量表
+      const filteredPromises = scales.map(scale => 
+        sceneMappingService.isScaleMatchingScene(
+          scale, 
+          sceneContext.sceneId, 
+          sceneContext.sceneName
+        )
+      )
+      
+      const matchResults = await Promise.all(filteredPromises)
+      const filtered = scales.filter((scale, index) => matchResults[index])
+      
+      this.setData({ filteredScales: filtered })
+      
+      console.log(`🎯 场景「${sceneContext.sceneName}」(ID:${sceneContext.sceneId})过滤后显示量表:`, {
+        原始数量: scales.length,
+        过滤后数量: filtered.length,
+        过滤结果: filtered.map(s => s.name),
+        映射服务调试: sceneMappingService.getDebugInfo()
+      })
+      
+    } catch (error) {
+      console.error('❌ 场景量表过滤失败，显示所有量表:', error)
+      this.setData({ filteredScales: scales })
+    }
   },
 
   /**

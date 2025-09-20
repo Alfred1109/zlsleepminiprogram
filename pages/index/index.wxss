@@ -47,12 +47,31 @@
   flex-direction: column;
   align-items: center;
   gap: 8rpx;
+  position: relative;
+  padding-bottom: 32rpx; /* 为波形装饰留出空间 */
 }
 
+.logo-image {
+  width: 300rpx;
+  height: 120rpx;
+  display: block;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 4rpx 12rpx rgba(0, 0, 0, 0.1));
+  mix-blend-mode: multiply; /* 让白色背景透明化 */
+  background: transparent;
+}
+
+.logo-image:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 6rpx 16rpx rgba(0, 0, 0, 0.15));
+  mix-blend-mode: multiply;
+}
+
+/* 保留logo文字样式供主题切换使用 */
 .logo-text {
   font-size: 56rpx;
   font-weight: 600;
-  color: #1F2937; /* 使用新的主文字色，提升对比度 */
+  color: #1F2937;
   letter-spacing: 2rpx;
   text-shadow: 0 2rpx 4rpx rgba(255, 255, 255, 0.9);
   opacity: 1;
@@ -61,17 +80,18 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  display: none; /* 默认隐藏文字logo */
 }
 
-/* 给logo添加品牌橙色点缀 */
-.logo-text::after {
+/* Logo装饰波形 */
+.logo-container::after {
   content: '';
   position: absolute;
-  bottom: -12rpx;
+  bottom: -20rpx;
   left: 50%;
   transform: translateX(-50%);
-  width: 240rpx; /* 更长的波形 */
-  height: 16rpx; /* 更高的振幅 */
+  width: 240rpx;
+  height: 16rpx;
   background-color: transparent;
   background-repeat: no-repeat;
   background-size: 100% 100%;

@@ -6,6 +6,7 @@ const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
 const AuthService = require('../../../services/AuthService')
 const { requireSubscription, getSubscriptionInfo, getUnifiedSubscriptionStatus } = require('../../../utils/subscription')
 const { sceneContextManager } = require('../../../utils/sceneContextManager')
+const { sceneMappingService } = require('../../../utils/sceneMappingService')
 
 Page({
   data: {
@@ -108,9 +109,9 @@ Page({
   },
 
   /**
-   * 根据场景过滤脑波数据
+   * 根据场景过滤脑波数据（使用动态映射服务）
    */
-  filterBrainwavesByScene() {
+  async filterBrainwavesByScene() {
     const { musicList, longSequenceList, sceneContext, isInSceneMode } = this.data
     
     if (!isInSceneMode || !sceneContext) {
@@ -126,59 +127,53 @@ Page({
       return
     }
     
-    // 根据场景过滤脑波数据
-    // 这里可以根据实际需求添加更复杂的过滤逻辑
-    // 目前基于评测量表类型过滤（如果脑波数据中有相关字段）
-    const filteredMusic = musicList.filter(music => {
-      // 检查音频是否与场景相关
-      return this.isBrainwaveMatchingScene(music, sceneContext)
-    })
-    
-    const filteredLongSequence = longSequenceList.filter(sequence => {
-      // 检查长序列是否与场景相关
-      return this.isBrainwaveMatchingScene(sequence, sceneContext)
-    })
-    
-    this.setData({ 
-      filteredMusicList: filteredMusic,
-      filteredLongSequenceList: filteredLongSequence
-    })
-    
-    console.log(`🎯 场景「${sceneContext.sceneName}」过滤后脑波数据:`, {
-      scaleType: sceneContext.scaleType,
-      原始音频数量: musicList.length,
-      过滤后音频数量: filteredMusic.length,
-      原始长序列数量: longSequenceList.length,
-      过滤后长序列数量: filteredLongSequence.length
-    })
-  },
-
-  /**
-   * 检查脑波是否匹配当前场景
-   */
-  isBrainwaveMatchingScene(brainwave, sceneContext) {
-    if (!sceneContext || !sceneContext.scaleType) return true
-    
-    // 检查脑波的评测量表类型是否匹配场景
-    const brainwaveScaleType = brainwave.assessment_scale_name || 
-                               brainwave.scale_type || 
-                               brainwave.scale_name
-    
-    if (brainwaveScaleType) {
-      // 直接匹配量表类型
-      if (brainwaveScaleType === sceneContext.scaleType) {
-        return true
-      }
+    try {
+      // 使用映射服务过滤60秒脑波
+      const musicFilterPromises = musicList.map(music => 
+        sceneMappingService.isMusicMatchingScene(
+          music,
+          sceneContext.sceneId,
+          sceneContext.sceneName
+        )
+      )
       
-      // 模糊匹配（例如 HAMD-17 与 HAMD）
-      if (brainwaveScaleType.includes(sceneContext.scaleType) || 
-          sceneContext.scaleType.includes(brainwaveScaleType)) {
-        return true
-      }
+      // 使用映射服务过滤长序列脑波
+      const longSequenceFilterPromises = longSequenceList.map(sequence => 
+        sceneMappingService.isMusicMatchingScene(
+          sequence,
+          sceneContext.sceneId,
+          sceneContext.sceneName
+        )
+      )
+      
+      const [musicMatchResults, longSequenceMatchResults] = await Promise.all([
+        Promise.all(musicFilterPromises),
+        Promise.all(longSequenceFilterPromises)
+      ])
+      
+      const filteredMusic = musicList.filter((music, index) => musicMatchResults[index])
+      const filteredLongSequence = longSequenceList.filter((sequence, index) => longSequenceMatchResults[index])
+      
+      this.setData({ 
+        filteredMusicList: filteredMusic,
+        filteredLongSequenceList: filteredLongSequence
+      })
+      
+      console.log(`🎯 场景「${sceneContext.sceneName}」(ID:${sceneContext.sceneId})过滤后脑波数据:`, {
+        原始音频数量: musicList.length,
+        过滤后音频数量: filteredMusic.length,
+        原始长序列数量: longSequenceList.length,
+        过滤后长序列数量: filteredLongSequence.length,
+        映射服务调试: sceneMappingService.getDebugInfo()
+      })
+      
+    } catch (error) {
+      console.error('❌ 场景脑波过滤失败，显示所有脑波:', error)
+      this.setData({ 
+        filteredMusicList: musicList,
+        filteredLongSequenceList: longSequenceList
+      })
     }
-    
-    // 如果没有明确的量表信息，暂时保留（可根据需求调整）
-    return false
   },
 
   /**

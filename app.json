@@ -22,7 +22,8 @@
     "pages/device/device",
     "pages/device/bind/bind",
     "pages/device/control/control",
-    "pages/scene/detail/detail"
+    "pages/scene/detail/detail",
+    "pages/scene-mapping-test/scene-mapping-test"
   ],
   "window": {
     "backgroundTextStyle": "light",

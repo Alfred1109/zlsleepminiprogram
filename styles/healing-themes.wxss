@@ -20,6 +20,25 @@
   background: linear-gradient(135deg, #E0F2F1 0%, #F0FDF4 100%);
 }
 
+.calm-mode .user-card {
+  background: rgba(240, 253, 244, 0.9);
+  border: 1rpx solid rgba(16, 185, 129, 0.2);
+}
+
+.calm-mode .scene-category-item {
+  background: rgba(240, 253, 244, 0.8);
+  border: 1rpx solid rgba(16, 185, 129, 0.1);
+}
+
+.calm-mode .logo-text {
+  color: #065F46;
+}
+
+.calm-mode .logo-image {
+  filter: drop-shadow(0 4rpx 12rpx rgba(16, 185, 129, 0.2));
+  mix-blend-mode: multiply;
+}
+
 .calm-mode .btn-primary {
   background: linear-gradient(135deg, #10B981, #059669);
   box-shadow: 0 4rpx 16rpx rgba(16, 185, 129, 0.25);
@@ -36,6 +55,25 @@
 
 .focus-mode .container {
   background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%);
+}
+
+.focus-mode .user-card {
+  background: rgba(243, 240, 249, 0.9);
+  border: 1rpx solid rgba(139, 92, 246, 0.2);
+}
+
+.focus-mode .scene-category-item {
+  background: rgba(243, 240, 249, 0.8);
+  border: 1rpx solid rgba(139, 92, 246, 0.1);
+}
+
+.focus-mode .logo-text {
+  color: #4C1D95;
+}
+
+.focus-mode .logo-image {
+  filter: drop-shadow(0 4rpx 12rpx rgba(139, 92, 246, 0.2));
+  mix-blend-mode: multiply;
 }
 
 .focus-mode .btn-primary {
@@ -56,6 +94,25 @@
   background: linear-gradient(135deg, #FFF4E6 0%, #FFFBEB 100%);
 }
 
+.energy-mode .user-card {
+  background: rgba(255, 251, 235, 0.9);
+  border: 1rpx solid rgba(249, 115, 22, 0.2);
+}
+
+.energy-mode .scene-category-item {
+  background: rgba(255, 251, 235, 0.8);
+  border: 1rpx solid rgba(249, 115, 22, 0.1);
+}
+
+.energy-mode .logo-text {
+  color: #9A3412;
+}
+
+.energy-mode .logo-image {
+  filter: drop-shadow(0 4rpx 12rpx rgba(249, 115, 22, 0.2));
+  mix-blend-mode: multiply;
+}
+
 .energy-mode .btn-primary {
   background: linear-gradient(135deg, #F97316, #EA580C);
   box-shadow: 0 4rpx 16rpx rgba(249, 115, 22, 0.25);
@@ -72,6 +129,25 @@
 
 .relax-mode .container {
   background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+}
+
+.relax-mode .user-card {
+  background: rgba(236, 253, 245, 0.9);
+  border: 1rpx solid rgba(22, 197, 94, 0.2);
+}
+
+.relax-mode .scene-category-item {
+  background: rgba(236, 253, 245, 0.8);
+  border: 1rpx solid rgba(22, 197, 94, 0.1);
+}
+
+.relax-mode .logo-text {
+  color: #166534;
+}
+
+.relax-mode .logo-image {
+  filter: drop-shadow(0 4rpx 12rpx rgba(22, 197, 94, 0.2));
+  mix-blend-mode: multiply;
 }
 
 .relax-mode .btn-primary {
@@ -95,6 +171,26 @@
   color: #92400E;
 }
 
+.morning-theme .user-card {
+  background: rgba(255, 248, 225, 0.9);
+  border: 1rpx solid rgba(245, 158, 11, 0.2);
+}
+
+.morning-theme .scene-category-item {
+  background: rgba(255, 248, 225, 0.8);
+  border: 1rpx solid rgba(245, 158, 11, 0.1);
+}
+
+.morning-theme .logo-image {
+  filter: drop-shadow(0 4rpx 12rpx rgba(245, 158, 11, 0.2));
+  mix-blend-mode: multiply;
+}
+
+.morning-theme .btn-primary {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  box-shadow: 0 4rpx 16rpx rgba(245, 158, 11, 0.25);
+}
+
 /* 午间主题 - 平衡中性，最佳工作状态 */
 .noon-theme {
   --bg-gradient: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
@@ -114,6 +210,30 @@
   color: #1E1B4B;
 }
 
+.evening-theme .user-card {
+  background: rgba(232, 234, 246, 0.9);
+  border: 1rpx solid rgba(55, 48, 163, 0.2);
+}
+
+.evening-theme .scene-category-item {
+  background: rgba(232, 234, 246, 0.8);
+  border: 1rpx solid rgba(55, 48, 163, 0.1);
+}
+
+.evening-theme .logo-text {
+  color: #1E1B4B;
+}
+
+.evening-theme .logo-image {
+  filter: drop-shadow(0 4rpx 12rpx rgba(55, 48, 163, 0.2));
+  mix-blend-mode: multiply; /* 保持multiply模式适合中等亮度背景 */
+}
+
+.evening-theme .btn-primary {
+  background: linear-gradient(135deg, #3730A3, #312E81);
+  box-shadow: 0 4rpx 16rpx rgba(55, 48, 163, 0.25);
+}
+
 /* 夜间主题 - 深色护眼，减少蓝光 */
 .night-theme {
   --bg-primary: #1F2937;        /* 深夜背景 */
@@ -125,6 +245,32 @@
 .night-theme .container {
   background-color: var(--bg-primary);
   color: var(--text-primary);
+}
+
+.night-theme .user-card {
+  background: #374151;
+  border: 1rpx solid #4B5563;
+  color: #F9FAFB;
+}
+
+.night-theme .scene-category-item {
+  background: #374151;
+  border: 1rpx solid #4B5563;
+  color: #F9FAFB;
+}
+
+.night-theme .logo-text {
+  color: #F9FAFB;
+}
+
+.night-theme .logo-image {
+  filter: drop-shadow(0 4rpx 12rpx rgba(99, 102, 241, 0.3)) brightness(0.9) invert(1);
+  mix-blend-mode: screen; /* 在暗色背景下使用screen模式 */
+}
+
+.night-theme .btn-primary {
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+  box-shadow: 0 4rpx 16rpx rgba(99, 102, 241, 0.25);
 }
 
 .night-theme .card {
@@ -263,3 +409,37 @@
 .colorblind-safe .text-success { color: #2563EB; }  /* 蓝色代替绿色 */
 .colorblind-safe .text-error { color: #7C2D12; }    /* 棕色代替红色 */
 .colorblind-safe .text-warning { color: #A16207; }  /* 深黄代替橙色 */
+
+/* ========================================
+   主题测试样式（确保主题切换可见）
+   ======================================== */
+
+/* 增强主题可见性 - 使用 !important 确保样式生效 */
+.calm-mode {
+  background: linear-gradient(135deg, #E0F2F1 0%, #F0FDF4 100%) !important;
+}
+
+.focus-mode {
+  background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%) !important;
+}
+
+.morning-theme {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FBBF24 100%) !important;
+}
+
+.evening-theme {
+  background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 50%, #A5B4FC 100%) !important;
+}
+
+.night-theme {
+  background: #1F2937 !important;
+  color: #F9FAFB !important;
+}
+
+.energy-mode {
+  background: linear-gradient(135deg, #FFF4E6 0%, #FFFBEB 100%) !important;
+}
+
+.relax-mode {
+  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%) !important;
+}
