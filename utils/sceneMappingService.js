@@ -34,6 +34,18 @@ class SceneMappingService {
         this.mappings = result.data
         this.lastFetchTime = Date.now()
         console.log('✅ 场景映射关系获取成功:', this.mappings)
+        
+        // 调试：打印数据格式
+        console.log('🔍 调试映射数据格式:')
+        if (this.mappings.sceneToScales) {
+          console.log('- sceneToScales[1] 格式:', this.mappings.sceneToScales[1])
+          console.log('- sceneToScales[1] 类型:', Array.isArray(this.mappings.sceneToScales[1]) ? 'array' : typeof this.mappings.sceneToScales[1])
+          if (Array.isArray(this.mappings.sceneToScales[1]) && this.mappings.sceneToScales[1].length > 0) {
+            console.log('- 第一个元素类型:', typeof this.mappings.sceneToScales[1][0])
+            console.log('- 第一个元素内容:', this.mappings.sceneToScales[1][0])
+          }
+        }
+        
         return this.mappings
       } else {
         console.warn('⚠️ 后端未返回映射关系，使用默认映射')
@@ -122,7 +134,11 @@ class SceneMappingService {
 
     // 检查量表类型是否在映射列表中
     const scaleType = scale.scale_type || scale.type || scale.name
-    const matches = scaleTypes.some(mappedType => {
+    const matches = scaleTypes.some(mappedItem => {
+      // 处理后端返回的不同数据格式
+      const mappedType = this.extractScaleType(mappedItem)
+      if (!mappedType) return false
+      
       // 精确匹配
       if (scaleType === mappedType) return true
       
@@ -172,7 +188,11 @@ class SceneMappingService {
     }, [])
 
     // 检查是否有匹配的类型
-    const matches = musicTypes.some(mappedType => {
+    const matches = musicTypes.some(mappedItem => {
+      // 处理后端返回的不同数据格式
+      const mappedType = this.extractMusicType(mappedItem)
+      if (!mappedType) return false
+      
       return flatMusicCategories.some(musicCategory => {
         if (!musicCategory || !mappedType) return false
         
@@ -186,6 +206,61 @@ class SceneMappingService {
 
     console.log(`🔍 音乐「${music.name || music.title}」在场景${sceneId || sceneName}中匹配:`, matches)
     return matches
+  }
+
+  /**
+   * 从映射项中提取量表类型（兼容不同数据格式）
+   * @param {string|Object} mappedItem 映射项，可能是字符串或对象
+   * @returns {string|null} 提取的量表类型
+   */
+  extractScaleType(mappedItem) {
+    if (typeof mappedItem === 'string') {
+      console.log('🔍 提取量表类型(字符串):', mappedItem)
+      return mappedItem
+    }
+    
+    if (typeof mappedItem === 'object' && mappedItem !== null) {
+      // 尝试从不同的字段中提取类型
+      const extracted = mappedItem.scale_type || 
+                       mappedItem.type || 
+                       mappedItem.name || 
+                       mappedItem.code || 
+                       mappedItem.id ||
+                       null
+      console.log('🔍 提取量表类型(对象):', { 
+        原始对象: mappedItem, 
+        提取结果: extracted 
+      })
+      return extracted
+    }
+    
+    console.log('🔍 提取量表类型(未知格式):', mappedItem)
+    return null
+  }
+
+  /**
+   * 从映射项中提取音乐类型（兼容不同数据格式）
+   * @param {string|Object} mappedItem 映射项，可能是字符串或对象
+   * @returns {string|null} 提取的音乐类型
+   */
+  extractMusicType(mappedItem) {
+    if (typeof mappedItem === 'string') {
+      return mappedItem
+    }
+    
+    if (typeof mappedItem === 'object' && mappedItem !== null) {
+      // 尝试从不同的字段中提取类型
+      return mappedItem.music_type || 
+             mappedItem.type || 
+             mappedItem.name || 
+             mappedItem.category || 
+             mappedItem.tag ||
+             mappedItem.code || 
+             mappedItem.id ||
+             null
+    }
+    
+    return null
   }
 
   /**
