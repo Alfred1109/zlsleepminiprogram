@@ -6,6 +6,7 @@
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
   "usingComponents": {
-    "global-player": "/components/global-player/global-player"
+    "global-player": "/components/global-player/global-player",
+    "theme-switcher": "/components/theme-switcher/theme-switcher"
   }
 }

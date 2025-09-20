@@ -1,5 +1,11 @@
 <!-- pages/scene/list/list.wxml -->
-<view class="container">
+<!-- 主题切换器 -->
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="container {{themeClass}}">
   <!-- 页面头部 -->
   <view class="page-header">
     <view class="header-content">

@@ -1,6 +1,12 @@
 <!--pages/assessment/scales/scales.wxml-->
 <!-- 评测量表选择页面 -->
-<view class="page-container">
+<!-- 主题切换器 -->
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="page-container {{themeClass}}">
   <!-- 页面标题 -->
   <view class="page-header">
     <view class="page-title">心理评测</view>

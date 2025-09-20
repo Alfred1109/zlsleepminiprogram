@@ -4,9 +4,15 @@ const app = getApp()
 const { AssessmentAPI, MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 const AuthService = require('../../../services/AuthService')
 const { sceneContextManager } = require('../../../utils/sceneContextManager')
+const themeMixin = require('../../../utils/themeMixin')
 
 Page({
   data: {
+    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null,
+    
     // 场景信息
     sceneId: null,
     sceneName: '',
@@ -32,6 +38,9 @@ Page({
 
   onLoad(options) {
     console.log('🎯 场景详情页面加载，参数:', options)
+    
+    // 初始化主题
+    this.initTheme()
     
     // 解析URL参数
     const { sceneId, sceneName, scaleType, sceneTheme } = options
@@ -396,6 +405,67 @@ Page({
         }
       }
     })
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    try {
+      if (!e || !e.detail) {
+        console.error('主题切换事件参数错误:', e);
+        return;
+      }
+
+      const { theme, config } = e.detail;
+      
+      if (!theme || !config) {
+        console.error('主题切换缺少必要参数:', { theme, config });
+        return;
+      }
+
+      console.log('场景页面主题切换到:', theme, config);
+      
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+
+      // 更新全局状态
+      const app = getApp();
+      if (app.globalData) {
+        app.globalData.currentTheme = theme;
+        app.globalData.themeConfig = config;
+      }
+
+      // 显示主题切换反馈
+      wx.showToast({
+        title: `已应用${config.name}`,
+        icon: 'none',
+        duration: 1500
+      });
+    } catch (error) {
+      console.error('场景页面主题切换处理失败:', error);
+    }
   },
 
   /**

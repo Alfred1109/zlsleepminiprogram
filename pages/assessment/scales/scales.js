@@ -17,7 +17,11 @@ Page({
     // 场景上下文相关
     sceneContext: null,
     isInSceneMode: false,
-    sceneHint: ''
+    sceneHint: ''    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null,
+    
   },
 
   async onLoad() {
@@ -37,7 +41,9 @@ Page({
     const currentUser = AuthService.getCurrentUser()
     if (currentUser) {
       console.log('✅ 检测到用户信息，加载完整页面数据')
-      this.setData({ userInfo: currentUser })
+      this.setData({ userInfo: currentUser
+    // 初始化主题
+    this.initTheme() })
       this.loadRecentAssessments()
     } else {
       console.log('ℹ️ 用户未登录，仅显示评测量表列表')
@@ -449,4 +455,57 @@ Page({
       imageUrl: '/images/share-assessment.png'
     }
   }
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    try {
+      if (!e || !e.detail) return;
+      const { theme, config } = e.detail;
+      if (!theme || !config) return;
+      
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+
+      const app = getApp();
+      if (app.globalData) {
+        app.globalData.currentTheme = theme;
+        app.globalData.themeConfig = config;
+      }
+
+      if (wx.$emitter) {
+        wx.$emitter.emit('themeChanged', { theme, config });
+      }
+
+      wx.showToast({
+        title: `已应用${config.name}`,
+        icon: 'none',
+        duration: 1500
+      });
+    } catch (error) {
+      console.error('主题切换处理失败:', error);
+    }
+  },
 })

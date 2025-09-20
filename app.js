@@ -376,6 +376,19 @@ App({
     handleAudioError: null, // 全局音频错误处理函数
     autoConnectSpecialDevice: true, // 是否自动连接特殊设备（如BT-Music）
 
+    // 全局主题系统
+    currentTheme: 'default',
+    themeConfig: {
+      name: '🌸 默认主题',
+      desc: '温暖平衡的疗愈配色',
+      class: '',
+      colors: {
+        primary: '#C0A9BD',
+        brand: '#FF6B35',
+        healing: '#7DD3C0'
+      }
+    },
+
     // AI疗愈系统相关
     apiBaseUrl: '', // 动态配置，在initDevelopmentIP中设置
     isLoggedIn: false, // 登录状态

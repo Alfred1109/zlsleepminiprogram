@@ -3,5 +3,7 @@
   "navigationBarBackgroundColor": "#C0A9BD",
   "navigationBarTextStyle": "white",
   "backgroundColor": "#F4F2F3",
-  "usingComponents": {}
+  "usingComponents": {
+    "theme-switcher": "/components/theme-switcher/theme-switcher"
+  }
 }

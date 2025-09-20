@@ -17,7 +17,11 @@ Page({
       assessmentCount: 0,
       musicCount: 0,
       totalListenTime: 0,
-      consecutiveDays: 0
+      consecutiveDays: 0    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null,
+    
     },
 
     // 设置选项
@@ -252,7 +256,11 @@ Page({
         method: 'GET',
         data: {
           limit: 1000,  // 获取更多记录用于统计
-          days: 30      // 最近30天
+          days: 30      // 最近30天    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null,
+    
         },
         showLoading: false
       });
@@ -1088,4 +1096,57 @@ Page({
     // 如果新信息有更多完整的字段，返回true
     return (newHasNickname && !oldHasNickname) || (newHasAvatar && !oldHasAvatar)
   }
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    try {
+      if (!e || !e.detail) return;
+      const { theme, config } = e.detail;
+      if (!theme || !config) return;
+      
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+
+      const app = getApp();
+      if (app.globalData) {
+        app.globalData.currentTheme = theme;
+        app.globalData.themeConfig = config;
+      }
+
+      if (wx.$emitter) {
+        wx.$emitter.emit('themeChanged', { theme, config });
+      }
+
+      wx.showToast({
+        title: `已应用${config.name}`,
+        icon: 'none',
+        duration: 1500
+      });
+    } catch (error) {
+      console.error('主题切换处理失败:', error);
+    }
+  },
 })

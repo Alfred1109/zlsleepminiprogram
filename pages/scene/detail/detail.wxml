@@ -1,5 +1,12 @@
 <!-- pages/scene/detail/detail.wxml -->
-<view class="container">
+<!-- 主题切换器 -->
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="scene"
+  bind:themechange="onThemeChange"
+/>
+
+<view class="container {{themeClass}}">
   <!-- 场景头部信息 -->
   <view class="scene-header">
     <view class="scene-title-section">
