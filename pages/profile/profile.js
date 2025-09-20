@@ -17,12 +17,13 @@ Page({
       assessmentCount: 0,
       musicCount: 0,
       totalListenTime: 0,
-      consecutiveDays: 0    // 主题相关
+      consecutiveDays: 0
+    },
+    
+    // 主题相关
     currentTheme: 'default',
     themeClass: '',
     themeConfig: null,
-    
-    },
 
     // 设置选项
     settings: {
@@ -256,11 +257,7 @@ Page({
         method: 'GET',
         data: {
           limit: 1000,  // 获取更多记录用于统计
-          days: 30      // 最近30天    // 主题相关
-    currentTheme: 'default',
-    themeClass: '',
-    themeConfig: null,
-    
+          days: 30      // 最近30天
         },
         showLoading: false
       });
@@ -1095,7 +1092,7 @@ Page({
     
     // 如果新信息有更多完整的字段，返回true
     return (newHasNickname && !oldHasNickname) || (newHasAvatar && !oldHasAvatar)
-  }
+  },
 
   /**
    * 初始化主题

@@ -33,12 +33,13 @@ Page({
       expiresAt: null,
       daysLeft: 0,
       features: [],
-      showUpgrade: false    // 主题相关
+      showUpgrade: false
+    },
+    
+    // 主题相关
     currentTheme: 'default',
     themeClass: '',
     themeConfig: null,
-    
-    },
     
     // 场景上下文相关
     sceneContext: null,
@@ -1757,7 +1758,7 @@ Page({
     wx.navigateTo({
       url: '/pages/subscription/subscription'
     })
-  }
+  },
 
   /**
    * 初始化主题

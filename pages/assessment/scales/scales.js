@@ -17,7 +17,7 @@ Page({
     // 场景上下文相关
     sceneContext: null,
     isInSceneMode: false,
-    sceneHint: ''    // 主题相关
+    sceneHint: '',    // 主题相关
     currentTheme: 'default',
     themeClass: '',
     themeConfig: null,
@@ -41,9 +41,9 @@ Page({
     const currentUser = AuthService.getCurrentUser()
     if (currentUser) {
       console.log('✅ 检测到用户信息，加载完整页面数据')
-      this.setData({ userInfo: currentUser
-    // 初始化主题
-    this.initTheme() })
+      this.setData({ userInfo: currentUser })
+      // 初始化主题
+      this.initTheme()
       this.loadRecentAssessments()
     } else {
       console.log('ℹ️ 用户未登录，仅显示评测量表列表')
@@ -454,7 +454,7 @@ Page({
       path: '/pages/assessment/scales/scales',
       imageUrl: '/images/share-assessment.png'
     }
-  }
+  },
 
   /**
    * 初始化主题

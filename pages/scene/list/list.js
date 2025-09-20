@@ -1,7 +1,7 @@
 // pages/scene/list/list.js
 Page({
   data: {
-    scenes: []    // 主题相关
+    scenes: [],    // 主题相关
     currentTheme: 'default',
     themeClass: '',
     themeConfig: null,
@@ -68,7 +68,7 @@ Page({
     wx.navigateTo({
       url: `/pages/scene/detail/detail?sceneId=${id}&sceneName=${encodeURIComponent(name)}&scaleType=${scaleType || ''}&sceneTheme=${encodeURIComponent(sceneName)}`
     })
-  }
+  },
 
   /**
    * 初始化主题
