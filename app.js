@@ -401,7 +401,12 @@ App({
       autoSleep: 30, // 自动休眠时间（分钟）
       vibrationEnabled: true, // 震动开关
       notificationEnabled: true // 通知开关
-    }
+    },
+
+    // 新增：主题切换系统
+    currentTheme: 'default',
+    themeConfig: null,
+    themeListeners: []
   },
 
   /**

@@ -249,37 +249,62 @@ Component({
       if (!themeConfig) return;
 
       try {
-        // 获取页面实例
+        // 方法1：通过全局app数据管理主题
+        const app = getApp();
+        if (app.globalData) {
+          app.globalData.currentTheme = theme;
+          app.globalData.themeConfig = themeConfig;
+        }
+
+        // 方法2：通过页面实例应用主题
         const pages = getCurrentPages();
         const currentPage = pages[pages.length - 1];
 
-        if (currentPage) {
-          // 移除所有主题类
+        if (currentPage && currentPage.setData) {
+          // 获取所有主题类名
           const allThemeClasses = Object.values(this.data.themeConfig)
             .map(config => config.class)
             .filter(cls => cls);
 
-          // 获取页面根元素（这里需要根据实际情况调整）
-          const pageContainer = currentPage.selectComponent('.container') || 
-                               currentPage.selectComponent('.page-container');
+          // 生成新的主题类名
+          const newThemeClass = themeConfig.class || '';
+          
+          // 更新页面数据，让页面重新渲染
+          currentPage.setData({
+            currentTheme: theme,
+            themeClass: newThemeClass,
+            themeConfig: themeConfig
+          });
 
-          if (pageContainer) {
-            // 移除旧主题类，添加新主题类
-            allThemeClasses.forEach(cls => {
-              pageContainer.removeClass(cls);
-            });
-            
-            if (themeConfig.class) {
-              pageContainer.addClass(themeConfig.class);
-            }
+          // 如果页面有onThemeChange方法，调用它
+          if (typeof currentPage.onThemeChange === 'function') {
+            currentPage.onThemeChange(theme, themeConfig);
           }
         }
 
-        // 更新全局主题变量（如果使用CSS变量）
+        // 方法3：通过事件系统通知所有页面
+        wx.$emitter = wx.$emitter || {
+          listeners: {},
+          on(event, callback) {
+            if (!this.listeners[event]) this.listeners[event] = [];
+            this.listeners[event].push(callback);
+          },
+          emit(event, data) {
+            if (this.listeners[event]) {
+              this.listeners[event].forEach(callback => callback(data));
+            }
+          }
+        };
+
+        wx.$emitter.emit('themeChanged', { theme, config: themeConfig });
+
+        // 更新全局主题变量
         this.updateGlobalThemeVariables(themeConfig);
 
+        console.log('✅ 主题应用成功:', theme, themeConfig);
+
       } catch (error) {
-        console.error('主题应用失败:', error);
+        console.error('❌ 主题应用失败:', error);
       }
     },
 
@@ -315,7 +340,8 @@ Component({
       try {
         // 获取当前使用情况
         const usageLog = wx.getStorageSync('theme_usage_log') || {};
-        const today = new Date().toDateString();
+        // 使用ISO格式日期，避免iOS兼容性问题
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD格式
         const hour = new Date().getHours();
 
         if (!usageLog[today]) {
@@ -338,9 +364,11 @@ Component({
         // 只保留最近7天的数据
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const sevenDaysAgoString = sevenDaysAgo.toISOString().split('T')[0];
 
         Object.keys(usageLog).forEach(date => {
-          if (new Date(date) < sevenDaysAgo) {
+          // 使用字符串比较，避免Date构造函数兼容性问题
+          if (date < sevenDaysAgoString) {
             delete usageLog[date];
           }
         });

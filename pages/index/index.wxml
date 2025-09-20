@@ -6,7 +6,7 @@
   bind:themechange="onThemeChange"
 />
 
-<view class="container">
+<view class="container {{themeClass}}">
   <!-- 顶部Logo区域 -->
   <view class="header-section">
     <view class="logo-container">

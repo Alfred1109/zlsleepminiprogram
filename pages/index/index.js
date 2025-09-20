@@ -11,6 +11,8 @@ Page({
   data: {
     // 主题相关
     currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null,
     isLoggedIn: false,
     userInfo: null,
     selectedCategory: 1,
@@ -50,6 +52,9 @@ Page({
   onLoad: function () {
     console.log('Index page loaded')
     
+    // 初始化主题
+    this.initTheme()
+    
     // 清除可能的缓存，确保分类数据是最新的
     wx.removeStorageSync('music_categories_cache')
     
@@ -87,6 +92,9 @@ Page({
   },
   
   onShow: function() {
+    // 刷新主题状态
+    this.refreshTheme()
+    
     // 延迟检查登录状态，避免App实例未初始化的问题
     setTimeout(() => {
       try {
@@ -1911,6 +1919,97 @@ Page({
       console.log('已通知页面刷新统计数据');
     } catch (error) {
       console.error('通知统计数据更新失败:', error);
+    }
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      // 从全局数据获取当前主题
+      const app = getApp()
+      const currentTheme = app.globalData.currentTheme || 'default'
+      const themeConfig = app.globalData.themeConfig
+      
+      this.setData({
+        currentTheme: currentTheme,
+        themeClass: themeConfig?.class || '',
+        themeConfig: themeConfig
+      })
+
+      // 设置主题变化监听器
+      wx.$emitter = wx.$emitter || {
+        listeners: {},
+        on(event, callback) {
+          if (!this.listeners[event]) this.listeners[event] = [];
+          this.listeners[event].push(callback);
+        },
+        emit(event, data) {
+          if (this.listeners[event]) {
+            this.listeners[event].forEach(callback => callback(data));
+          }
+        }
+      };
+
+      // 监听主题变化
+      this.themeChangeHandler = (data) => {
+        this.setData({
+          currentTheme: data.theme,
+          themeClass: data.config?.class || '',
+          themeConfig: data.config
+        })
+        console.log('🎨 首页主题已更新:', data.theme)
+      }
+
+      wx.$emitter.on('themeChanged', this.themeChangeHandler)
+
+    } catch (error) {
+      console.error('主题初始化失败:', error)
+    }
+  },
+
+  onUnload: function () {
+    // 清理主题监听器
+    this.cleanupThemeListener()
+  },
+
+  /**
+   * 刷新主题状态
+   */
+  refreshTheme() {
+    try {
+      const app = getApp()
+      const currentTheme = app.globalData.currentTheme || 'default'
+      const themeConfig = app.globalData.themeConfig
+      
+      this.setData({
+        currentTheme: currentTheme,
+        themeClass: themeConfig?.class || '',
+        themeConfig: themeConfig
+      })
+    } catch (error) {
+      console.error('主题刷新失败:', error)
+    }
+  },
+
+  /**
+   * 清理主题监听器
+   */
+  cleanupThemeListener() {
+    try {
+      if (wx.$emitter && this.themeChangeHandler) {
+        // 移除监听器（这里简化处理，实际应该实现移除逻辑）
+        wx.$emitter.listeners = wx.$emitter.listeners || {}
+        if (wx.$emitter.listeners.themeChanged) {
+          const index = wx.$emitter.listeners.themeChanged.indexOf(this.themeChangeHandler)
+          if (index > -1) {
+            wx.$emitter.listeners.themeChanged.splice(index, 1)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('清理主题监听器失败:', error)
     }
   }
 });
