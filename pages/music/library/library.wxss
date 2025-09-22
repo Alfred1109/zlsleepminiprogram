@@ -87,7 +87,7 @@
   top: 8rpx;
   right: 8rpx;
   background: #FF6B6B;
-  color: white;
+  color: white !important; /* 标签保持白色，因背景是深色 */
   font-size: 20rpx;
   padding: 2rpx 8rpx;
   border-radius: 10rpx;
@@ -169,7 +169,7 @@
 
 .btn-primary {
   /* 背景由主题系统控制，移除硬编码颜色 */
-  color: #ffffff;
+  color: #ffffff !important; /* 主按钮保持白色，因背景是深色 */
   border: none;
   transition: background 0.3s ease;
   border-radius: 50rpx;
@@ -525,7 +525,7 @@
 
 .btn-upgrade {
   /* 背景由主题系统控制，移除硬编码颜色 */
-  color: white;
+  color: white !important; /* 升级按钮保持白色，因背景是深色 */
   border: none;
   transition: background 0.3s ease;
   border-radius: 32rpx;

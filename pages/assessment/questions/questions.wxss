@@ -166,7 +166,7 @@
 }
 
 .option-checked {
-  color: white;
+  color: white !important; /* 选中状态保持白色，因背景是深色 */
   font-size: 24rpx;
   font-weight: bold;
 }
@@ -217,7 +217,7 @@
 
 .next-button {
   background-color: #C0A9BD;
-  color: white;
+  color: white !important; /* 选中状态保持白色，因背景是深色 */
 }
 
 .next-button:active {

@@ -16,7 +16,7 @@
 .page-header-title {
   font-size: 48rpx;
   font-weight: bold;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   margin-bottom: 16rpx;
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
@@ -34,7 +34,7 @@
   align-items: center;
   justify-content: center;
   padding: 120rpx 0;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
 }
 
 .loading-spinner {
@@ -191,7 +191,7 @@
 .empty-state {
   text-align: center;
   padding: 120rpx 0;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
 }
 
 .empty-icon {
@@ -225,7 +225,7 @@
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   margin-bottom: 24rpx;
   text-align: center;
 }
@@ -238,7 +238,7 @@
 .quick-btn {
   flex: 1;
   background: rgba(255, 255, 255, 0.25);
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   border: none;
   border-radius: 20rpx;
   padding: 28rpx 16rpx;

@@ -914,7 +914,7 @@
   padding: 4rpx 8rpx;
   border-radius: 8rpx;
   font-size: 18rpx;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   font-weight: bold;
 }
 

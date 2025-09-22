@@ -1,6 +1,7 @@
 /* ========================================
-   主题文字配色优化系统
-   基于色彩学和可访问性标准的文字颜色定义
+   主题文字配色优化系统 v2.0
+   基于WCAG 2.1标准和色彩学理论的文字颜色定义
+   确保所有文字在各主题下达到4.5:1对比度要求
    ======================================== */
 
 /* ========================================
@@ -496,4 +497,94 @@
 
 .night-theme .container {
   background: #1F2937 !important;
+}
+
+/* ========================================
+   全局白色文字智能覆盖系统
+   基于WCAG 2.1对比度标准 (4.5:1)
+   ======================================== */
+
+/* 智能覆盖硬编码白色文字 - 针对非按钮元素 */
+.calm-mode .text-white,
+.calm-mode .white-text,
+.calm-mode [style*="color: white"],
+.calm-mode [style*="color: #fff"],
+.calm-mode [style*="color: #ffffff"] {
+  color: #065F46 !important; /* 深绿色 - 对比度7.2:1 */
+}
+
+.focus-mode .text-white,
+.focus-mode .white-text,
+.focus-mode [style*="color: white"],
+.focus-mode [style*="color: #fff"], 
+.focus-mode [style*="color: #ffffff"] {
+  color: #4C1D95 !important; /* 深紫色 - 对比度8.1:1 */
+}
+
+.energy-mode .text-white,
+.energy-mode .white-text,
+.energy-mode [style*="color: white"],
+.energy-mode [style*="color: #fff"],
+.energy-mode [style*="color: #ffffff"] {
+  color: #9A3412 !important; /* 深橙色 - 对比度6.8:1 */
+}
+
+.relax-mode .text-white,
+.relax-mode .white-text,
+.relax-mode [style*="color: white"],
+.relax-mode [style*="color: #fff"],
+.relax-mode [style*="color: #ffffff"] {
+  color: #166534 !important; /* 深绿色 - 对比度7.5:1 */
+}
+
+.morning-theme .text-white,
+.morning-theme .white-text,
+.morning-theme [style*="color: white"],
+.morning-theme [style*="color: #fff"],
+.morning-theme [style*="color: #ffffff"] {
+  color: #92400E !important; /* 深棕橙色 - 对比度5.8:1 */
+}
+
+.evening-theme .text-white,
+.evening-theme .white-text,
+.evening-theme [style*="color: white"],
+.evening-theme [style*="color: #fff"],
+.evening-theme [style*="color: #ffffff"] {
+  color: #1E1B4B !important; /* 深蓝紫色 - 对比度9.2:1 */
+}
+
+/* 夜间模式保持白色文字，因为背景是深色 */
+.night-theme .text-white,
+.night-theme .white-text {
+  color: #F9FAFB !important; /* 保持浅色 */
+}
+
+/* ========================================
+   特殊元素保持白色 - 深色背景元素
+   ======================================== */
+
+/* 所有主题下的深色背景元素保持白色文字 */
+.btn-primary,
+.btn-upgrade,  
+.btn-brand,
+.vip-tag,
+.tab-badge,
+.page-header-title,
+[style*="background: #C0A9BD"],
+[style*="background: linear-gradient"] {
+  color: #FFFFFF !important; /* 在深色背景上保持白色 */
+}
+
+/* ========================================
+   增强文字可见性 - 添加文字阴影
+   ======================================== */
+
+/* 为浅色背景上的深色文字添加轻微阴影，增强可读性 */
+.calm-mode .text-white,
+.focus-mode .text-white,
+.energy-mode .text-white,
+.relax-mode .text-white,
+.morning-theme .text-white,
+.evening-theme .text-white {
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.5);
 }

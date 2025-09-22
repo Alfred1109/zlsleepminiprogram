@@ -49,7 +49,7 @@
   left: 0;
   right: 0;
   background: rgba(0, 0, 0, 0.6);
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   padding: 6rpx 0;
   text-align: center;
   font-size: 20rpx;
@@ -59,7 +59,7 @@
 
 .avatar-tip {
   font-size: 20rpx;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
 }
 
 .user-detail {
@@ -77,7 +77,7 @@
 .nickname-input {
   font-size: 28rpx;
   font-weight: 500;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   background: rgba(255, 255, 255, 0.15);
   border-radius: 8rpx;
   padding: 10rpx 16rpx;
@@ -93,7 +93,7 @@
   font-size: 32rpx;
   font-weight: 600;
   margin-bottom: 8rpx;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
 }
 
 .login-actions {
@@ -112,7 +112,7 @@
 
 .vip-tag {
   background: linear-gradient(135deg, #FF6B35, #FF8B5A) !important;
-  color: white;
+  color: white !important; /* VIP标签保持白色，因背景是深色 */
   padding: 6rpx 16rpx;
   border-radius: 16rpx;
   font-size: 24rpx;
@@ -450,7 +450,7 @@
 
 .btn-subscription-upgrade {
   background: #C0A9BD;
-  color: white;
+  color: white !important; /* 按钮保持白色，因背景是深色 */
   border: none;
   border-radius: 40rpx;
   padding: 20rpx 40rpx;
@@ -491,7 +491,7 @@
   width: 32rpx;
   height: 32rpx;
   background: #C0A9BD;
-  color: white;
+  color: white !important; /* 小微章保持白色，因背景是深色 */
   border-radius: 50%;
   font-size: 20rpx;
   display: flex;

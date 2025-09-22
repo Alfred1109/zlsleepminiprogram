@@ -17,7 +17,7 @@
 .page-header-title {
   font-size: 48rpx;
   font-weight: 700;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   margin-bottom: 12rpx;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .loading-text {
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   font-size: 28rpx;
 }
 
@@ -205,7 +205,7 @@
 .empty-text {
   font-size: 36rpx;
   font-weight: 600;
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   margin-bottom: 16rpx;
 }
 
@@ -217,7 +217,7 @@
 
 .btn-secondary {
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  /* color: white; -- 使用主题适配文字颜色 */
   border: 2rpx solid rgba(255, 255, 255, 0.3);
   border-radius: 48rpx;
   padding: 24rpx 48rpx;
