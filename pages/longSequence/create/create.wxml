@@ -37,11 +37,20 @@
 
   <!-- 主要内容 -->
   <view wx:else class="main-content">
+    <!-- 场景模式提示 -->
+    <view wx:if="{{isInSceneMode}}" class="scene-mode-tip">
+      <view class="tip-icon">🎯</view>
+      <view class="tip-content">
+        <view class="tip-title">场景化综合疗愈</view>
+        <view class="tip-desc">{{sceneHint}}</view>
+      </view>
+    </view>
+
     <!-- 评测记录选择 -->
     <view class="section">
       <view class="section-title">
         <text class="title-text">选择评测记录</text>
-        <text class="title-desc">基于评测结果生成脑波</text>
+        <text class="title-desc">{{selectionMode === 'single' ? '基于评测结果生成脑波' : '可选择多个量表进行综合分析'}}</text>
       </view>
 
       <!-- 无评测记录 -->
@@ -60,33 +69,44 @@
         <view 
           wx:for="{{recentAssessments}}" 
           wx:key="id"
-          class="assessment-item {{selectedAssessment && selectedAssessment.id === item.id ? 'selected' : ''}}"
+          class="assessment-item {{item.isSelected ? (selectionMode === 'single' ? 'selected' : 'selected-multiple') : ''}}"
           data-assessment="{{item}}"
           bindtap="onSelectAssessment"
         >
-          <view class="assessment-header">
-            <view class="assessment-name">{{item.scale_name}}</view>
-            <view class="assessment-time">{{formatTime(item.completed_at)}}</view>
-          </view>
-          
-          <view class="assessment-result">
-            <view class="result-score">
-              <text class="score-label">总分：</text>
-              <text class="score-value">{{item.total_score}}</text>
+          <!-- 单选/多选指示器 -->
+          <view class="selection-indicator">
+            <!-- 单选模式：圆形radio -->
+            <view wx:if="{{selectionMode === 'single'}}" class="radio-indicator {{item.isSelected ? 'radio-checked' : ''}}">
+              <view wx:if="{{item.isSelected}}" class="radio-dot"></view>
             </view>
-            <view 
-              class="result-level"
-              style="color: {{getSeverityColor(item.severity_level)}}"
-            >
-              {{item.severity_level === 'normal' ? '正常' : 
-                item.severity_level === 'mild' ? '轻度' :
-                item.severity_level === 'moderate' ? '中度' : '重度'}}
+            
+            <!-- 多选模式：方形checkbox -->
+            <view wx:else class="checkbox-indicator {{item.isSelected ? 'checkbox-checked' : ''}}">
+              <image wx:if="{{item.isSelected}}" class="checkbox-icon" src="/images/check.svg" mode="aspectFit"></image>
             </view>
           </view>
 
-          <!-- 选中标识 -->
-          <view wx:if="{{selectedAssessment && selectedAssessment.id === item.id}}" class="selected-mark">
-            <image class="check-icon" src="/images/check.svg" mode="aspectFit"></image>
+          <!-- 评测信息 -->
+          <view class="assessment-content">
+            <view class="assessment-header">
+              <view class="assessment-name">{{item.scale_name}}</view>
+              <view class="assessment-time">{{formatTime(item.completed_at)}}</view>
+            </view>
+            
+            <view class="assessment-result">
+              <view class="result-score">
+                <text class="score-label">总分：</text>
+                <text class="score-value">{{item.total_score}}</text>
+              </view>
+              <view 
+                class="result-level"
+                style="color: {{getSeverityColor(item.severity_level)}}"
+              >
+                {{item.severity_level === 'normal' ? '正常' : 
+                  item.severity_level === 'mild' ? '轻度' :
+                  item.severity_level === 'moderate' ? '中度' : '重度'}}
+              </view>
+            </view>
           </view>
         </view>
       </view>
@@ -125,27 +145,60 @@
       </view>
 
       <view class="info-content">
-        <view class="info-item">
-          <image class="info-icon" src="/images/info-analysis.svg" mode="aspectFit"></image>
-          <view class="info-text">
-            <view class="info-title">智能分析</view>
-            <view class="info-desc">基于您的评测结果深度分析情绪状态</view>
+        <view wx:if="{{selectionMode === 'single'}}" class="single-mode-info">
+          <view class="info-item">
+            <image class="info-icon" src="/images/info-analysis.svg" mode="aspectFit"></image>
+            <view class="info-text">
+              <view class="info-title">智能分析</view>
+              <view class="info-desc">基于您的评测结果深度分析情绪状态</view>
+            </view>
+          </view>
+
+          <view class="info-item">
+            <image class="info-icon" src="/images/info-sequence.svg" mode="aspectFit"></image>
+            <view class="info-text">
+              <view class="info-title">序列生成</view>
+              <view class="info-desc">创建多段式脑波，渐进式疗愈体验</view>
+            </view>
+          </view>
+
+          <view class="info-item">
+            <image class="info-icon" src="/images/info-personalized.svg" mode="aspectFit"></image>
+            <view class="info-text">
+              <view class="info-title">个性化定制</view>
+              <view class="info-desc">根据您的具体需求调整脑波风格和节奏</view>
+            </view>
           </view>
         </view>
-
-        <view class="info-item">
-          <image class="info-icon" src="/images/info-sequence.svg" mode="aspectFit"></image>
-          <view class="info-text">
-            <view class="info-title">序列生成</view>
-            <view class="info-desc">创建多段式脑波，渐进式疗愈体验</view>
+        
+        <view wx:else class="multiple-mode-info">
+          <view class="info-item">
+            <image class="info-icon" src="/images/info-analysis.svg" mode="aspectFit"></image>
+            <view class="info-text">
+              <view class="info-title">综合分析</view>
+              <view class="info-desc">深度融合多个量表的心理状态数据</view>
+            </view>
           </view>
-        </view>
 
-        <view class="info-item">
-          <image class="info-icon" src="/images/info-personalized.svg" mode="aspectFit"></image>
-          <view class="info-text">
-            <view class="info-title">个性化定制</view>
-            <view class="info-desc">根据您的具体需求调整脑波风格和节奏</view>
+          <view class="info-item">
+            <image class="info-icon" src="/images/info-sequence.svg" mode="aspectFit"></image>
+            <view class="info-text">
+              <view class="info-title">智能匹配</view>
+              <view class="info-desc">场景化匹配最适合的脑波元素组合</view>
+            </view>
+          </view>
+
+          <view class="info-item">
+            <image class="info-icon" src="/images/info-personalized.svg" mode="aspectFit"></image>
+            <view class="info-text">
+              <view class="info-title">全面疗愈</view>
+              <view class="info-desc">生成综合性长序列脑波疗愈方案</view>
+            </view>
+          </view>
+          
+          <view class="info-item selected-count">
+            <view class="count-badge">{{selectedCount}}</view>
+            <view class="count-text">个评测已选择进行综合分析</view>
           </view>
         </view>
       </view>
@@ -155,11 +208,12 @@
     <view wx:if="{{recentAssessments.length > 0}}" class="create-section">
       <button
         class="btn-create"
-        disabled="{{!selectedAssessment}}"
+        disabled="{{!canGenerate}}"
         bindtap="onCreateSequence"
       >
         <image class="btn-icon" src="/images/create-music.svg" mode="aspectFit"></image>
-        <text>创建长序列脑波</text>
+        <text wx:if="{{selectionMode === 'single'}}">创建长序列脑波</text>
+        <text wx:else>综合创建脑波{{selectedCount > 0 ? ' (' + selectedCount + '个评测)' : ''}}</text>
       </button>
 
       <view class="create-info">

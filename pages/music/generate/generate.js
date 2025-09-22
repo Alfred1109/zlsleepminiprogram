@@ -36,11 +36,21 @@ Page({
     // 场景上下文相关
     sceneContext: null,
     isInSceneMode: false,
-    sceneHint: ''
+    sceneHint: '',
+    // 预选评测ID（从评测结果页面跳转时使用）
+    preselectedAssessmentId: null
   },
 
-  onLoad() {
-    console.log('音乐生成页面加载')
+  onLoad(options) {
+    console.log('🎵 音乐生成页面加载', options)
+    
+    // 保存预选的评测ID
+    if (options.assessmentId) {
+      this.setData({
+        preselectedAssessmentId: parseInt(options.assessmentId)
+      })
+      console.log('🎯 预选评测ID:', options.assessmentId)
+    }
     
     // 检查场景上下文
     this.checkSceneContext()
@@ -254,24 +264,48 @@ Page({
    * 根据选择模式初始化选择状态
    */
   initializeSelectionState(assessments) {
-    const { selectionMode } = this.data
+    const { selectionMode, preselectedAssessmentId } = this.data
     const displayAssessments = assessments.slice(0, 5)
     
     if (selectionMode === 'single') {
-      // 单选模式：默认选择第一个评测
+      // 单选模式：优先选择预选评测，否则选择第一个
+      let initialSelection = displayAssessments[0] || null
+      
+      if (preselectedAssessmentId) {
+        const preselected = displayAssessments.find(item => item.id === preselectedAssessmentId)
+        if (preselected) {
+          initialSelection = preselected
+          console.log('🎯 预选评测匹配成功:', preselected.scale_name)
+        } else {
+          console.log('⚠️ 预选评测在当前场景中不存在，使用默认选择')
+        }
+      }
+      
       this.setData({
-        selectedAssessment: displayAssessments[0] || null,
+        selectedAssessment: initialSelection,
         selectedAssessments: []
       })
       
+      console.log('🎯 单选模式选择评测:', initialSelection?.scale_name || '无')
+      
     } else {
-      // 多选模式：默认全选所有相关评测（场景化综合疗愈）
+      // 多选模式：如果有预选评测，确保它被选中，否则全选所有相关评测
+      let initialSelections = [...displayAssessments] // 默认全选
+      
+      if (preselectedAssessmentId) {
+        const preselected = displayAssessments.find(item => item.id === preselectedAssessmentId)
+        if (preselected) {
+          // 如果找到预选评测，确保它在选中列表中（通常已经在全选中了）
+          console.log('🎯 多选模式预选评测:', preselected.scale_name, '+ 其他相关评测')
+        }
+      }
+      
       this.setData({
         selectedAssessment: null,
-        selectedAssessments: [...displayAssessments] // 全选所有相关评测
+        selectedAssessments: initialSelections
       })
       
-      console.log('🎯 多选模式默认全选评测:', displayAssessments.map(item => item.scale_name))
+      console.log('🎯 多选模式选择评测:', initialSelections.map(item => item.scale_name))
     }
     
     // 更新UI状态

@@ -99,54 +99,21 @@ Page({
   },
 
   /**
-   * 生成60秒音频
+   * 跳转到60秒音乐生成页面
    */
-  async generate60sMusic() {
-    this.setData({ 
-      generating: true, 
-      generationType: '60s' 
-    })
-
-    try {
-      const result = await MusicAPI.generateMusic(this.data.assessmentId)
-      
-      if (result.success) {
-        this.setData({ musicResult: result.data })
-        
-        wx.showToast({
-          title: '音频生成成功',
-          icon: 'success'
-        })
-
-        // 跳转到播放页面
-        setTimeout(() => {
-          wx.navigateTo({
-            url: `/pages/music/player/player?musicId=${result.data.music_id}&type=60s`
-          })
-        }, 1500)
-      } else {
-        throw new Error(result.error || '音频生成失败')
-      }
-
-    } catch (error) {
-      console.error('生成60秒音频失败:', error)
-      wx.showModal({
-        title: '生成失败',
-        content: error.message || '音频生成失败，请重试',
-        showCancel: true,
-        confirmText: '重试',
-        success: (res) => {
-          if (res.confirm) {
-            this.generate60sMusic()
-          }
-        }
+  generate60sMusic() {
+    if (!this.data.assessmentId) {
+      wx.showToast({
+        title: '评测数据异常',
+        icon: 'error'
       })
-    } finally {
-      this.setData({ 
-        generating: false, 
-        generationType: null 
-      })
+      return
     }
+
+    // 跳转到音乐生成页面，并预选当前评测记录
+    wx.navigateTo({
+      url: `/pages/music/generate/generate?assessmentId=${this.data.assessmentId}`
+    })
   },
 
   /**
