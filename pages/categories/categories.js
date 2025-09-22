@@ -593,6 +593,82 @@ Page({
     })
   },
 
+  // 切换播放器显示状态
+  onToggleGlobalPlayer(e) {
+    console.log('切换全局播放器显示状态', e.detail)
+    
+    // 检查是否有全局播放器实例和当前播放的音乐
+    const app = getApp()
+    const globalMusicPlayer = app.globalData.globalMusicPlayer
+    const hasMusic = globalMusicPlayer && globalMusicPlayer.currentMusic
+    
+    console.log('全局播放器状态检查:', {
+      hasGlobalPlayer: !!globalMusicPlayer,
+      hasCurrentMusic: !!globalMusicPlayer?.currentMusic,
+      isPlaying: globalMusicPlayer?.isPlaying,
+      currentMusic: globalMusicPlayer?.currentMusic
+    })
+    
+    if (!hasMusic) {
+      // 没有音乐在播放时，给用户友好提示
+      wx.showToast({
+        title: '当前没有音乐播放',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+    
+    // 获取全局播放器组件实例
+    const globalPlayerComponent = this.selectComponent('#globalPlayer')
+    
+    if (globalPlayerComponent) {
+      // 同步当前播放音乐信息到组件
+      const currentMusic = globalMusicPlayer.currentMusic
+      const trackInfo = {
+        id: currentMusic.id,
+        name: currentMusic.title || currentMusic.name || '未知音乐',
+        title: currentMusic.title || currentMusic.name || '未知音乐',
+        url: currentMusic.src,
+        image: currentMusic.image,
+        category: currentMusic.category || '未知分类',
+        categoryId: currentMusic.categoryId,
+        type: currentMusic.type || 'music',
+        duration: currentMusic.duration || 0
+      }
+      
+      console.log('同步音轨信息到全局播放器组件:', trackInfo)
+      
+      // 直接设置组件的数据
+      globalPlayerComponent.setData({
+        currentTrack: trackInfo,
+        isPlaying: globalMusicPlayer.isPlaying || false,
+        duration: globalMusicPlayer.duration || 0,
+        currentTime: globalMusicPlayer.currentTime || 0
+      })
+    }
+    
+    // 切换播放器显示状态
+    const newShowState = !this.data.showGlobalPlayer
+    this.setData({ 
+      showGlobalPlayer: newShowState
+    })
+    
+    // 触觉反馈
+    wx.vibrateShort({
+      type: 'light'
+    })
+    
+    console.log('全局播放器显示状态:', newShowState)
+    
+    // 显示提示
+    wx.showToast({
+      title: newShowState ? '播放器已显示' : '播放器已隐藏',
+      icon: 'none',
+      duration: 1500
+    })
+  },
+
   // 展开播放器
   onExpandGlobalPlayer(e) {
     const { track } = e.detail

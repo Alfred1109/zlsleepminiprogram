@@ -2,7 +2,7 @@
 
 .theme-switcher-container {
   position: fixed;
-  top: 120rpx;
+  top: 80rpx;
   left: 0;
   z-index: 1000;
   opacity: 0;
@@ -15,6 +15,13 @@
   transform: translateX(0);
 }
 
+/* 功能按钮组 */
+.function-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
 /* 切换按钮 - 书签样式 */
 .theme-toggle-btn {
   position: relative;
@@ -24,18 +31,38 @@
   justify-content: center;
   background: linear-gradient(135deg, #DC143C, #B91C1C);
   backdrop-filter: blur(10px);
-  border-radius: 0 12rpx 12rpx 0;
-  padding: 16rpx 8rpx;
-  width: 60rpx;
-  height: 120rpx;
-  box-shadow: 2rpx 0 20rpx rgba(220, 20, 60, 0.3);
+  border-radius: 0 10rpx 10rpx 0;
+  padding: 8rpx 6rpx;
+  width: 55rpx;
+  height: 50rpx;
+  box-shadow: 2rpx 0 15rpx rgba(220, 20, 60, 0.3);
   border: 1rpx solid rgba(220, 20, 60, 0.4);
   border-left: none;
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
-/* 书签切口效果 */
+/* 播放器按钮 - 书签样式 */
+.player-toggle-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #228B22, #006400);
+  backdrop-filter: blur(10px);
+  border-radius: 0 10rpx 10rpx 0;
+  padding: 8rpx 6rpx;
+  width: 55rpx;
+  height: 50rpx;
+  box-shadow: 2rpx 0 15rpx rgba(34, 139, 34, 0.3);
+  border: 1rpx solid rgba(34, 139, 34, 0.4);
+  border-left: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* 主题按钮书签切口效果 */
 .theme-toggle-btn::before {
   content: '';
   position: absolute;
@@ -44,23 +71,52 @@
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 15rpx solid transparent;
-  border-right: 15rpx solid transparent;
-  border-top: 16rpx solid #DC143C;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid #DC143C;
 }
 
-/* 书签阴影加强 */
+/* 主题按钮书签阴影加强 */
 .theme-toggle-btn::after {
   content: '';
   position: absolute;
-  bottom: -16rpx;
+  bottom: -10rpx;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 15rpx solid transparent;
-  border-right: 15rpx solid transparent;
-  border-top: 16rpx solid rgba(0, 0, 0, 0.1);
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid rgba(0, 0, 0, 0.1);
+  z-index: -1;
+}
+
+/* 播放器按钮书签切口效果 */
+.player-toggle-btn::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid #228B22;
+}
+
+/* 播放器按钮书签阴影加强 */
+.player-toggle-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid rgba(0, 0, 0, 0.1);
   z-index: -1;
 }
 
@@ -74,28 +130,41 @@
   border-top-color: #FF1744;
 }
 
-.theme-icon {
-  font-size: 32rpx;
-  margin-bottom: 6rpx;
-  color: #FFD700;
-  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+.player-toggle-btn:hover {
+  background: linear-gradient(135deg, #32CD32, #228B22);
+  transform: translateX(8rpx);
+  box-shadow: 4rpx 0 24rpx rgba(34, 139, 34, 0.4);
+}
+
+.player-toggle-btn:hover::before {
+  border-top-color: #32CD32;
 }
 
 .theme-text {
+  font-size: 20rpx;
+  font-weight: 600;
+  color: #FFD700;
+  text-align: center;
+  line-height: 1.2;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5rpx;
+}
+
+.player-text {
   font-size: 16rpx;
   font-weight: 600;
   color: #FFD700;
   text-align: center;
-  line-height: 1.1;
+  line-height: 1.2;
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
-  letter-spacing: 1rpx;
+  letter-spacing: 0.5rpx;
 }
 
 /* 主题选项面板 */
 .theme-panel {
   position: absolute;
-  top: -20rpx;
-  left: 80rpx;
+  top: -10rpx;
+  left: 70rpx;
   width: 500rpx;
   max-height: 90vh;
   background: rgba(255, 255, 255, 0.98);
@@ -343,8 +412,8 @@
 /* 响应式适配 */
 @media (max-width: 600px) {
   .theme-panel {
-    width: calc(100vw - 100rpx);
-    left: 80rpx;
+    width: calc(100vw - 90rpx);
+    left: 65rpx;
   }
   
   .time-options {

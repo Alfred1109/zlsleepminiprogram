@@ -4,6 +4,7 @@
   show-theme-switcher="{{true}}" 
   page-type="home"
   bind:themechange="onThemeChange"
+  bind:toggleplayer="onToggleGlobalPlayer"
 />
 
 <view class="container {{themeClass}}">

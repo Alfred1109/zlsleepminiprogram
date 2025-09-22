@@ -1,9 +1,16 @@
 <!-- 主题切换组件 - 基于色彩心理学的疗愈主题 -->
 <view class="theme-switcher-container {{isVisible ? 'visible' : ''}}" wx:if="{{showThemeSwitcher}}">
-  <!-- 切换按钮 -->
-  <view class="theme-toggle-btn" bindtap="toggleThemeSwitcher">
-    <text class="theme-icon">🎨</text>
-    <text class="theme-text">主题</text>
+  <!-- 功能按钮组 -->
+  <view class="function-buttons">
+    <!-- 主题切换按钮 -->
+    <view class="theme-toggle-btn" bindtap="toggleThemeSwitcher">
+      <text class="theme-text">主题</text>
+    </view>
+    
+    <!-- 播放器按钮 -->
+    <view class="player-toggle-btn" bindtap="togglePlayer">
+      <text class="player-text">播放器</text>
+    </view>
   </view>
 
   <!-- 主题选项面板 -->

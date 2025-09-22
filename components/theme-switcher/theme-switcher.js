@@ -199,6 +199,23 @@ Component({
     },
 
     /**
+     * 切换播放器显示状态
+     */
+    togglePlayer() {
+      // 触觉反馈
+      wx.vibrateShort({
+        type: 'light'
+      });
+
+      // 触发播放器切换事件，让父页面处理
+      this.triggerEvent('toggleplayer', {
+        timestamp: Date.now()
+      });
+
+      console.log('播放器切换事件已触发');
+    },
+
+    /**
      * 关闭主题面板
      */
     closeThemePanel() {
