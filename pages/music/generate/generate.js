@@ -464,22 +464,12 @@ Page({
         console.log('🎵 多选模式生成音乐，评测IDs:', assessmentIds)
         console.log('🎵 基于量表:', selectedAssessments.map(item => item.scale_name))
         
-        // 尝试调用多选API，如果不存在则使用第一个评测ID
-        try {
-          // TODO: 这里需要后端支持多评测ID的API
-          // result = await MusicAPI.generateMusicMultiple(assessmentIds)
-          
-          // 临时方案：使用第一个评测ID，但在请求中传递其他信息
-          result = await MusicAPI.generateMusic(assessmentIds[0], {
-            mode: 'comprehensive',
-            additionalAssessments: assessmentIds.slice(1),
-            sceneContext: this.data.sceneContext
-          })
-        } catch (error) {
-          // 如果多选API不存在，降级使用第一个评测
-          console.warn('⚠️ 多选音乐生成API暂未支持，使用第一个评测:', selectedAssessments[0].scale_name)
-          result = await MusicAPI.generateMusic(assessmentIds[0])
-        }
+        // 调用综合生成API
+        result = await MusicAPI.generateMusic(assessmentIds[0], {
+          mode: 'comprehensive',
+          additionalAssessments: assessmentIds.slice(1),
+          sceneContext: this.data.sceneContext
+        })
       }
       
       if (result.success) {

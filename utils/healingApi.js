@@ -121,13 +121,37 @@ const SceneMappingAPI = {
 const MusicAPI = {
   /**
    * 生成60秒音乐片段
+   * @param {number} assessmentId - 主评测ID
+   * @param {object} options - 可选参数
+   * @param {array} options.additionalAssessments - 额外的评测ID数组（多选模式）
+   * @param {string} options.mode - 生成模式：'single' | 'comprehensive'
+   * @param {object} options.sceneContext - 场景上下文信息
    */
-  generateMusic(assessmentId) {
-    return post('/music/generate', {
-      assessment_id: assessmentId
-    }, {
-      loadingText: '正在生成音乐...',
-      timeout: 60000 // 60秒超时
+  generateMusic(assessmentId, options = {}) {
+    const requestData = { assessment_id: assessmentId }
+    
+    // 如果有多选参数，添加综合生成相关字段
+    if (options.additionalAssessments && options.additionalAssessments.length > 0) {
+      requestData.assessment_ids = [assessmentId, ...options.additionalAssessments]
+      requestData.generation_mode = options.mode || 'comprehensive'
+      
+      if (options.sceneContext) {
+        requestData.scene_context = options.sceneContext
+      }
+      
+      console.log('🎵 发送综合音乐生成请求:', {
+        主评测ID: assessmentId,
+        全部评测IDs: requestData.assessment_ids,
+        生成模式: requestData.generation_mode,
+        场景上下文: requestData.scene_context
+      })
+    } else {
+      console.log('🎵 发送单一音乐生成请求:', assessmentId)
+    }
+    
+    return post('/music/generate', requestData, {
+      loadingText: options.mode === 'comprehensive' ? '正在综合分析生成音乐...' : '正在生成音乐...',
+      timeout: 90000 // 综合生成可能需要更长时间，调整为90秒
     })
   },
 
@@ -339,26 +363,49 @@ function handleSubscriptionResponse(response) {
  */
 const LongSequenceAPI = {
   /**
-   * 创建30分钟长序列音乐
+   * 创建长序列音乐
+   * @param {number} assessmentId - 主评测ID
+   * @param {number} durationMinutes - 时长（分钟）
+   * @param {object} options - 可选参数
+   * @param {array} options.additionalAssessments - 额外的评测ID数组（多选模式）
+   * @param {string} options.mode - 生成模式：'single' | 'comprehensive'
+   * @param {object} options.sceneContext - 场景上下文信息
    */
-  createLongSequence(assessmentId, durationMinutes = 30) {
-    // 避免打印大对象，仅打印简要信息
-    console.log('🎶 发送长序列创建请求:', assessmentId, durationMinutes)
-    
-    return post('/music/create_long_sequence', {
+  createLongSequence(assessmentId, durationMinutes = 30, options = {}) {
+    const requestData = {
       assessment_id: assessmentId,
       duration_minutes: durationMinutes
-    }, {
-      loadingText: '正在生成长序列音乐...',
-      timeout: 120000 // 2分钟超时
+    }
+    
+    // 如果有多选参数，添加综合生成相关字段
+    if (options.additionalAssessments && options.additionalAssessments.length > 0) {
+      requestData.assessment_ids = [assessmentId, ...options.additionalAssessments]
+      requestData.generation_mode = options.mode || 'comprehensive'
+      
+      if (options.sceneContext) {
+        requestData.scene_context = options.sceneContext
+      }
+      
+      console.log('🎶 发送综合长序列创建请求:', {
+        主评测ID: assessmentId,
+        时长: durationMinutes,
+        全部评测IDs: requestData.assessment_ids,
+        生成模式: requestData.generation_mode,
+        场景上下文: requestData.scene_context
+      })
+    } else {
+      console.log('🎶 发送单一长序列创建请求:', assessmentId, durationMinutes)
+    }
+    
+    return post('/music/create_long_sequence', requestData, {
+      loadingText: options.mode === 'comprehensive' ? '正在综合分析生成长序列...' : '正在生成长序列音乐...',
+      timeout: 180000 // 综合生成长序列需要更长时间，调整为3分钟
     }).then(response => {
-      // 避免打印完整响应对象
       console.log('🎶 长序列创建API响应 success:', response?.success)
       
       // 检查响应的完整性
       if (response.success && response.data) {
         console.log('✅ 长序列创建响应成功')
-        // 仅输出关键字段存在性
         console.log('🔍 响应关键字段:', !!response.data.session_id, response.data.status)
         
         // 验证必要字段
@@ -376,7 +423,7 @@ const LongSequenceAPI = {
       return response
     }).catch(error => {
       console.error('❌ 长序列创建请求失败:', error)
-      console.error('❌ 请求参数:', { assessmentId, durationMinutes })
+      console.error('❌ 请求参数:', requestData)
       throw error
     })
   },
@@ -856,8 +903,15 @@ const UserAPI = {
 const WorkflowAPI = {
   /**
    * 完整的疗愈流程
+   * @param {number} scaleId - 量表ID
+   * @param {array} answers - 答案数组
+   * @param {number} userId - 用户ID
+   * @param {object} options - 可选参数
+   * @param {array} options.additionalAssessments - 额外的评测ID数组（多选模式）
+   * @param {string} options.mode - 生成模式：'single' | 'comprehensive'
+   * @param {object} options.sceneContext - 场景上下文信息
    */
-  async completeHealingWorkflow(scaleId, answers, userId = 1) {
+  async completeHealingWorkflow(scaleId, answers, userId = 1, options = {}) {
     try {
       // 1. 开始评测
       const assessmentResult = await AssessmentAPI.startAssessment(scaleId, userId)
@@ -876,7 +930,7 @@ const WorkflowAPI = {
       const completedAssessment = await AssessmentAPI.completeAssessment(assessmentId)
 
       // 4. 生成音乐
-      const musicResult = await MusicAPI.generateMusic(assessmentId)
+      const musicResult = await MusicAPI.generateMusic(assessmentId, options)
 
       return {
         assessment: completedAssessment.data,
@@ -890,11 +944,17 @@ const WorkflowAPI = {
 
   /**
    * 生成长序列音乐流程
+   * @param {number} assessmentId - 主评测ID
+   * @param {number} durationMinutes - 时长（分钟）
+   * @param {object} options - 可选参数
+   * @param {array} options.additionalAssessments - 额外的评测ID数组（多选模式）
+   * @param {string} options.mode - 生成模式：'single' | 'comprehensive'
+   * @param {object} options.sceneContext - 场景上下文信息
    */
-  async generateLongSequenceWorkflow(assessmentId, durationMinutes = 30) {
+  async generateLongSequenceWorkflow(assessmentId, durationMinutes = 30, options = {}) {
     try {
       // 创建长序列
-      const sessionResult = await LongSequenceAPI.createLongSequence(assessmentId, durationMinutes)
+      const sessionResult = await LongSequenceAPI.createLongSequence(assessmentId, durationMinutes, options)
       
       return sessionResult.data
     } catch (error) {

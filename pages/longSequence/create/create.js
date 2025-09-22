@@ -417,27 +417,16 @@ Page({
         console.log('🎵 多选模式生成长序列，评测IDs:', assessmentIds)
         console.log('🎵 基于量表:', selectedAssessments.map(item => item.scale_name))
         
-        try {
-          // TODO: 这里需要后端支持多评测ID的长序列API
-          // result = await LongSequenceAPI.createLongSequenceMultiple(assessmentIds, durationMinutes)
-          
-          // 临时使用第一个评测ID，并传递额外参数
-          result = await LongSequenceAPI.createLongSequence(
-            assessmentIds[0], 
-            durationMinutes, 
-            {
-              mode: 'comprehensive',
-              additionalAssessments: assessmentIds.slice(1),
-              sceneContext: this.data.sceneContext
-            }
-          )
-        } catch (error) {
-          console.warn('⚠️ 多选长序列生成API暂未支持，使用第一个评测:', selectedAssessments[0].scale_name)
-          result = await LongSequenceAPI.createLongSequence(
-            assessmentIds[0], 
-            durationMinutes
-          )
-        }
+        // 调用综合生成API
+        result = await LongSequenceAPI.createLongSequence(
+          assessmentIds[0], 
+          durationMinutes, 
+          {
+            mode: 'comprehensive',
+            additionalAssessments: assessmentIds.slice(1),
+            sceneContext: this.data.sceneContext
+          }
+        )
       }
       
       if (result.success) {
