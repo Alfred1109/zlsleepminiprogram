@@ -16,6 +16,11 @@ Page({
     selectedAssessments: [],           // 多选模式使用
     selectionMode: 'single',           // 'single' | 'multiple'
     generating: false,
+    // UI简化字段
+    canGenerate: false,
+    generateButtonText: '生成音乐',
+    generatingText: '生成中...',
+    selectedCount: 0,
     musicResult: null,
     loading: false,
     subscriptionInfo: null,
@@ -194,6 +199,7 @@ Page({
     if (selectionMode === 'single') {
       // 单选模式：直接设置选中的评测
       this.setData({ selectedAssessment: assessment })
+      this.updateUIState() // 更新UI状态
       console.log('🎯 单选模式选择评测:', assessment.scale_name)
       
     } else {
@@ -221,6 +227,9 @@ Page({
     }
     
     this.setData({ selectedAssessments: newSelectedAssessments })
+    
+    // 更新UI状态
+    this.updateUIState()
     
     console.log('🎯 多选模式当前选择:', {
       总数: newSelectedAssessments.length,
@@ -264,6 +273,9 @@ Page({
       
       console.log('🎯 多选模式默认全选评测:', displayAssessments.map(item => item.scale_name))
     }
+    
+    // 更新UI状态
+    this.updateUIState()
   },
 
   /**
@@ -282,21 +294,51 @@ Page({
   },
 
   /**
-   * 获取生成按钮文案
+   * 更新UI状态（简化WXML表达式）
    */
-  getGenerateButtonText() {
-    const { selectionMode, selectedAssessments, generating } = this.data
+  updateUIState() {
+    const { selectionMode, selectedAssessment, selectedAssessments, generating, recentAssessments } = this.data
     
-    if (generating) {
-      return selectionMode === 'single' ? '生成中...' : '综合生成中...'
-    }
+    // 计算基础状态
+    const selectedCount = selectedAssessments.length
+    const canGenerate = !generating && (
+      (selectionMode === 'single' && !!selectedAssessment) ||
+      (selectionMode === 'multiple' && selectedCount > 0)
+    )
+    
+    // 计算按钮文案
+    let generateButtonText
+    let generatingText
     
     if (selectionMode === 'single') {
-      return '生成音乐'
+      generateButtonText = '生成音乐'
+      generatingText = '生成中...'
     } else {
-      const count = selectedAssessments.length
-      return count > 0 ? `综合生成音乐 (${count}个评测)` : '选择评测后生成'
+      generateButtonText = selectedCount > 0 ? `综合生成音乐 (${selectedCount}个评测)` : '选择评测后生成'
+      generatingText = '综合生成中...'
     }
+    
+    // 给评测记录添加选中状态标记
+    const updatedAssessments = recentAssessments.map(item => ({
+      ...item,
+      isSelected: this.isAssessmentSelected(item)
+    }))
+    
+    // 批量更新状态
+    this.setData({
+      canGenerate,
+      generateButtonText,
+      generatingText,
+      selectedCount,
+      recentAssessments: updatedAssessments
+    })
+    
+    console.log('🎯 UI状态更新:', {
+      selectionMode,
+      selectedCount,
+      canGenerate,
+      generateButtonText
+    })
   },
 
   /**
@@ -371,6 +413,7 @@ Page({
    */
   async generateMusicProcess() {
     this.setData({ generating: true })
+    this.updateUIState()
 
     try {
       let result
@@ -442,6 +485,7 @@ Page({
       })
     } finally {
       this.setData({ generating: false })
+      this.updateUIState()
     }
   },
 
