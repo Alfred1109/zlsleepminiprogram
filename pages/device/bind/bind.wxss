@@ -8,6 +8,7 @@
   padding: 20rpx;
   box-sizing: border-box;
   transition: background 0.3s ease;
+  background: var(--primary-bg, #F4F2F3); /* 使用主题背景变量 */
 }
 
 .header {
@@ -26,7 +27,7 @@
 .title {
   font-size: 40rpx;
   font-weight: bold;
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
 }
 
 /* 调试信息面板 */
@@ -42,9 +43,9 @@
 .debug-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
   margin-bottom: 15rpx;
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1rpx solid var(--accent-color, rgba(192, 169, 189, 0.2));
   padding-bottom: 10rpx;
 }
 
@@ -64,7 +65,7 @@
 }
 
 .debug-value {
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
   font-weight: 500;
   word-break: break-all;
 }
@@ -76,12 +77,12 @@
 .debug-btn {
   font-size: 28rpx;
   padding: 12rpx;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: var(--accent-color, rgba(192, 169, 189, 0.2));
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
   margin-top: 10rpx;
   font-weight: normal;
   line-height: 1.5;
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  border: 1rpx solid var(--accent-color, rgba(192, 169, 189, 0.3));
   border-radius: 8rpx;
 }
 
@@ -149,7 +150,7 @@
 
 .status-title {
   font-size: 30rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary, #4B5563); /* 使用主题次要文字变量 */
   margin-bottom: 10rpx;
 }
 
@@ -164,7 +165,7 @@
   width: 15rpx;
   height: 15rpx;
   border-radius: 50%;
-  background-color: white;
+  background-color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
   margin: 0 8rpx;
   animation: dot-pulse 1.5s infinite ease-in-out;
   opacity: 0.7;
@@ -312,13 +313,13 @@
   justify-content: center;
   align-items: center;
   height: 200rpx;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted, #6B7280); /* 使用主题辅助文字变量 */
   font-size: 30rpx;
 }
 
 .hint-text {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted, #6B7280); /* 使用主题辅助文字变量 */
   margin-top: 15rpx;
 }
 
@@ -331,5 +332,5 @@
 
 .tips {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted, #6B7280); /* 使用主题辅助文字变量 */
 } 

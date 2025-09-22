@@ -435,3 +435,65 @@
 .evening-theme .logo-text {
   color: #1F2937 !important; /* 深灰色，在所有浅色背景上清晰可见 */
 }
+
+/* ========================================
+   设备页面特殊样式适配
+   ======================================== */
+
+/* 设备页面背景适配 */
+.calm-mode .device-page {
+  background: linear-gradient(135deg, #E0F2F1 0%, #F0FDF4 100%) !important;
+}
+
+.focus-mode .device-page {
+  background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%) !important;
+}
+
+.energy-mode .device-page {
+  background: linear-gradient(135deg, #FFF4E6 0%, #FFFBEB 100%) !important;
+}
+
+.relax-mode .device-page {
+  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%) !important;
+}
+
+.morning-theme .device-page {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FBBF24 100%) !important;
+}
+
+.evening-theme .device-page {
+  background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 50%, #A5B4FC 100%) !important;
+}
+
+.night-theme .device-page {
+  background: #1F2937 !important;
+}
+
+/* 设备页面容器背景适配 */
+.calm-mode .container {
+  background: linear-gradient(135deg, #E0F2F1 0%, #F0FDF4 100%) !important;
+}
+
+.focus-mode .container {
+  background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%) !important;
+}
+
+.energy-mode .container {
+  background: linear-gradient(135deg, #FFF4E6 0%, #FFFBEB 100%) !important;
+}
+
+.relax-mode .container {
+  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%) !important;
+}
+
+.morning-theme .container {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FBBF24 100%) !important;
+}
+
+.evening-theme .container {
+  background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 50%, #A5B4FC 100%) !important;
+}
+
+.night-theme .container {
+  background: #1F2937 !important;
+}

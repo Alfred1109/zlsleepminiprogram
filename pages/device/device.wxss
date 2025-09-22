@@ -1,7 +1,7 @@
 /* 助眠设备页面样式 */
 .device-page {
   padding: 40rpx 32rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-bg, #F4F2F3); /* 使用主题背景变量 */
   min-height: 100vh;
 }
 
@@ -22,14 +22,14 @@
   display: block;
   font-size: 52rpx;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
   margin-bottom: 16rpx;
   letter-spacing: 2rpx;
 }
 
 .page-subtitle {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-secondary, #4B5563); /* 使用主题次要文字变量 */
   line-height: 1.4;
 }
 
@@ -46,7 +46,7 @@
   align-items: center;
   font-size: 32rpx;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
 }
 
 .title-icon {
@@ -56,11 +56,11 @@
 
 .clear-history-btn {
   padding: 8rpx 16rpx;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  background: var(--accent-color, rgba(192, 169, 189, 0.15));
+  border: 1rpx solid var(--accent-color, rgba(192, 169, 189, 0.3));
   border-radius: 20rpx;
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary, #4B5563); /* 使用主题次要文字变量 */
 }
 
 /* 历史配对记录 */
@@ -122,7 +122,7 @@
   display: block;
   font-size: 28rpx;
   font-weight: 500;
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
   margin-bottom: 6rpx;
 }
 
@@ -130,13 +130,13 @@
 .device-status {
   display: block;
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary, #4B5563); /* 使用主题次要文字变量 */
   margin-bottom: 4rpx;
 }
 
 .pair-time {
   font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted, #6B7280); /* 使用主题辅助文字变量 */
 }
 
 .reconnect-btn,
@@ -188,7 +188,7 @@
 .status-text {
   font-size: 28rpx;
   font-weight: 500;
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
 }
 
 .connected-list {
@@ -270,7 +270,7 @@
 .scan-text {
   font-size: 26rpx;
   font-weight: 500;
-  color: white;
+  color: #FFFFFF; /* 按钮文字保持白色，因为按钮有深色背景 */
 }
 
 .scan-animation {
@@ -352,7 +352,7 @@
   background: linear-gradient(135deg, #43e97b, #38d9a9);
   border-radius: 24rpx;
   font-size: 24rpx;
-  color: white;
+  color: #FFFFFF; /* 按钮文字保持白色，因为按钮有深色背景 */
   font-weight: 500;
   transition: all 0.3s ease;
 }
@@ -418,13 +418,13 @@
   display: block;
   font-size: 32rpx;
   font-weight: 500;
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
   margin-bottom: 16rpx;
 }
 
 .empty-desc {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary, #4B5563); /* 使用主题次要文字变量 */
   line-height: 1.5;
   margin-bottom: 32rpx;
 }
@@ -434,7 +434,7 @@
   background: linear-gradient(135deg, #43e97b, #38d9a9);
   border-radius: 32rpx;
   font-size: 26rpx;
-  color: white;
+  color: #FFFFFF; /* 按钮文字保持白色，因为按钮有深色背景 */
   font-weight: 500;
 }
 
@@ -460,7 +460,7 @@
 .tips-title {
   font-size: 28rpx;
   font-weight: 500;
-  color: white;
+  color: var(--text-primary, #1F2937); /* 使用主题文字变量 */
 }
 
 .tips-list {
@@ -489,6 +489,6 @@
 .tip-text {
   flex: 1;
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary, #4B5563); /* 使用主题次要文字变量 */
   line-height: 1.6;
 }
