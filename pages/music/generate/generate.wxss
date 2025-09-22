@@ -93,6 +93,39 @@
   flex: 1;
 }
 
+/* 场景模式提示 */
+.scene-mode-tip {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 24rpx 32rpx;
+  margin-bottom: 24rpx;
+  display: flex;
+  align-items: center;
+  border-left: 6rpx solid #C0A9BD;
+}
+
+.tip-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.tip-content {
+  flex: 1;
+}
+
+.tip-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
 /* 区块样式 */
 .section {
   background: rgba(255, 255, 255, 0.95);
@@ -179,20 +212,87 @@
 }
 
 .assessment-item {
+  display: flex;
+  align-items: flex-start;
   padding: 32rpx;
   margin-bottom: 20rpx;
   background: #f8f9fa;
   border-radius: 20rpx;
   border: 2rpx solid transparent;
+  transition: all 0.2s ease;
 }
 
 .assessment-item.selected {
-  background: rgba(43, 186, 165, 0.1);
+  background: rgba(192, 169, 189, 0.1);
   border-color: #C0A9BD;
+}
+
+.assessment-item.selected-multiple {
+  background: rgba(192, 169, 189, 0.15);
+  border-color: #C0A9BD;
+  box-shadow: 0 2rpx 8rpx rgba(192, 169, 189, 0.2);
 }
 
 .assessment-item:last-child {
   margin-bottom: 0;
+}
+
+/* 选择指示器 */
+.selection-indicator {
+  margin-right: 24rpx;
+  margin-top: 8rpx;
+}
+
+/* 单选 Radio 样式 */
+.radio-indicator {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 3rpx solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.radio-indicator.radio-checked {
+  border-color: #C0A9BD;
+}
+
+.radio-dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: #C0A9BD;
+}
+
+/* 多选 Checkbox 样式 */
+.checkbox-indicator {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 8rpx;
+  border: 3rpx solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.checkbox-indicator.checkbox-checked {
+  border-color: #C0A9BD;
+  background: #C0A9BD;
+}
+
+.checkbox-icon {
+  width: 20rpx;
+  height: 20rpx;
+}
+
+/* 评测内容 */
+.assessment-content {
+  flex: 1;
 }
 
 .assessment-header {
@@ -240,19 +340,10 @@
   background: rgba(255, 255, 255, 0.8);
 }
 
-.selected-mark {
-  width: 40rpx;
-  height: 40rpx;
-  background: #4A90E2;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.check-icon {
-  width: 24rpx;
-  height: 24rpx;
+/* 生成信息样式 */
+.multiple-mode-info .selected-count {
+  color: #C0A9BD;
+  font-weight: 600;
 }
 
 /* 生成区域 */

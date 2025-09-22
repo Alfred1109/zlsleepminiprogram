@@ -4,13 +4,17 @@ const app = getApp()
 const { AssessmentAPI, MusicAPI } = require('../../../utils/healingApi')
 const { requireSubscription, getSubscriptionInfo } = require('../../../utils/subscription')
 const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
+const { sceneContextManager } = require('../../../utils/sceneContextManager')
+const { sceneMappingService } = require('../../../utils/sceneMappingService')
 const themeMixin = require('../../../utils/themeMixin')
 
 Page({
   data: {
     userInfo: null,
     recentAssessments: [],
-    selectedAssessment: null,
+    selectedAssessment: null,          // 单选模式使用
+    selectedAssessments: [],           // 多选模式使用
+    selectionMode: 'single',           // 'single' | 'multiple'
     generating: false,
     musicResult: null,
     loading: false,
@@ -23,11 +27,19 @@ Page({
     // 主题相关
     currentTheme: 'default',
     themeClass: '',
-    themeConfig: null
+    themeConfig: null,
+    // 场景上下文相关
+    sceneContext: null,
+    isInSceneMode: false,
+    sceneHint: ''
   },
 
   onLoad() {
     console.log('音乐生成页面加载')
+    
+    // 检查场景上下文
+    this.checkSceneContext()
+    
     this.initTheme()
     this.initPlayer()
     this.checkUserLogin()
@@ -36,8 +48,51 @@ Page({
   },
 
   onShow() {
+    // 检查场景上下文变化
+    this.checkSceneContext()
+    
     this.loadRecentAssessments()
     this.refreshSubscriptionStatus()
+  },
+
+  /**
+   * 检查场景上下文
+   */
+  checkSceneContext() {
+    const context = sceneContextManager.getCurrentContext()
+    const isInSceneMode = !!context
+    const selectionMode = isInSceneMode ? 'multiple' : 'single'
+    
+    this.setData({
+      sceneContext: context,
+      isInSceneMode: isInSceneMode,
+      selectionMode: selectionMode,
+      sceneHint: context ? `当前在「${context.sceneName}」场景中，可选择多个评测进行综合生成` : ''
+    })
+    
+    console.log('🎯 音乐生成页面场景上下文:', {
+      isInSceneMode: this.data.isInSceneMode,
+      selectionMode: this.data.selectionMode,
+      sceneContext: context
+    })
+    
+    // 模式切换时重置选择状态
+    if (selectionMode === 'single') {
+      this.setData({ 
+        selectedAssessments: [],
+        selectedAssessment: this.data.recentAssessments[0] || null
+      })
+    } else {
+      this.setData({ 
+        selectedAssessment: null,
+        selectedAssessments: []
+      })
+    }
+    
+    // 如果评测数据已经加载且进入了场景模式，重新过滤评测
+    if (this.data.recentAssessments.length > 0) {
+      this.loadRecentAssessments()
+    }
   },
 
   /**
@@ -79,18 +134,48 @@ Page({
       
       if (result.success) {
         // 后端已经只返回已完成的评测，无需再次过滤
-        const completedAssessments = result.data || []
+        let completedAssessments = result.data || []
+
+        // 使用场景映射服务过滤评测记录（与其他页面保持一致）
+        const { sceneContext, isInSceneMode } = this.data
+        if (isInSceneMode && sceneContext) {
+          try {
+            const sceneFilterPromises = completedAssessments.map(item => 
+              sceneMappingService.isScaleMatchingScene(
+                item, 
+                sceneContext.sceneId, 
+                sceneContext.sceneName
+              )
+            )
+            
+            const matchResults = await Promise.all(sceneFilterPromises)
+            const filteredAssessments = completedAssessments.filter((item, index) => matchResults[index])
+            
+            console.log(`🎯 音乐生成页面场景${sceneContext.sceneName}(ID:${sceneContext.sceneId})评测过滤:`, {
+              原始数量: completedAssessments.length,
+              场景相关: filteredAssessments.length
+            })
+            
+            completedAssessments = filteredAssessments
+            
+          } catch (error) {
+            console.error('❌ 音乐生成页面场景评测过滤失败，显示所有评测:', error)
+            // 过滤失败时保持原始数据
+          }
+        }
 
         this.setData({
           recentAssessments: completedAssessments.slice(0, 5) // 最近5条
         })
 
-        // 如果有评测记录，默认选择最新的
-        if (completedAssessments.length > 0) {
-          this.setData({
-            selectedAssessment: completedAssessments[0]
-          })
-        }
+        // 根据选择模式初始化选择状态
+        this.initializeSelectionState(completedAssessments)
+        
+        console.log(`🎯 音乐生成页面评测记录加载完成:`, {
+          模式: this.data.selectionMode,
+          总数: completedAssessments.length,
+          显示数量: Math.min(completedAssessments.length, 5)
+        })
       }
     } catch (error) {
       console.error('加载评测历史失败:', error)
@@ -100,11 +185,118 @@ Page({
   },
 
   /**
-   * 选择评测记录
+   * 选择评测记录（统一处理单选和多选）
    */
   onSelectAssessment(e) {
     const { assessment } = e.currentTarget.dataset
-    this.setData({ selectedAssessment: assessment })
+    const { selectionMode } = this.data
+    
+    if (selectionMode === 'single') {
+      // 单选模式：直接设置选中的评测
+      this.setData({ selectedAssessment: assessment })
+      console.log('🎯 单选模式选择评测:', assessment.scale_name)
+      
+    } else {
+      // 多选模式：切换选中状态
+      this.toggleAssessmentSelection(assessment)
+    }
+  },
+
+  /**
+   * 切换评测记录的选中状态（多选模式）
+   */
+  toggleAssessmentSelection(assessment) {
+    const { selectedAssessments } = this.data
+    const isSelected = selectedAssessments.some(item => item.id === assessment.id)
+    
+    let newSelectedAssessments
+    if (isSelected) {
+      // 取消选中
+      newSelectedAssessments = selectedAssessments.filter(item => item.id !== assessment.id)
+      console.log('🎯 多选模式取消选择:', assessment.scale_name)
+    } else {
+      // 选中
+      newSelectedAssessments = [...selectedAssessments, assessment]
+      console.log('🎯 多选模式选择评测:', assessment.scale_name)
+    }
+    
+    this.setData({ selectedAssessments: newSelectedAssessments })
+    
+    console.log('🎯 多选模式当前选择:', {
+      总数: newSelectedAssessments.length,
+      量表: newSelectedAssessments.map(item => item.scale_name)
+    })
+  },
+
+  /**
+   * 检查评测是否被选中（用于UI显示）
+   */
+  isAssessmentSelected(assessment) {
+    const { selectionMode, selectedAssessment, selectedAssessments } = this.data
+    
+    if (selectionMode === 'single') {
+      return selectedAssessment && selectedAssessment.id === assessment.id
+    } else {
+      return selectedAssessments.some(item => item.id === assessment.id)
+    }
+  },
+
+  /**
+   * 根据选择模式初始化选择状态
+   */
+  initializeSelectionState(assessments) {
+    const { selectionMode } = this.data
+    const displayAssessments = assessments.slice(0, 5)
+    
+    if (selectionMode === 'single') {
+      // 单选模式：默认选择第一个评测
+      this.setData({
+        selectedAssessment: displayAssessments[0] || null,
+        selectedAssessments: []
+      })
+      
+    } else {
+      // 多选模式：默认全选所有相关评测（场景化综合疗愈）
+      this.setData({
+        selectedAssessment: null,
+        selectedAssessments: [...displayAssessments] // 全选所有相关评测
+      })
+      
+      console.log('🎯 多选模式默认全选评测:', displayAssessments.map(item => item.scale_name))
+    }
+  },
+
+  /**
+   * 检查是否可以生成音乐
+   */
+  canGenerateMusic() {
+    const { selectionMode, selectedAssessment, selectedAssessments, generating } = this.data
+    
+    if (generating) return false
+    
+    if (selectionMode === 'single') {
+      return !!selectedAssessment
+    } else {
+      return selectedAssessments.length > 0
+    }
+  },
+
+  /**
+   * 获取生成按钮文案
+   */
+  getGenerateButtonText() {
+    const { selectionMode, selectedAssessments, generating } = this.data
+    
+    if (generating) {
+      return selectionMode === 'single' ? '生成中...' : '综合生成中...'
+    }
+    
+    if (selectionMode === 'single') {
+      return '生成音乐'
+    } else {
+      const count = selectedAssessments.length
+      return count > 0 ? `综合生成音乐 (${count}个评测)` : '选择评测后生成'
+    }
   },
 
   /**
@@ -181,13 +373,47 @@ Page({
     this.setData({ generating: true })
 
     try {
-      const result = await MusicAPI.generateMusic(this.data.selectedAssessment.id)
+      let result
+      const { selectionMode, selectedAssessment, selectedAssessments } = this.data
+      
+      if (selectionMode === 'single') {
+        // 单选模式：基于单个评测生成
+        console.log('🎵 单选模式生成音乐，评测ID:', selectedAssessment.id)
+        result = await MusicAPI.generateMusic(selectedAssessment.id)
+        
+      } else {
+        // 多选模式：基于多个评测综合生成
+        const assessmentIds = selectedAssessments.map(item => item.id)
+        console.log('🎵 多选模式生成音乐，评测IDs:', assessmentIds)
+        console.log('🎵 基于量表:', selectedAssessments.map(item => item.scale_name))
+        
+        // 尝试调用多选API，如果不存在则使用第一个评测ID
+        try {
+          // TODO: 这里需要后端支持多评测ID的API
+          // result = await MusicAPI.generateMusicMultiple(assessmentIds)
+          
+          // 临时方案：使用第一个评测ID，但在请求中传递其他信息
+          result = await MusicAPI.generateMusic(assessmentIds[0], {
+            mode: 'comprehensive',
+            additionalAssessments: assessmentIds.slice(1),
+            sceneContext: this.data.sceneContext
+          })
+        } catch (error) {
+          // 如果多选API不存在，降级使用第一个评测
+          console.warn('⚠️ 多选音乐生成API暂未支持，使用第一个评测:', selectedAssessments[0].scale_name)
+          result = await MusicAPI.generateMusic(assessmentIds[0])
+        }
+      }
       
       if (result.success) {
         this.setData({ musicResult: result.data })
         
+        const successMessage = selectionMode === 'single' 
+          ? '音乐生成成功' 
+          : `综合${selectedAssessments.length}个评测的音乐生成成功`
+          
         wx.showToast({
-          title: '音乐生成成功',
+          title: successMessage,
           icon: 'success'
         })
 

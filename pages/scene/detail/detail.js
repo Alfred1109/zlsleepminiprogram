@@ -4,6 +4,7 @@ const app = getApp()
 const { AssessmentAPI, MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 const AuthService = require('../../../services/AuthService')
 const { sceneContextManager } = require('../../../utils/sceneContextManager')
+const { sceneMappingService } = require('../../../utils/sceneMappingService')
 const themeMixin = require('../../../utils/themeMixin')
 
 Page({
@@ -33,7 +34,12 @@ Page({
     
     // 全局播放器相关
     showGlobalPlayer: false,
-    isPlaying: false
+    isPlaying: false,
+    
+    // 场景上下文相关
+    sceneContext: null,
+    isInSceneMode: false,
+    sceneHint: ''
   },
 
   onLoad(options) {
@@ -65,11 +71,6 @@ Page({
     this.checkLoginAndLoadData()
   },
 
-  onUnload() {
-    // 页面卸载时清除场景上下文
-    console.log('🔄 场景详情页面卸载，清除场景上下文')
-    sceneContextManager.clearSceneContext()
-  },
 
   /**
    * 检查登录状态并加载数据
@@ -86,6 +87,9 @@ Page({
       
       // 设置场景上下文，无论是否登录都要设置，这样音乐库能知道当前场景
       this.setSceneContext()
+      
+      // 检查和更新场景模式状态
+      this.checkSceneContext()
       
       if (isLoggedIn) {
         console.log('✅ 用户已登录，加载场景数据')
@@ -126,6 +130,45 @@ Page({
   },
 
   /**
+   * 检查场景上下文状态
+   */
+  checkSceneContext() {
+    const context = sceneContextManager.getCurrentContext()
+    const isInSceneMode = sceneContextManager.isInSceneMode()
+    const sceneHint = sceneContextManager.getSceneNavigationHint()
+    
+    console.log('🎯 场景详情页面检查场景上下文:', { context, isInSceneMode, sceneHint })
+    
+    this.setData({
+      sceneContext: context,
+      isInSceneMode,
+      sceneHint
+    })
+  },
+
+  /**
+   * 退出场景模式
+   */
+  exitSceneMode() {
+    wx.showModal({
+      title: '退出场景模式',
+      content: '是否退出当前场景模式？退出后将清除场景过滤状态。',
+      confirmText: '退出',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          sceneContextManager.clearSceneContext()
+          this.checkSceneContext()
+          wx.showToast({
+            title: '已退出场景模式',
+            icon: 'success'
+          })
+        }
+      }
+    })
+  },
+
+  /**
    * 加载评测历史（针对当前场景）
    */
   async loadAssessmentHistory() {
@@ -141,11 +184,35 @@ Page({
         // 过滤与当前场景相关的评测记录
         let filteredAssessments = result.data.filter(item => item.status === 'completed')
         
-        // 如果有特定的量表类型，只显示该类型的评测
-        if (this.data.scaleType) {
-          filteredAssessments = filteredAssessments.filter(item => 
-            item.scale_type === this.data.scaleType || item.scale_name === this.data.scaleType
-          )
+        // 使用场景映射服务过滤评测记录（与评测页面保持一致）
+        if (this.data.sceneId) {
+          try {
+            const sceneFilterPromises = filteredAssessments.map(item => 
+              sceneMappingService.isScaleMatchingScene(
+                item, 
+                this.data.sceneId, 
+                this.data.sceneName
+              )
+            )
+            
+            const matchResults = await Promise.all(sceneFilterPromises)
+            filteredAssessments = filteredAssessments.filter((item, index) => matchResults[index])
+            
+            console.log(`🎯 场景${this.data.sceneName}(ID:${this.data.sceneId})评测历史过滤:`, {
+              原始数量: result.data.length,
+              完成的评测: result.data.filter(item => item.status === 'completed').length,
+              场景相关: filteredAssessments.length
+            })
+            
+          } catch (error) {
+            console.error('❌ 场景评测历史过滤失败，显示所有评测:', error)
+            // 过滤失败时保持原有的简单过滤逻辑
+            if (this.data.scaleType) {
+              filteredAssessments = filteredAssessments.filter(item => 
+                item.scale_type === this.data.scaleType || item.scale_name === this.data.scaleType
+              )
+            }
+          }
         }
         
         // 按时间倒序排列

@@ -129,29 +129,67 @@ class SceneMappingService {
   async isScaleMatchingScene(scale, sceneId, sceneName = null) {
     if (!scale || (!sceneId && !sceneName)) return true
 
-    const scaleTypes = await this.getScaleTypesByScene(sceneId, sceneName)
-    if (scaleTypes.length === 0) return true // 如果没有映射关系，显示所有
-
-    // 检查量表类型是否在映射列表中
-    const scaleType = scale.scale_type || scale.type || scale.name
-    const matches = scaleTypes.some(mappedItem => {
-      // 处理后端返回的不同数据格式
-      const mappedType = this.extractScaleType(mappedItem)
-      if (!mappedType) return false
+    try {
+      const mappings = await this.getMappings()
       
-      // 精确匹配
-      if (scaleType === mappedType) return true
-      
-      // 模糊匹配（包含关系）
-      if (scaleType && mappedType) {
-        return scaleType.includes(mappedType) || mappedType.includes(scaleType)
+      // 检查是否成功获取到映射关系
+      if (!mappings || (!mappings.sceneToScales && !mappings.sceneNameToScales)) {
+        console.warn('⚠️ 未获取到场景映射关系，显示所有量表')
+        return true // 映射关系获取失败时，显示所有
       }
       
-      return false
-    })
+      const scaleTypes = await this.getScaleTypesByScene(sceneId, sceneName)
+      
+      // 如果映射关系存在但该场景没有对应的量表，则不显示任何量表
+      if (scaleTypes.length === 0) {
+        console.log(`🚫 场景${sceneId || sceneName}没有对应的评测量表，过滤所有量表`)
+        return false
+      }
 
-    console.log(`🔍 量表「${scale.name}」(${scaleType}) 在场景${sceneId || sceneName}中匹配:`, matches)
-    return matches
+      // 检查量表是否在映射列表中（优先使用name进行匹配，因为scale_type都是"international"）
+      const scaleName = scale.name || scale.scale_name || scale.type || scale.scale_type
+      const scaleType = scale.scale_type || scale.type
+      
+      const matches = scaleTypes.some(mappedItem => {
+        // 处理后端返回的不同数据格式，提取原始名称（不转换）
+        const mappedName = mappedItem.name || mappedItem.scale_name || mappedItem
+        
+        if (!mappedName) return false
+        
+        // 1. 精确名称匹配（最优先）
+        if (scaleName === mappedName) return true
+        
+        // 2. 如果有转换逻辑，尝试转换后匹配
+        const mappedTypeConverted = this.extractScaleType(mappedItem)
+        if (mappedTypeConverted) {
+          // 尝试将前端量表名称也转换后匹配
+          const scaleNameConverted = this.convertScaleNameToType(scaleName)
+          if (scaleNameConverted === mappedTypeConverted) return true
+          
+          // 也检查scale_type字段
+          if (scaleType === mappedTypeConverted) return true
+        }
+        
+        // 3. 模糊匹配（包含关系）
+        if (scaleName && mappedName && typeof scaleName === 'string' && typeof mappedName === 'string') {
+          if (scaleName.includes(mappedName) || mappedName.includes(scaleName)) return true
+        }
+        
+        return false
+      })
+
+      console.log(`🔍 量表「${scale.name}」在场景${sceneId || sceneName}中匹配结果:`, {
+        前端量表名称: scaleName,
+        前端量表类型: scaleType,
+        后端映射量表: scaleTypes.map(item => item.name || item),
+        匹配结果: matches
+      })
+      return matches
+      
+    } catch (error) {
+      console.error('❌ 场景量表匹配检查失败:', error)
+      return true // 出错时显示所有量表
+    }
   }
 
   /**
@@ -209,24 +247,39 @@ class SceneMappingService {
   }
 
   /**
-   * 从映射项中提取量表类型（兼容不同数据格式）
+   * 从映射项中提取量表类型（兼容不同数据格式，支持中文名称转换）
    * @param {string|Object} mappedItem 映射项，可能是字符串或对象
    * @returns {string|null} 提取的量表类型
    */
   extractScaleType(mappedItem) {
     if (typeof mappedItem === 'string') {
-      console.log('🔍 提取量表类型(字符串):', mappedItem)
-      return mappedItem
+      const converted = this.convertScaleNameToType(mappedItem)
+      console.log('🔍 提取量表类型(字符串):', mappedItem, '->', converted)
+      return converted
     }
     
     if (typeof mappedItem === 'object' && mappedItem !== null) {
-      // 尝试从不同的字段中提取类型
-      const extracted = mappedItem.scale_type || 
-                       mappedItem.type || 
-                       mappedItem.name || 
-                       mappedItem.code || 
-                       mappedItem.id ||
-                       null
+      // 尝试从不同的字段中提取类型（优先提取name字段，因为它包含具体的量表名称）
+      let extracted = mappedItem.scale_type || 
+                     mappedItem.name ||     // 将name提前，因为它包含具体量表名称
+                     mappedItem.code || 
+                     mappedItem.type ||     // type通常是通用类型如"international"，放后面
+                     mappedItem.id ||
+                     null
+      
+      // 如果提取的是中文名称，尝试转换为类型代码
+      if (extracted && typeof extracted === 'string') {
+        const converted = this.convertScaleNameToType(extracted)
+        if (converted !== extracted) {
+          console.log('🔍 提取量表类型(对象-转换):', {
+            原始对象: mappedItem,
+            提取字段: extracted,
+            转换结果: converted
+          })
+          return converted
+        }
+      }
+      
       console.log('🔍 提取量表类型(对象):', { 
         原始对象: mappedItem, 
         提取结果: extracted 
@@ -236,6 +289,55 @@ class SceneMappingService {
     
     console.log('🔍 提取量表类型(未知格式):', mappedItem)
     return null
+  }
+
+  /**
+   * 将中文量表名称转换为类型代码
+   * @param {string} scaleName 量表名称
+   * @returns {string} 量表类型代码
+   */
+  convertScaleNameToType(scaleName) {
+    if (!scaleName || typeof scaleName !== 'string') return scaleName
+    
+    const nameMap = {
+      // 汉密尔顿抑郁量表
+      '汉密尔顿抑郁量表-17项': 'HAMD-17',
+      '汉密尔顿抑郁量表': 'HAMD-17',
+      'HAMD-17': 'HAMD-17',
+      'Hamilton Depression Rating Scale': 'HAMD-17',
+      
+      // 广泛性焦虑量表
+      '广泛性焦虑量表-7项': 'GAD-7', 
+      '广泛性焦虑量表': 'GAD-7',
+      'GAD-7': 'GAD-7',
+      'Generalized Anxiety Disorder': 'GAD-7',
+      
+      // 匹兹堡睡眠质量指数
+      '匹兹堡睡眠质量指数': 'PSQI',
+      'PSQI': 'PSQI',
+      'Pittsburgh Sleep Quality Index': 'PSQI',
+      
+      // 其他可能的量表
+      '患者健康问卷-9项': 'PHQ-9',
+      'PHQ-9': 'PHQ-9',
+      '压力知觉量表': 'PSS',
+      'PSS': 'PSS'
+    }
+    
+    // 精确匹配
+    if (nameMap[scaleName]) {
+      return nameMap[scaleName]
+    }
+    
+    // 模糊匹配（包含关系）
+    for (const [key, value] of Object.entries(nameMap)) {
+      if (scaleName.includes(key) || key.includes(scaleName)) {
+        return value
+      }
+    }
+    
+    // 如果没有找到匹配，返回原名称
+    return scaleName
   }
 
   /**
@@ -320,13 +422,14 @@ class SceneMappingService {
 
   /**
    * 获取调试信息
-   * @returns {Object} 调试信息
    */
   getDebugInfo() {
     return {
-      hasCachedMappings: !!this.mappings,
+      hasMappings: !!this.mappings,
       lastFetchTime: this.lastFetchTime,
       cacheAge: this.lastFetchTime ? Date.now() - this.lastFetchTime : null,
+      mappingsKeys: this.mappings ? Object.keys(this.mappings) : null,
+      sceneCount: this.mappings?.meta?.total_scenes || 0,
       cacheValid: this.lastFetchTime && (Date.now() - this.lastFetchTime < this.cacheExpiration)
     }
   }

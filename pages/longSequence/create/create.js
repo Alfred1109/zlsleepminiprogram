@@ -2,6 +2,8 @@
 // 长序列脑波创建页面
 const app = getApp()
 const { AssessmentAPI, LongSequenceAPI } = require('../../../utils/healingApi')
+const { sceneContextManager } = require('../../../utils/sceneContextManager')
+const { sceneMappingService } = require('../../../utils/sceneMappingService')
 
 Page({
   data: {
@@ -21,11 +23,18 @@ Page({
     generationProgress: 0,
     currentPhase: '',
     sessionResult: null,
-    loading: false
+    loading: false,
+    // 场景上下文相关
+    sceneContext: null,
+    isInSceneMode: false,
+    sceneHint: ''
   },
 
   onLoad(options) {
     console.log('长序列创建页面加载', options)
+    
+    // 检查场景上下文
+    this.checkSceneContext()
     
     // 获取传入的评测ID（从评测结果页面跳转过来时会有）
     const { assessmentId } = options
@@ -42,6 +51,9 @@ Page({
   },
 
   onShow() {
+    // 检查场景上下文变化
+    this.checkSceneContext()
+    
     // 每次显示时检查登录状态
     const AuthService = require('../../../services/AuthService')
     const userInfo = AuthService.getCurrentUser()
@@ -50,6 +62,29 @@ Page({
       this.loadRecentAssessments()
     } else {
       this.setData({ userInfo: null, recentAssessments: [] })
+    }
+  },
+
+  /**
+   * 检查场景上下文
+   */
+  checkSceneContext() {
+    const context = sceneContextManager.getCurrentContext()
+    
+    this.setData({
+      sceneContext: context,
+      isInSceneMode: !!context,
+      sceneHint: context ? `当前在「${context.sceneName}」场景中，将优先显示相关评测` : ''
+    })
+    
+    console.log('🎯 长序列创建页面场景上下文:', {
+      isInSceneMode: this.data.isInSceneMode,
+      sceneContext: context
+    })
+    
+    // 如果评测数据已经加载且进入了场景模式，重新过滤评测
+    if (this.data.recentAssessments.length > 0) {
+      this.loadRecentAssessments()
     }
   },
 
@@ -85,7 +120,35 @@ Page({
       
       if (result.success) {
         // 后端已经只返回已完成的评测，无需再次过滤
-        const completedAssessments = result.data || []
+        let completedAssessments = result.data || []
+
+        // 使用场景映射服务过滤评测记录（与其他页面保持一致）
+        const { sceneContext, isInSceneMode } = this.data
+        if (isInSceneMode && sceneContext) {
+          try {
+            const sceneFilterPromises = completedAssessments.map(item => 
+              sceneMappingService.isScaleMatchingScene(
+                item, 
+                sceneContext.sceneId, 
+                sceneContext.sceneName
+              )
+            )
+            
+            const matchResults = await Promise.all(sceneFilterPromises)
+            const filteredAssessments = completedAssessments.filter((item, index) => matchResults[index])
+            
+            console.log(`🎯 长序列创建页面场景${sceneContext.sceneName}(ID:${sceneContext.sceneId})评测过滤:`, {
+              原始数量: completedAssessments.length,
+              场景相关: filteredAssessments.length
+            })
+            
+            completedAssessments = filteredAssessments
+            
+          } catch (error) {
+            console.error('❌ 长序列创建页面场景评测过滤失败，显示所有评测:', error)
+            // 过滤失败时保持原始数据
+          }
+        }
 
         this.setData({
           recentAssessments: completedAssessments.slice(0, 5)

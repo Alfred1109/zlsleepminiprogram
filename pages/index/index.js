@@ -93,8 +93,8 @@ Page({
 
     this.initData();
     
-    // 统一使用音乐管理器来处理分类数据（移除重复的数据源）
-    this.initUnifiedMusicManager();
+    // 初始化场景分类数据（修复：使用正确的场景数据，不再依赖音乐分类接口）
+    this.initSceneCategories();
     
 
     // 获取App实例
@@ -197,51 +197,180 @@ Page({
 
   
   /**
-   * 初始化统一音乐管理器（添加调试信息）
+   * 初始化场景分类数据（更新：使用与后端一致的5个场景）
    */
-  initUnifiedMusicManager: function() {
+  initSceneCategories: function() {
+    console.log('🎯 [首页] 初始化场景分类数据（后端同步版本）')
+    
     // 显示加载提示
     this.setData({ isLoading: true })
     
-    // 移除详细调试输出
-    
-    // 移除测试网络连接调用，避免阻塞初始化
-    
-    unifiedMusicManager.init().then((success) => {
-      if (success) {
-        // 获取最新的分类数据，过滤掉冥想疗愈分类（AI生成音频，单独收费）
-        const allCategories = unifiedMusicManager.getAllCategories()
-        try {
-          const longSeqIds = this.detectLongSequenceCategoryIds(allCategories)
-          if (longSeqIds.length > 0) {
-            console.log('[首页] 检测到长序列相关分类ID:', longSeqIds.join(', '))
-          }
-        } catch (e) {
-          console.warn('[首页] 长序列分类检测失败:', e)
-        }
-        const categories = this.filterCategories(allCategories)
-        
-        this.setData({
-          categories: categories,
-          isLoading: false
-        })
-        
-        // 显示成功获取的提示
-        wx.showToast({
-          title: `已获取${categories.length}个分类`,
-          icon: 'success',
-          duration: 2000
-        })
-        
-        // 直接使用数据库返回的计数，不做修正
-        console.log('[首页] 分类计数:', categories.map(c => `${c.name}:${c.count}`).join(', '))
-        
-      } else {
-        this.handleInitFailure('初始化失败')
-      }
+    // 尝试从后端获取场景数据，失败时使用与后端一致的静态数据
+    this.fetchScenesFromBackend().then((scenes) => {
+      this.setData({
+        categories: scenes,
+        isLoading: false
+      })
+      
+      console.log('✅ [首页] 场景分类数据初始化完成:', scenes.map(c => `${c.name}(${c.code})`).join(', '))
+      
+      // 显示成功加载提示
+      wx.showToast({
+        title: `已加载${scenes.length}个疗愈场景`,
+        icon: 'success',
+        duration: 2000
+      })
     }).catch((error) => {
-      console.error('初始化统一音乐管理器异常:', error)
-      this.handleInitFailure(`初始化异常: ${error.message}`)
+      console.error('❌ [首页] 获取场景数据失败:', error)
+      // 使用静态后备数据
+      this.useBackendConsistentScenes()
+    })
+  },
+
+  /**
+   * 从后端获取场景数据
+   */
+  async fetchScenesFromBackend() {
+    try {
+      const { get } = require('../../utils/api')
+      const result = await get('/scene/mappings')
+      
+      if (result && result.success && result.meta && result.meta.scenes) {
+        const backendScenes = result.meta.scenes
+        const scalesMappings = result.data.sceneToScales || {}
+        
+        // 转换为前端需要的格式
+        const scenes = backendScenes.map(scene => {
+          // 获取该场景对应的评测量表
+          const sceneScales = scalesMappings[scene.id.toString()] || []
+          let scaleType = null
+          let sceneName = scene.name
+          
+          // 根据场景的评测量表设置scaleType和sceneName
+          if (sceneScales.length > 0) {
+            const primaryScale = sceneScales.find(s => s.is_primary) || sceneScales[0]
+            if (primaryScale) {
+              // 映射评测量表名称到代码
+              if (primaryScale.name.includes('匹兹堡睡眠')) {
+                scaleType = 'PSQI'
+                sceneName = '助眠疗愈'
+              } else if (primaryScale.name.includes('汉密尔顿抑郁')) {
+                scaleType = 'HAMD-17' 
+                sceneName = '抑郁疗愈'
+              } else if (primaryScale.name.includes('广泛性焦虑')) {
+                scaleType = 'GAD-7'
+                sceneName = '情绪疗愈'
+              }
+            }
+          }
+          
+          // 根据场景code设置sceneName
+          if (!scaleType) {
+            switch(scene.code) {
+              case 'sleep': sceneName = '助眠疗愈'; break
+              case 'focus': sceneName = '专注疗愈'; break
+              case 'emotion': sceneName = '情绪疗愈'; break
+              case 'meditation': sceneName = '冥想疗愈'; break
+              case 'relax': sceneName = '放松疗愈'; break
+              default: sceneName = scene.name
+            }
+          }
+          
+          return {
+            id: scene.id,
+            name: scene.name,
+            icon: scene.icon,
+            description: scene.description,
+            code: scene.code,
+            scaleType: scaleType,
+            sceneName: sceneName,
+            sortOrder: scene.sort_order
+          }
+        }).sort((a, b) => a.sortOrder - b.sortOrder) // 按后端的排序顺序排列
+        
+        console.log('📡 [首页] 从后端获取场景数据成功:', scenes)
+        return scenes
+      } else {
+        throw new Error('后端场景数据格式异常')
+      }
+    } catch (error) {
+      console.error('💥 [首页] 从后端获取场景数据失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 使用与后端一致的静态场景数据（后备方案）
+   */
+  useBackendConsistentScenes() {
+    console.log('🔄 [首页] 使用与后端一致的静态场景数据')
+    
+    // 与后端API返回的数据保持完全一致
+    const scenes = [
+      { 
+        id: 1, 
+        name: '助眠场景', 
+        icon: '🌙',
+        description: '帮助用户放松身心，快速入眠的疗愈场景',
+        code: 'sleep',
+        scaleType: 'PSQI', // 根据后端sceneToScales映射
+        sceneName: '助眠疗愈',
+        sortOrder: 1
+      },
+      { 
+        id: 2, 
+        name: '专注场景', 
+        icon: '🎯',
+        description: '提升专注力，提高工作学习效率的疗愈场景',
+        code: 'focus',
+        scaleType: null, // 后端无对应评测量表
+        sceneName: '专注疗愈',
+        sortOrder: 2
+      },
+      { 
+        id: 3, 
+        name: '情绪调节场景', 
+        icon: '💚',
+        description: '调节情绪状态，缓解抑郁焦虑的疗愈场景',
+        code: 'emotion',
+        scaleType: 'GAD-7', // 根据后端sceneToScales映射
+        sceneName: '情绪疗愈',
+        sortOrder: 3
+      },
+      { 
+        id: 4, 
+        name: '冥想场景', 
+        icon: '🧘',
+        description: '深度冥想，实现身心平衡的疗愈场景',
+        code: 'meditation',
+        scaleType: null, // 后端无对应评测量表
+        sceneName: '冥想疗愈',
+        sortOrder: 4
+      },
+      { 
+        id: 5, 
+        name: '全面放松场景', 
+        icon: '🌿',
+        description: '全面身心放松，日常减压的疗愈场景',
+        code: 'relax',
+        scaleType: null, // 后端无对应评测量表
+        sceneName: '放松疗愈',
+        sortOrder: 5
+      }
+    ]
+    
+    this.setData({
+      categories: scenes,
+      isLoading: false
+    })
+    
+    console.log('✅ [首页] 静态场景数据设置完成:', scenes.map(c => `${c.name}(${c.code})`).join(', '))
+    
+    // 显示成功加载提示
+    wx.showToast({
+      title: `已加载${scenes.length}个疗愈场景`,
+      icon: 'success',
+      duration: 2000
     })
   },
 
@@ -249,27 +378,10 @@ Page({
    * 处理初始化失败的情况
    */
   handleInitFailure: function(reason) {
-    // 处理初始化失败
-    
-    this.setData({
-      categories: this.getDefaultCategories(),
-      isLoading: false
-    })
-    
-    // 显示失败信息，让用户知道正在使用默认分类
-    wx.showModal({
-      title: '分类数据获取失败',
-      content: `${reason}，当前显示的是默认分类数据。请检查网络连接后点击刷新按钮重试。`,
-      confirmText: '立即重试',
-      cancelText: '稍后再试',
-      success: (res) => {
-        if (res.confirm) {
-          this.onManualRefreshCategories()
-        }
-      }
-    })
-    
-    this.loadFallbackRecommendations();
+    // 场景分类数据已内置，无需处理失败情况
+    console.warn('[首页] 场景初始化失败回调已废弃:', reason)
+    // 直接重新初始化场景数据
+    this.initSceneCategories()
   },
 
   // 缓存检测逻辑已移除 - 现在直接从服务器获取最新数据
@@ -278,57 +390,25 @@ Page({
    * 通过统一管理器强制刷新分类数据
    */
   forceRefreshCategoriesFromManager: function() {
-    // 通过统一管理器强制刷新分类数据
+    console.log('🔄 [首页] 强制刷新场景分类数据')
     
     // 显示加载提示
     wx.showLoading({
-      title: '正在获取最新分类数据...',
+      title: '正在刷新场景数据...',
       mask: true
     })
     
-    // 使用统一管理器的强制刷新方法（绕过所有缓存）
-    unifiedMusicManager.forceRefreshFromServer().then((result) => {
-      wx.hideLoading()
+    // 直接重新初始化场景分类数据
+    setTimeout(() => {
+      this.initSceneCategories()
       
-      if (result && result.success) {
-        const allCategories = result.data || unifiedMusicManager.getAllCategories()
-        // 过滤掉冥想疗愈分类（AI生成音频，单独收费）
-        try {
-          const longSeqIds = this.detectLongSequenceCategoryIds(allCategories)
-          if (longSeqIds.length > 0) {
-            console.log('[首页-刷新] 检测到长序列相关分类ID:', longSeqIds.join(', '))
-          }
-        } catch (e) {
-          console.warn('[首页-刷新] 长序列分类检测失败:', e)
-        }
-        const categories = this.filterCategories(allCategories)
-        
-        this.setData({
-          categories: categories,
-          isLoading: false
-        })
-        
-        // 分类数据刷新成功
-        
-        // 刷新时间记录已移除
-        
-        // 显示刷新成功提示
-        wx.showToast({
-          title: '分类数据已更新',
-          icon: 'success',
-          duration: 2000
-        })
-        
-      } else {
-        // 降级处理
-        console.warn('强制刷新也失败，使用默认分类')
-        this.handleRefreshFailure()
-      }
-    }).catch((error) => {
       wx.hideLoading()
-      console.error('强制刷新分类失败:', error)
-      this.handleRefreshFailure()
-    })
+      wx.showToast({
+        title: '场景数据已更新',
+        icon: 'success',
+        duration: 2000
+      })
+    }, 1000) // 给用户一些视觉反馈时间
   },
 
   // 缓存清理方法已移除
@@ -337,25 +417,10 @@ Page({
    * 处理刷新失败的情况
    */
   handleRefreshFailure: function() {
-    this.setData({
-      categories: this.getDefaultCategories(),
-      isLoading: false
-    })
-    
-    wx.showModal({
-      title: '获取分类数据失败',
-      content: '无法从服务器获取最新的分类数据，已使用默认分类。请检查网络连接或稍后重试。',
-      confirmText: '重试',
-      cancelText: '知道了',
-      success: (res) => {
-        if (res.confirm) {
-          // 用户选择重试
-          setTimeout(() => {
-            this.forceRefreshCategoriesFromManager()
-          }, 1000)
-        }
-      }
-    })
+    // 场景分类数据已内置，无需处理刷新失败情况
+    console.warn('[首页] 场景刷新失败回调已废弃')
+    // 直接重新初始化场景数据
+    this.initSceneCategories()
     
     this.loadFallbackRecommendations();
   },
@@ -765,44 +830,7 @@ Page({
     }
   },
   
-  /**
-   * 加载音乐分类
-   */
-  async loadMusicCategories() {
-    try {
-      // 开始加载音乐分类
-      const { MusicAPI } = require('../../utils/healingApi')
-      
-      // 从API获取分类数据
-      const categoriesResult = await MusicAPI.getCategories().catch(error => {
-        console.warn('获取分类API失败:', error)
-        return { success: false, data: [] }
-      })
-      
-      let categories = []
-      
-      if (categoriesResult.success && categoriesResult.data && categoriesResult.data.length > 0) {
-        // 使用高效处理方法（filter+map一体化，带缓存）
-        categories = this.processCategories(categoriesResult.data)
-        // 从 API 加载分类成功
-      } else {
-        // API失败时使用默认分类
-        categories = this.getDefaultCategories()
-        // API 失败，使用默认分类
-      }
-      
-      this.setData({
-        categories: categories
-      })
-      
-    } catch (error) {
-      console.error('加载音乐分类失败:', error)
-      // 使用默认分类作为降级
-      this.setData({
-        categories: this.getDefaultCategories()
-      })
-    }
-  },
+  // 已删除 loadMusicCategories 方法 - 首页场景分类不再使用音乐分类接口
 
   /**
    * 清理可能的旧域名缓存
@@ -827,9 +855,9 @@ Page({
         icon: 'success'
       })
       
-      // 重新初始化音乐管理器
+      // 重新初始化场景分类数据
       setTimeout(() => {
-        this.initUnifiedMusicManager()
+        this.initSceneCategories()
       }, 1500)
       
     } catch (error) {
@@ -872,8 +900,8 @@ Page({
       mask: true
     })
     
-    // 直接重新初始化管理器，从服务器获取最新数据
-    this.initUnifiedMusicManager()
+    // 直接重新初始化场景分类数据
+    this.initSceneCategories()
     
     // 2秒后隐藏loading（给用户反馈）
     setTimeout(() => {
@@ -1018,44 +1046,7 @@ Page({
     return processed
   },
 
-  getDefaultCategories() {
-    const defaultScenes = [
-      { 
-        id: 1, 
-        name: '睡眠场景', 
-        icon: '😴',
-        description: '改善睡眠质量，获得深度休息',
-        scaleType: 'PSQI', // 匹配的评测量表类型
-        sceneName: '睡眠疗愈'
-      },
-      { 
-        id: 2, 
-        name: '专注场景', 
-        icon: '🎯',
-        description: '提升注意力，增强工作效率',
-        scaleType: null, // 暂无直接对应的量表
-        sceneName: '专注疗愈'
-      },
-      { 
-        id: 3, 
-        name: '抑郁场景', 
-        icon: '🌈',
-        description: '缓解抑郁情绪，重拾生活希望',
-        scaleType: 'HAMD-17', // 匹配抑郁评测量表
-        sceneName: '抑郁疗愈'
-      },
-      { 
-        id: 4, 
-        name: '焦虑场景', 
-        icon: '🕊️',
-        description: '缓解焦虑紧张，获得内心平静',
-        scaleType: 'GAD-7', // 匹配焦虑评测量表
-        sceneName: '焦虑疗愈'
-      }
-      // 重新设计场景分类，对应不同的疗愈需求和评测量表
-    ]
-    return this.filterCategories(defaultScenes)
-  },
+  // 已删除 getDefaultCategories 方法 - 场景数据现在直接在 initSceneCategories 中定义
 
   
   

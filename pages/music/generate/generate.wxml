@@ -24,12 +24,25 @@
 
     <!-- 主要内容 -->
     <view wx:else>
+      <!-- 场景模式提示 -->
+      <view wx:if="{{isInSceneMode}}" class="scene-mode-tip">
+        <view class="tip-icon">🎯</view>
+        <view class="tip-content">
+          <view class="tip-title">场景化综合疗愈</view>
+          <view class="tip-text">{{sceneHint}}</view>
+        </view>
+      </view>
+
       <!-- 评测记录选择 -->
       <view class="content-section">
         <view class="section-header">
           <view>
-            <view class="section-title">选择评测记录</view>
-            <view class="section-subtitle">基于评测结果生成音乐</view>
+            <view class="section-title">
+              {{selectionMode === 'single' ? '选择评测记录' : '选择评测记录 (多选)'}}
+            </view>
+            <view class="section-subtitle">
+              {{selectionMode === 'single' ? '基于单个评测结果生成音乐' : '基于多个评测结果综合生成音乐'}}
+            </view>
           </view>
         </view>
 
@@ -46,33 +59,44 @@
         <view 
           wx:for="{{recentAssessments}}" 
           wx:key="id"
-          class="assessment-item {{selectedAssessment && selectedAssessment.id === item.id ? 'selected' : ''}}"
+          class="assessment-item {{item.isSelected ? (selectionMode === 'single' ? 'selected' : 'selected-multiple') : ''}}"
           data-assessment="{{item}}"
           bindtap="onSelectAssessment"
         >
-          <view class="assessment-header">
-            <view class="assessment-name">{{item.scale_name}}</view>
-            <view class="assessment-time">{{formatTime(item.completed_at)}}</view>
+          <!-- 单选/多选指示器 -->
+          <view class="selection-indicator">
+            <!-- 单选模式：圆形radio -->
+            <view wx:if="{{selectionMode === 'single'}}" class="radio-indicator {{item.isSelected ? 'radio-checked' : ''}}">
+              <view wx:if="{{item.isSelected}}" class="radio-dot"></view>
+            </view>
+            
+            <!-- 多选模式：方形checkbox -->
+            <view wx:else class="checkbox-indicator {{item.isSelected ? 'checkbox-checked' : ''}}">
+              <image wx:if="{{item.isSelected}}" class="checkbox-icon" src="/images/check.svg" mode="aspectFit"></image>
+            </view>
           </view>
           
-          <view class="assessment-result">
-            <view class="result-score">
-              <text class="score-label">总分：</text>
-              <text class="score-value">{{item.total_score}}</text>
+          <!-- 评测信息 -->
+          <view class="assessment-content">
+            <view class="assessment-header">
+              <view class="assessment-name">{{item.scale_name}}</view>
+              <view class="assessment-time">{{formatTime(item.completed_at)}}</view>
             </view>
-            <view 
-              class="result-level"
-              style="color: {{getSeverityColor(item.severity_level)}}"
-            >
-              {{item.severity_level === 'normal' ? '正常' : 
-                item.severity_level === 'mild' ? '轻度' :
-                item.severity_level === 'moderate' ? '中度' : '重度'}}
+            
+            <view class="assessment-result">
+              <view class="result-score">
+                <text class="score-label">总分：</text>
+                <text class="score-value">{{item.total_score}}</text>
+              </view>
+              <view 
+                class="result-level"
+                style="color: {{getSeverityColor(item.severity_level)}}"
+              >
+                {{item.severity_level === 'normal' ? '正常' : 
+                  item.severity_level === 'mild' ? '轻度' :
+                  item.severity_level === 'moderate' ? '中度' : '重度'}}
+              </view>
             </view>
-          </view>
-
-          <!-- 选中标识 -->
-          <view wx:if="{{selectedAssessment && selectedAssessment.id === item.id}}" class="selected-mark">
-            <image class="check-icon" src="/images/check.svg" mode="aspectFit"></image>
           </view>
         </view>
         </view>
@@ -88,22 +112,31 @@
           <view class="generate-info">
             <view class="info-title">生成说明</view>
             <view class="info-content">
-              <view class="info-item">• 基于您的评测结果分析情绪状态</view>
-              <view class="info-item">• 智能匹配适合的音乐元素</view>
-              <view class="info-item">• 生成个性化的60秒疗愈音乐</view>
+              <view wx:if="{{selectionMode === 'single'}}" class="single-mode-info">
+                <view class="info-item">• 基于您的评测结果分析情绪状态</view>
+                <view class="info-item">• 智能匹配适合的音乐元素</view>
+                <view class="info-item">• 生成个性化的60秒疗愈音乐</view>
+              </view>
+              
+              <view wx:else class="multiple-mode-info">
+                <view class="info-item">• 综合分析多个评测的心理状态</view>
+                <view class="info-item">• 场景化智能匹配最佳音乐元素</view>
+                <view class="info-item">• 生成综合疗愈的60秒个性化音乐</view>
+                <view class="info-item selected-count">• 已选择 {{selectedCount}} 个评测进行综合生成</view>
+              </view>
             </view>
           </view>
 
           <button
             class="btn btn-primary btn-block {{generating ? 'generating' : ''}}"
-            disabled="{{generating || !selectedAssessment}}"
+            disabled="{{!canGenerate}}"
             bindtap="onGenerateMusic"
           >
             <view wx:if="{{generating}}" class="btn-loading">
               <view class="loading-spinner small"></view>
-              <text>生成中...</text>
+              <text>{{generatingText}}</text>
             </view>
-            <text wx:else>生成音乐</text>
+            <text wx:else>{{generateButtonText}}</text>
           </button>
         </view>
       </view>

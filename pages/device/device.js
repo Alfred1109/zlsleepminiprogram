@@ -381,17 +381,6 @@ Page({
     }
   },
 
-  // 绑定智能设备
-  bindSmartDevice(e) {
-    const type = e.currentTarget.dataset.type
-    
-    wx.showModal({
-      title: '助眠设备套装',
-      content: '助眠设备套装功能正在开发中，将支持智能氛围灯、香薰机、白噪音设备等的统一管理。敬请期待！',
-      showCancel: false,
-      confirmText: '我知道了'
-    })
-  },
 
   // 控制设备
   controlDevice(e) {

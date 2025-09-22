@@ -15,6 +15,20 @@
     </view>
   </view>
 
+  <!-- 场景状态指示器 -->
+  <view wx:if="{{isInSceneMode}}" class="scene-indicator">
+    <view class="scene-indicator-content">
+      <view class="scene-indicator-icon">🎯</view>
+      <view class="scene-indicator-text">
+        <text class="scene-indicator-title">{{sceneHint}}</text>
+        <text class="scene-indicator-subtitle">场景模式已激活</text>
+      </view>
+      <view class="scene-indicator-action" bindtap="exitSceneMode">
+        <text class="exit-text">退出</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 个性化疗愈流程 -->
   <view class="usage-tip">
     <view class="tip-icon">💡</view>
