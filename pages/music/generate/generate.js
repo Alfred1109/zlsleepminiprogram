@@ -409,7 +409,14 @@ Page({
    * 生成音乐
    */
   async onGenerateMusic() {
-    if (!this.data.selectedAssessment) {
+    // 🔧 修复：根据选择模式进行正确的验证
+    const { selectionMode, selectedAssessment, selectedAssessments } = this.data
+    
+    const hasValidSelection = selectionMode === 'single' 
+      ? !!selectedAssessment 
+      : selectedAssessments.length > 0
+    
+    if (!hasValidSelection) {
       wx.showToast({
         title: '请选择评测记录',
         icon: 'error'

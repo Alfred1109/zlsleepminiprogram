@@ -286,6 +286,12 @@ Page({
           url: item.url || item.audio_url || item.file_path,
           image: '/images/default-music-cover.svg',
           type: '60s_generated',
+          // 🔧 修复：将场景映射服务需要的字段提升到顶级
+          assessment_scale_name: item.assessment_info?.scale_name || item.scale_name,
+          scale_type: item.assessment_info?.scale_type || item.scale_type,
+          scale_name: item.assessment_info?.scale_name || item.scale_name,
+          category: item.category,
+          tags: item.tags,
           rawData: item
         }))
         allBrainwaves.push(...userMusic)
@@ -303,6 +309,12 @@ Page({
             url: item.final_file_path,
             image: '/images/default-music-cover.svg',
             type: 'long_sequence',
+            // 🔧 修复：将场景映射服务需要的字段提升到顶级
+            assessment_scale_name: item.assessment_info?.scale_name || item.scale_name,
+            scale_type: item.assessment_info?.scale_type || item.scale_type,
+            scale_name: item.assessment_info?.scale_name || item.scale_name,
+            category: item.category,
+            tags: item.tags,
             rawData: item
           }))
         allBrainwaves.push(...longSequences)
@@ -315,11 +327,41 @@ Page({
         return dateB - dateA
       })
       
+      // 🔧 修复：添加场景过滤逻辑
+      let filteredBrainwaves = allBrainwaves
+      if (this.data.sceneId && allBrainwaves.length > 0) {
+        try {
+          // 使用场景映射服务过滤脑波记录（与脑波库页面保持一致）
+          // 🔧 修复：传递完整的brainwave对象，而不是rawData
+          const brainwaveFilterPromises = allBrainwaves.map(brainwave => 
+            sceneMappingService.isMusicMatchingScene(
+              brainwave,
+              this.data.sceneId,
+              this.data.sceneName
+            )
+          )
+          
+          const matchResults = await Promise.all(brainwaveFilterPromises)
+          filteredBrainwaves = allBrainwaves.filter((brainwave, index) => matchResults[index])
+          
+          console.log(`🎯 场景「${this.data.sceneName}」(ID:${this.data.sceneId})脑波历史过滤:`, {
+            原始数量: allBrainwaves.length,
+            场景相关: filteredBrainwaves.length,
+            过滤结果: filteredBrainwaves.map(item => item.name),
+            映射服务调试: sceneMappingService.getDebugInfo()
+          })
+          
+        } catch (error) {
+          console.error('❌ 场景脑波历史过滤失败，显示所有脑波:', error)
+          // 过滤失败时保持原始数据
+        }
+      }
+      
       this.setData({
-        brainwaveHistory: allBrainwaves.slice(0, 10) // 最多显示10条
+        brainwaveHistory: filteredBrainwaves.slice(0, 10) // 最多显示10条
       })
       
-      console.log(`🧠 场景${this.data.sceneName}脑波历史加载完成:`, allBrainwaves.length)
+      console.log(`🧠 场景${this.data.sceneName}脑波历史加载完成:`, filteredBrainwaves.length)
     } catch (error) {
       console.error('加载脑波历史异常:', error)
       this.setData({ brainwaveHistory: [] })
@@ -788,10 +830,14 @@ Page({
    * 页面卸载时清理资源
    */
   onUnload() {
-    // 清理主题监听器
-    if (wx.$emitter && this.themeChangeHandler) {
-      wx.$emitter.off('themeChanged', this.themeChangeHandler);
-      console.log('🧹 场景详情页面主题监听器已清理');
+    // 清理主题监听器 - 增加安全检查
+    if (wx.$emitter && typeof wx.$emitter.off === 'function' && this.themeChangeHandler) {
+      try {
+        wx.$emitter.off('themeChanged', this.themeChangeHandler);
+        console.log('🧹 场景详情页面主题监听器已清理');
+      } catch (error) {
+        console.error('清理主题监听器失败:', error);
+      }
     }
   }
 })
