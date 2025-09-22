@@ -4,5 +4,8 @@
   "navigationBarTextStyle": "white",
   "backgroundColor": "#f8f9fa",
   "enablePullDownRefresh": true,
-  "onReachBottomDistance": 50
+  "onReachBottomDistance": 50,
+  "usingComponents": {
+    "theme-switcher": "/components/theme-switcher/theme-switcher"
+  }
 }

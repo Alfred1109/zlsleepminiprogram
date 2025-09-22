@@ -8,12 +8,54 @@ Page({
     testResults: [],
     loading: false,
     mappings: null,
-    debugInfo: null
+    debugInfo: null,
+    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null
   },
 
   onLoad() {
     console.log('🧪 场景映射测试页面加载')
+    this.initTheme()
     this.runTests()
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    try {
+      if (!e || !e.detail) return;
+      const { theme, config } = e.detail;
+      if (!theme || !config) return;
+
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+    } catch (error) {
+      console.error('主题切换处理失败:', error);
+    }
   },
 
   /**

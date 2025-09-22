@@ -21,7 +21,11 @@ Page({
     isoPhases: null,
     showPhaseInfo: false,
     // 收藏状态
-    isFavorite: false
+    isFavorite: false,
+    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null
   },
 
   onLoad(options) {
@@ -32,12 +36,50 @@ Page({
       sessionId: parseInt(sessionId)
     })
 
+    this.initTheme()
     this.loadSessionInfo()
   },
 
   onShow() {
     // 页面显示时检查全局播放器状态
     this.updatePlayerState()
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    try {
+      if (!e || !e.detail) return;
+      const { theme, config } = e.detail;
+      if (!theme || !config) return;
+
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+    } catch (error) {
+      console.error('主题切换处理失败:', error);
+    }
   },
 
   onUnload() {

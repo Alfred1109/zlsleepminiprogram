@@ -61,6 +61,17 @@ App({
       console.warn('全局提示拦截注入失败（非致命）:', e)
     }
 
+    // 初始化全局主题（优先读取用户偏好）
+    try {
+      const savedTheme = wx.getStorageSync('user_preferred_theme') || 'default'
+      this.globalData.currentTheme = savedTheme
+      // 兜底：当无详细themeConfig时，至少提供class
+      this.globalData.themeConfig = this.globalData.themeConfig || { class: (savedTheme === 'default' ? '' : savedTheme) }
+      console.log('已加载用户偏好主题:', savedTheme)
+    } catch (e) {
+      console.warn('加载用户偏好主题失败:', e)
+    }
+
     // 真机调试时先完成IP检测，再设置API配置
     await this.initDevelopmentIP()
 

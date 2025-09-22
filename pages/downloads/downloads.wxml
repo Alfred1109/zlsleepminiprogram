@@ -1,5 +1,10 @@
 <!-- pages/downloads/downloads.wxml -->
-<view class="page-container">
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="page-container {{themeClass}}">
   <!-- 页面头部 -->
   <view class="page-header">
     <view class="header-content">

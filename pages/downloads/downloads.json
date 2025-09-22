@@ -4,5 +4,7 @@
   "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "light",
-  "usingComponents": {}
+  "usingComponents": {
+    "theme-switcher": "/components/theme-switcher/theme-switcher"
+  }
 }

@@ -509,7 +509,12 @@
 .calm-mode .white-text,
 .calm-mode [style*="color: white"],
 .calm-mode [style*="color: #fff"],
-.calm-mode [style*="color: #ffffff"] {
+.calm-mode [style*="color: #ffffff"],
+.calm-mode .question-text,
+.calm-mode .page-subtitle,
+.calm-mode .header-subtitle,
+.calm-mode .loading-text,
+.calm-mode text {
   color: #065F46 !important; /* 深绿色 - 对比度7.2:1 */
 }
 
@@ -517,7 +522,12 @@
 .focus-mode .white-text,
 .focus-mode [style*="color: white"],
 .focus-mode [style*="color: #fff"], 
-.focus-mode [style*="color: #ffffff"] {
+.focus-mode [style*="color: #ffffff"],
+.focus-mode .question-text,
+.focus-mode .page-subtitle,
+.focus-mode .header-subtitle,
+.focus-mode .loading-text,
+.focus-mode text {
   color: #4C1D95 !important; /* 深紫色 - 对比度8.1:1 */
 }
 
@@ -525,7 +535,12 @@
 .energy-mode .white-text,
 .energy-mode [style*="color: white"],
 .energy-mode [style*="color: #fff"],
-.energy-mode [style*="color: #ffffff"] {
+.energy-mode [style*="color: #ffffff"],
+.energy-mode .question-text,
+.energy-mode .page-subtitle,
+.energy-mode .header-subtitle,
+.energy-mode .loading-text,
+.energy-mode text {
   color: #9A3412 !important; /* 深橙色 - 对比度6.8:1 */
 }
 
@@ -533,7 +548,12 @@
 .relax-mode .white-text,
 .relax-mode [style*="color: white"],
 .relax-mode [style*="color: #fff"],
-.relax-mode [style*="color: #ffffff"] {
+.relax-mode [style*="color: #ffffff"],
+.relax-mode .question-text,
+.relax-mode .page-subtitle,
+.relax-mode .header-subtitle,
+.relax-mode .loading-text,
+.relax-mode text {
   color: #166534 !important; /* 深绿色 - 对比度7.5:1 */
 }
 
@@ -541,7 +561,12 @@
 .morning-theme .white-text,
 .morning-theme [style*="color: white"],
 .morning-theme [style*="color: #fff"],
-.morning-theme [style*="color: #ffffff"] {
+.morning-theme [style*="color: #ffffff"],
+.morning-theme .question-text,
+.morning-theme .page-subtitle,
+.morning-theme .header-subtitle,
+.morning-theme .loading-text,
+.morning-theme text {
   color: #92400E !important; /* 深棕橙色 - 对比度5.8:1 */
 }
 
@@ -549,7 +574,12 @@
 .evening-theme .white-text,
 .evening-theme [style*="color: white"],
 .evening-theme [style*="color: #fff"],
-.evening-theme [style*="color: #ffffff"] {
+.evening-theme [style*="color: #ffffff"],
+.evening-theme .question-text,
+.evening-theme .page-subtitle,
+.evening-theme .header-subtitle,
+.evening-theme .loading-text,
+.evening-theme text {
   color: #1E1B4B !important; /* 深蓝紫色 - 对比度9.2:1 */
 }
 

@@ -32,16 +32,58 @@ Page({
       { value: 'assessment', label: '评测', icon: '📊' },
       { value: 'sequence', label: '长序列', icon: '🎼' }
     ],
-    typeLabelMap: { all: '全部', music: '音乐', assessment: '评测', sequence: '长序列' }
+    typeLabelMap: { all: '全部', music: '音乐', assessment: '评测', sequence: '长序列' },
+    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null
   },
 
   onLoad() {
+    this.initTheme()
     this.loadFavorites()
   },
 
   onShow() {
     // 每次显示页面时重新加载，确保数据是最新的
     this.loadFavorites()
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    try {
+      if (!e || !e.detail) return;
+      const { theme, config } = e.detail;
+      if (!theme || !config) return;
+
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+    } catch (error) {
+      console.error('主题切换处理失败:', error);
+    }
   },
 
   onPullDownRefresh() {

@@ -1,6 +1,11 @@
 <!--pages/scene-mapping-test/scene-mapping-test.wxml-->
 <!-- 场景映射测试页面 -->
-<view class="page-container">
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="page-container {{themeClass}}">
   <!-- 页面标题 -->
   <view class="page-header">
     <view class="page-title">🧪 场景映射API测试</view>

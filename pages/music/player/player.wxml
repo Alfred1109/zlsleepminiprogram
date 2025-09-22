@@ -1,6 +1,11 @@
 <!--pages/music/player/player.wxml-->
 <!-- 音乐播放器页面 -->
-<view class="page-container">
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="page-container {{themeClass}}">
   <!-- 页面内容 -->
   <view class="page-content">
     <!-- 加载状态 -->
