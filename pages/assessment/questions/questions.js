@@ -14,7 +14,12 @@ Page({
     loading: false,
     submitting: false,
     progress: 0,
-    hasCurrentAnswer: false
+    hasCurrentAnswer: false,
+    
+    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null
   },
 
   onLoad(options) {
@@ -26,6 +31,8 @@ Page({
       scaleName: decodeURIComponent(scaleName || '')
     })
 
+    // 初始化主题
+    this.initTheme()
     this.loadQuestions()
   },
 
@@ -155,6 +162,43 @@ Page({
   updateProgress() {
     const progress = ((this.data.currentQuestionIndex + 1) / this.data.questions.length) * 100
     this.setData({ progress })
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    try {
+      if (!e || !e.detail) return;
+      const { theme, config } = e.detail;
+      if (!theme || !config) return;
+      
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+    } catch (error) {
+      console.error('主题切换处理失败:', error);
+    }
   },
 
   /**

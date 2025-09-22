@@ -9,7 +9,12 @@ Page({
     loading: true,
     // 全局播放器相关
     showGlobalPlayer: false,
-    isPlaying: false
+    isPlaying: false,
+    
+    // 主题相关
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null
   },
 
   // 缓存过滤后的分类，避免重复filter操作
@@ -58,6 +63,9 @@ Page({
 
   onLoad: function (options) {
     console.log('Categories page loaded')
+    
+    // 初始化主题
+    this.initTheme()
     
     // 检查登录状态，未登录时引导用户登录
     if (!AuthService.getCurrentUser()) {
@@ -712,5 +720,42 @@ Page({
         })
       }
     }, 100)
+  },
+
+  /**
+   * 初始化主题
+   */
+  initTheme() {
+    try {
+      const app = getApp();
+      if (app.globalData && app.globalData.currentTheme) {
+        this.setData({
+          currentTheme: app.globalData.currentTheme,
+          themeClass: app.globalData.themeConfig?.class || '',
+          themeConfig: app.globalData.themeConfig
+        });
+      }
+    } catch (error) {
+      console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 主题切换事件处理
+   */
+  onThemeChange(e) {
+    try {
+      if (!e || !e.detail) return;
+      const { theme, config } = e.detail;
+      if (!theme || !config) return;
+      
+      this.setData({
+        currentTheme: theme,
+        themeClass: config.class || '',
+        themeConfig: config
+      });
+    } catch (error) {
+      console.error('主题切换处理失败:', error);
+    }
   }
 })

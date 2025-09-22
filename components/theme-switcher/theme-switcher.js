@@ -248,9 +248,6 @@ Component({
         type: 'medium'
       });
 
-      // 显示切换成功提示
-      this.showThemeChangeToast(theme);
-
       // 触发主题切换事件，通知父组件
       this.triggerEvent('themechange', {
         theme: theme,
@@ -273,52 +270,95 @@ Component({
           app.globalData.themeConfig = themeConfig;
         }
 
-        // 方法2：通过页面实例应用主题
+        // 方法2：通过页面实例应用主题到所有页面
         const pages = getCurrentPages();
-        const currentPage = pages[pages.length - 1];
+        console.log(`🔄 开始应用主题 ${theme} 到 ${pages.length} 个页面`);
 
-        if (currentPage && currentPage.setData) {
-          // 获取所有主题类名
-          const allThemeClasses = Object.values(this.data.themeConfig)
-            .map(config => config.class)
-            .filter(cls => cls);
-
-          // 生成新的主题类名
-          const newThemeClass = themeConfig.class || '';
-          
-          // 更新页面数据，让页面重新渲染
-          currentPage.setData({
-            currentTheme: theme,
-            themeClass: newThemeClass,
-            themeConfig: themeConfig
-          });
-
-          // 如果页面有onThemeChange方法，调用它
-          if (typeof currentPage.onThemeChange === 'function') {
-            currentPage.onThemeChange({
-              detail: {
-                theme: theme,
-                config: themeConfig
+        // 🔧 修复：更新所有已打开的页面，使用更健壮的逻辑
+        pages.forEach((page, index) => {
+          try {
+            if (page && typeof page.setData === 'function') {
+              // 检查页面是否有主题相关的数据字段
+              const pageData = page.data || {};
+              const hasThemeFields = pageData.hasOwnProperty('currentTheme') || 
+                                   pageData.hasOwnProperty('themeClass') ||
+                                   pageData.hasOwnProperty('themeConfig');
+              
+              console.log(`📄 页面 ${index}: ${page.route || 'unknown'}, 有主题字段: ${hasThemeFields}`);
+              
+              if (hasThemeFields) {
+                // 生成新的主题类名
+                const newThemeClass = themeConfig.class || '';
+                
+                // 使用异步setData，添加成功/失败回调
+                const updateData = {
+                  currentTheme: theme,
+                  themeClass: newThemeClass,
+                  themeConfig: themeConfig
+                };
+                
+                page.setData(updateData, () => {
+                  console.log(`✅ 页面 ${page.route || 'unknown'} 主题更新成功: ${theme}`);
+                });
+                
+                // 额外保险：延迟一点再次尝试更新，防止竞态条件
+                setTimeout(() => {
+                  if (page && page.setData) {
+                    page.setData(updateData);
+                  }
+                }, 50);
               }
-            });
-          }
-        }
 
-        // 方法3：通过事件系统通知所有页面
-        wx.$emitter = wx.$emitter || {
-          listeners: {},
-          on(event, callback) {
-            if (!this.listeners[event]) this.listeners[event] = [];
-            this.listeners[event].push(callback);
-          },
-          emit(event, data) {
-            if (this.listeners[event]) {
-              this.listeners[event].forEach(callback => callback(data));
+              // 如果页面有onThemeChange方法，调用它
+              if (typeof page.onThemeChange === 'function') {
+                try {
+                  page.onThemeChange({
+                    detail: {
+                      theme: theme,
+                      config: themeConfig
+                    }
+                  });
+                  console.log(`📞 已调用页面 ${page.route || 'unknown'} 的onThemeChange方法`);
+                } catch (methodError) {
+                  console.warn(`⚠️ 调用页面 ${page.route || 'unknown'} 的onThemeChange失败:`, methodError);
+                }
+              }
+            } else {
+              console.warn(`⚠️ 页面 ${index} 无效或缺少setData方法`);
             }
+          } catch (pageError) {
+            console.error(`❌ 更新页面 ${index} 主题时出错:`, pageError);
           }
-        };
+        });
 
-        wx.$emitter.emit('themeChanged', { theme, config: themeConfig });
+        // 方法3：通过事件系统通知所有页面（异步执行，避免阻塞）
+        setTimeout(() => {
+          try {
+            wx.$emitter = wx.$emitter || {
+              listeners: {},
+              on(event, callback) {
+                if (!this.listeners[event]) this.listeners[event] = [];
+                this.listeners[event].push(callback);
+              },
+              emit(event, data) {
+                if (this.listeners[event]) {
+                  this.listeners[event].forEach(callback => {
+                    try {
+                      callback(data);
+                    } catch (callbackError) {
+                      console.error('主题事件监听器回调错误:', callbackError);
+                    }
+                  });
+                }
+              }
+            };
+
+            wx.$emitter.emit('themeChanged', { theme, config: themeConfig });
+            console.log(`📡 已发送themeChanged事件: ${theme}`);
+          } catch (eventError) {
+            console.error('发送主题事件失败:', eventError);
+          }
+        }, 100);
 
         // 更新全局主题变量
         this.updateGlobalThemeVariables(themeConfig);
