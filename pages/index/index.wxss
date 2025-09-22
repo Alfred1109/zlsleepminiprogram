@@ -228,7 +228,7 @@
 .upgrade-text {
   padding: 12rpx 20rpx;
   background: linear-gradient(135deg, #C0A9BD, #94A7AE);
-  color: #FFFFFF;
+  color: var(--text-primary, #1F2937); /* 使用主题变量，默认深灰色 */
   border-radius: 20rpx;
   font-size: 22rpx;
   font-weight: 600;

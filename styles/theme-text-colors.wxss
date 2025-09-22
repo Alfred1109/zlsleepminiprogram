@@ -1,0 +1,437 @@
+/* ========================================
+   主题文字配色优化系统
+   基于色彩学和可访问性标准的文字颜色定义
+   ======================================== */
+
+/* ========================================
+   通用文字色彩映射
+   ======================================== */
+
+/* 替代白色文字的主题适配色彩 */
+
+/* 平静模式文字颜色 - 蓝绿色调 */
+.calm-mode .text-white,
+.calm-mode .white-text {
+  color: #065F46 !important; /* 深绿色 - 在浅绿背景上清晰可见 */
+}
+
+.calm-mode .text-muted {
+  color: #047857 !important; /* 中绿色 - 优化对比度 */
+}
+
+.calm-mode .page-header-title,
+.calm-mode .btn-primary {
+  color: #FFFFFF !important; /* 在深色背景的头部和按钮保持白色 */
+}
+
+.calm-mode .text-primary {
+  color: #065F46 !important;
+}
+
+.calm-mode .text-secondary {
+  color: #047857 !important; /* 中绿色 */
+}
+
+.calm-mode .text-muted {
+  color: #059669 !important; /* 治愈绿色 */
+}
+
+/* 专注模式文字颜色 - 紫色调 */
+.focus-mode .text-white,
+.focus-mode .white-text {
+  color: #4C1D95 !important; /* 深紫色 - 在浅紫背景上清晰可见 */
+}
+
+.focus-mode .page-header-title,
+.focus-mode .btn-primary {
+  color: #FFFFFF !important; /* 在深色背景的头部和按钮保持白色 */
+}
+
+.focus-mode .text-primary {
+  color: #4C1D95 !important;
+}
+
+.focus-mode .text-secondary {
+  color: #5B21B6 !important; /* 中紫色 */
+}
+
+.focus-mode .text-muted {
+  color: #7C3AED !important; /* 主题紫色 */
+}
+
+/* 活力模式文字颜色 - 橙色调 */
+.energy-mode .text-white,
+.energy-mode .white-text {
+  color: #9A3412 !important; /* 深橙色 - 在浅橙背景上清晰可见 */
+}
+
+.energy-mode .text-muted {
+  color: #C2410C !important; /* 中橙色 - 优化对比度 */
+}
+
+.energy-mode .page-header-title,
+.energy-mode .btn-primary {
+  color: #FFFFFF !important; /* 在深色背景的头部和按钮保持白色 */
+}
+
+.energy-mode .text-primary {
+  color: #9A3412 !important;
+}
+
+.energy-mode .text-secondary {
+  color: #C2410C !important; /* 中橙色 */
+}
+
+.energy-mode .text-muted {
+  color: #EA580C !important; /* 活力橙色 */
+}
+
+/* 放松模式文字颜色 - 绿色调 */
+.relax-mode .text-white,
+.relax-mode .white-text {
+  color: #166534 !important; /* 深绿色 - 在浅绿背景上清晰可见 */
+}
+
+.relax-mode .text-muted {
+  color: #15803D !important; /* 中绿色 - 优化对比度 */
+}
+
+.relax-mode .page-header-title,
+.relax-mode .btn-primary {
+  color: #FFFFFF !important; /* 在深色背景的头部和按钮保持白色 */
+}
+
+.relax-mode .text-primary {
+  color: #166534 !important;
+}
+
+.relax-mode .text-secondary {
+  color: #15803D !important; /* 中绿色 */
+}
+
+.relax-mode .text-muted {
+  color: #22C55E !important; /* 自然绿色 */
+}
+
+/* 晨间主题文字颜色 - 金黄色调 */
+.morning-theme .text-white,
+.morning-theme .white-text {
+  color: #92400E !important; /* 深棕橙色 - 在黄色背景上清晰可见 */
+}
+
+.morning-theme .text-muted {
+  color: #B45309 !important; /* 中棕橙色 - 优化对比度 */
+}
+
+.morning-theme .page-header-title,
+.morning-theme .btn-primary {
+  color: #FFFFFF !important; /* 在深色背景的头部和按钮保持白色 */
+}
+
+.morning-theme .text-primary {
+  color: #92400E !important;
+}
+
+.morning-theme .text-secondary {
+  color: #B45309 !important; /* 中棕橙色 */
+}
+
+.morning-theme .text-muted {
+  color: #D97706 !important; /* 金色 */
+}
+
+/* 暮间主题文字颜色 - 蓝紫色调 */
+.evening-theme .text-white,
+.evening-theme .white-text {
+  color: #1E1B4B !important; /* 深蓝紫色 - 在浅蓝紫背景上清晰可见 */
+}
+
+.evening-theme .page-header-title,
+.evening-theme .btn-primary {
+  color: #FFFFFF !important; /* 在深色背景的头部和按钮保持白色 */
+}
+
+.evening-theme .text-primary {
+  color: #1E1B4B !important;
+}
+
+.evening-theme .text-secondary {
+  color: #312E81 !important; /* 中蓝紫色 */
+}
+
+.evening-theme .text-muted {
+  color: #3730A3 !important; /* 暮光蓝 */
+}
+
+/* 夜间主题文字颜色 - 保持浅色系 */
+.night-theme .text-white,
+.night-theme .white-text {
+  color: #F9FAFB !important; /* 浅灰白色 - 在深色背景上清晰可见 */
+}
+
+.night-theme .text-primary {
+  color: #F9FAFB !important;
+}
+
+.night-theme .text-secondary {
+  color: #E5E7EB !important; /* 浅灰色 */
+}
+
+.night-theme .text-muted {
+  color: #D1D5DB !important; /* 中灰色 */
+}
+
+/* ========================================
+   页面级元素文字颜色优化
+   ======================================== */
+
+/* 页面标题优化 */
+.calm-mode .page-title,
+.calm-mode .section-title {
+  color: #065F46 !important;
+}
+
+.focus-mode .page-title,
+.focus-mode .section-title {
+  color: #4C1D95 !important;
+}
+
+.energy-mode .page-title,
+.energy-mode .section-title {
+  color: #9A3412 !important;
+}
+
+.relax-mode .page-title,
+.relax-mode .section-title {
+  color: #166534 !important;
+}
+
+.morning-theme .page-title,
+.morning-theme .section-title {
+  color: #92400E !important;
+}
+
+.evening-theme .page-title,
+.evening-theme .section-title {
+  color: #1E1B4B !important;
+}
+
+.night-theme .page-title,
+.night-theme .section-title {
+  color: #F9FAFB !important;
+}
+
+/* ========================================
+   组件级文字颜色优化
+   ======================================== */
+
+/* 卡片内容文字 */
+.calm-mode .card-title {
+  color: #065F46 !important;
+}
+
+.calm-mode .card-content {
+  color: #047857 !important;
+}
+
+.focus-mode .card-title {
+  color: #4C1D95 !important;
+}
+
+.focus-mode .card-content {
+  color: #5B21B6 !important;
+}
+
+.energy-mode .card-title {
+  color: #9A3412 !important;
+}
+
+.energy-mode .card-content {
+  color: #C2410C !important;
+}
+
+.relax-mode .card-title {
+  color: #166534 !important;
+}
+
+.relax-mode .card-content {
+  color: #15803D !important;
+}
+
+.morning-theme .card-title {
+  color: #92400E !important;
+}
+
+.morning-theme .card-content {
+  color: #B45309 !important;
+}
+
+.evening-theme .card-title {
+  color: #1E1B4B !important;
+}
+
+.evening-theme .card-content {
+  color: #312E81 !important;
+}
+
+.night-theme .card-title {
+  color: #F9FAFB !important;
+}
+
+.night-theme .card-content {
+  color: #E5E7EB !important;
+}
+
+/* ========================================
+   链接和互动元素文字颜色
+   ======================================== */
+
+/* 链接文字 */
+.calm-mode a,
+.calm-mode .link {
+  color: #10B981 !important;
+}
+
+.focus-mode a,
+.focus-mode .link {
+  color: #8B5CF6 !important;
+}
+
+.energy-mode a,
+.energy-mode .link {
+  color: #F97316 !important;
+}
+
+.relax-mode a,
+.relax-mode .link {
+  color: #22C55E !important;
+}
+
+.morning-theme a,
+.morning-theme .link {
+  color: #F59E0B !important;
+}
+
+.evening-theme a,
+.evening-theme .link {
+  color: #3730A3 !important;
+}
+
+.night-theme a,
+.night-theme .link {
+  color: #93C5FD !important; /* 浅蓝色链接，在深色背景上清晰 */
+}
+
+/* ========================================
+   状态文字颜色
+   ======================================== */
+
+/* 成功状态 - 各主题下的绿色系 */
+.calm-mode .text-success {
+  color: #10B981 !important;
+}
+
+.focus-mode .text-success {
+  color: #059669 !important;
+}
+
+.energy-mode .text-success {
+  color: #16A34A !important;
+}
+
+.relax-mode .text-success {
+  color: #22C55E !important;
+}
+
+.morning-theme .text-success {
+  color: #16A34A !important;
+}
+
+.evening-theme .text-success {
+  color: #059669 !important;
+}
+
+.night-theme .text-success {
+  color: #34D399 !important; /* 浅绿色，在深色背景上清晰 */
+}
+
+/* 警告状态 - 各主题下的黄橙色系 */
+.calm-mode .text-warning {
+  color: #D97706 !important;
+}
+
+.focus-mode .text-warning {
+  color: #F59E0B !important;
+}
+
+.energy-mode .text-warning {
+  color: #EA580C !important;
+}
+
+.relax-mode .text-warning {
+  color: #D97706 !important;
+}
+
+.morning-theme .text-warning {
+  color: #B45309 !important;
+}
+
+.evening-theme .text-warning {
+  color: #F59E0B !important;
+}
+
+.night-theme .text-warning {
+  color: #FBBF24 !important; /* 浅黄色，在深色背景上清晰 */
+}
+
+/* 错误状态 - 各主题下的红色系 */
+.calm-mode .text-error {
+  color: #DC2626 !important;
+}
+
+.focus-mode .text-error {
+  color: #DC2626 !important;
+}
+
+.energy-mode .text-error {
+  color: #B91C1C !important;
+}
+
+.relax-mode .text-error {
+  color: #DC2626 !important;
+}
+
+.morning-theme .text-error {
+  color: #B91C1C !important;
+}
+
+.evening-theme .text-error {
+  color: #DC2626 !important;
+}
+
+.night-theme .text-error {
+  color: #F87171 !important; /* 浅红色，在深色背景上清晰 */
+}
+
+/* ========================================
+   品牌元素文字颜色保持
+   ======================================== */
+
+/* 品牌橙色在所有主题下保持一致性 */
+.text-brand {
+  color: #FF6B35 !important;
+}
+
+/* Logo文字在浅色主题下使用深色，在深色主题下使用浅色 */
+.night-theme .logo-text {
+  color: #F9FAFB !important;
+}
+
+.calm-mode .logo-text,
+.focus-mode .logo-text,
+.energy-mode .logo-text,
+.relax-mode .logo-text,
+.morning-theme .logo-text,
+.evening-theme .logo-text {
+  color: #1F2937 !important; /* 深灰色，在所有浅色背景上清晰可见 */
+}

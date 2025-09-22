@@ -222,25 +222,25 @@ page {
 
 .btn-primary {
   background-color: #C0A9BD; /* 主强调色 */
-  color: white;
+  color: #FFFFFF; /* 保持按钮白色文字，因为按钮本身有深色背景 */
   box-shadow: 0 4rpx 12rpx rgba(192, 169, 189, 0.3);
 }
 
 .btn-brand {
   background-color: #FF6B35; /* 品牌橙色按钮 */
-  color: white;
+  color: #FFFFFF; /* 保持按钮白色文字，因为按钮本身有深色背景 */
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 }
 
 .btn-brand-light {
   background-color: #FF8B5A; /* 浅橙色按钮 */
-  color: white;
+  color: #FFFFFF; /* 保持按钮白色文字，因为按钮本身有深色背景 */
   box-shadow: 0 4rpx 12rpx rgba(255, 139, 90, 0.3);
 }
 
 .btn-brand-dark {
   background-color: #E5602F; /* 深橙色按钮 */
-  color: white;
+  color: #FFFFFF; /* 保持按钮白色文字，因为按钮本身有深色背景 */
   box-shadow: 0 4rpx 12rpx rgba(229, 96, 47, 0.3);
 }
 
@@ -253,13 +253,13 @@ page {
 
 .btn-healing {
   background-color: #7DD3C0; /* 治愈绿色按钮 */
-  color: white;
+  color: #FFFFFF; /* 保持按钮白色文字，因为按钮本身有深色背景 */
   box-shadow: 0 4rpx 12rpx rgba(125, 211, 192, 0.3);
 }
 
 .btn-nature {
   background-color: #85B797; /* 自然绿色按钮 */
-  color: white;
+  color: #FFFFFF; /* 保持按钮白色文字，因为按钮本身有深色背景 */
   box-shadow: 0 4rpx 12rpx rgba(133, 183, 151, 0.3);
 }
 
@@ -326,7 +326,7 @@ page {
 .page-header-title {
   font-size: 48rpx;
   font-weight: 700;
-  color: white;
+  color: #FFFFFF; /* 保持按钮白色文字，因为按钮本身有深色背景 */
 }
 .page-header-subtitle {
   font-size: 28rpx;

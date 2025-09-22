@@ -13,6 +13,8 @@
   --secondary-bg: #F0FDF4;       /* 极浅绿色背景 */
   --accent-color: #14B8A6;       /* 青绿强调色 */
   --text-primary: #065F46;       /* 深绿色文字 */
+  --text-secondary: #047857;     /* 中绿色文字 */
+  --text-muted: #047857;         /* 辅助绿色文字 - 优化对比度 */
   --button-primary: #10B981;     /* 平静绿按钮 */
 }
 
@@ -136,6 +138,8 @@
   --secondary-bg: #F3F0F9;       /* 淡紫背景 */
   --accent-color: #7C3AED;       /* 深紫强调色 */
   --text-primary: #4C1D95;       /* 深紫色文字 */
+  --text-secondary: #5B21B6;     /* 中紫色文字 */
+  --text-muted: #7C3AED;         /* 辅助紫色文字 */
   --button-primary: #8B5CF6;     /* 紫色按钮 */
 }
 
@@ -259,6 +263,8 @@
   --secondary-bg: #FFFBEB;       /* 淡黄背景 */
   --accent-color: #EA580C;       /* 活力橙强调色 */
   --text-primary: #9A3412;       /* 深橙色文字 */
+  --text-secondary: #C2410C;     /* 中橙色文字 */
+  --text-muted: #EA580C;         /* 辅助橙色文字 */
   --button-primary: #F97316;     /* 活力橙按钮 */
 }
 
@@ -382,6 +388,8 @@
   --secondary-bg: #ECFDF5;       /* 淡绿背景 */
   --accent-color: #22C55E;       /* 自然绿强调色 */
   --text-primary: #166534;       /* 深绿色文字 */
+  --text-secondary: #15803D;     /* 中绿色文字 */
+  --text-muted: #22C55E;         /* 辅助绿色文字 */
   --button-primary: #16A34A;     /* 自然绿按钮 */
 }
 
@@ -508,6 +516,9 @@
   --bg-gradient: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FBBF24 100%);
   --primary-tint: #FFF8E1;      /* 晨光黄 */
   --accent-warm: #F59E0B;       /* 金色强调 */
+  --text-primary: #92400E;      /* 深棕橙色文字 */
+  --text-secondary: #B45309;    /* 中棕橙色文字 */
+  --text-muted: #D97706;        /* 辅助金色文字 */
 }
 
 .morning-theme .container {
@@ -634,6 +645,9 @@
   --bg-gradient: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 50%, #A5B4FC 100%);
   --primary-tint: #E8EAF6;      /* 暮光蓝 */
   --accent-cool: #3730A3;       /* 深蓝强调 */
+  --text-primary: #1E1B4B;      /* 深蓝紫色文字 */
+  --text-secondary: #312E81;    /* 中蓝紫色文字 */
+  --text-muted: #3730A3;        /* 辅助暮光蓝文字 */
 }
 
 .evening-theme .container {
@@ -757,6 +771,8 @@
   --bg-primary: #1F2937;        /* 深夜背景 */
   --bg-secondary: #111827;      /* 更深背景 */
   --text-primary: #F9FAFB;      /* 浅色文字 */
+  --text-secondary: #E5E7EB;    /* 次要文字 */
+  --text-muted: #D1D5DB;        /* 辅助文字 */
   --accent-dim: #6366F1;        /* 柔和紫蓝 */
 }
 

@@ -21,7 +21,7 @@
 .page-header-title {
   font-size: 48rpx;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-primary, #1F2937); /* 使用主题变量，默认深灰色 */
   margin-bottom: 16rpx;
   position: relative;
   z-index: 2;
@@ -78,7 +78,7 @@
 }
 
 .tab-item.active .tab-text {
-  color: #FFFFFF;
+  color: var(--text-primary, #1F2937); /* 使用主题变量，默认深灰色 */
   font-weight: 600;
 }
 
@@ -663,7 +663,7 @@
   flex: 1;
   padding: 16rpx 24rpx;
   /* 背景由主题系统控制，移除硬编码颜色 */
-  color: #FFFFFF;
+  color: var(--text-primary, #1F2937); /* 使用主题变量，默认深灰色 */
   border: none;
   border-radius: 24rpx;
   transition: background 0.3s ease;

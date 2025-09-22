@@ -4,7 +4,7 @@
 /* 个人资料头部 - 使用主题背景，支持动态切换 */
 .profile-header {
   /* 背景由主题系统控制，移除硬编码颜色 */
-  color: #FFFFFF;
+  color: var(--text-primary, #1F2937); /* 使用主题变量，默认深灰色 */
   padding: 50rpx 30rpx 30rpx;
   position: relative;
   transition: background 0.3s ease;
@@ -336,7 +336,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--text-primary, #1F2937); /* 使用主题变量，默认深灰色 */
 }
 
 .list-container {

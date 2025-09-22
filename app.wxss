@@ -1,3 +1,4 @@
 /**app.wxss**/
 @import "/styles/main.wxss";
 @import "/styles/healing-themes.wxss";
+@import "/styles/theme-text-colors.wxss";
