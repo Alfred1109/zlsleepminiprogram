@@ -67,6 +67,9 @@ Page({
   },
 
   onShow() {
+    // 🔧 强制刷新主题状态，解决跨页面同步问题
+    this.forceRefreshTheme()
+    
     // 重新检查登录状态
     this.checkLoginAndLoadData()
   },
@@ -507,16 +510,98 @@ Page({
    */
   initTheme() {
     try {
-      const app = getApp();
-      if (app.globalData && app.globalData.currentTheme) {
-        this.setData({
-          currentTheme: app.globalData.currentTheme,
-          themeClass: app.globalData.themeConfig?.class || '',
-          themeConfig: app.globalData.themeConfig
-        });
+      // 从全局数据获取当前主题
+      const app = getApp()
+      const currentTheme = app.globalData.currentTheme || 'default'
+      const themeConfig = app.globalData.themeConfig
+      
+      this.setData({
+        currentTheme: currentTheme,
+        themeClass: themeConfig?.class || '',
+        themeConfig: themeConfig
+      })
+
+      // 初始化事件总线
+      wx.$emitter = wx.$emitter || {
+        listeners: {},
+        on(event, callback) {
+          if (!this.listeners[event]) this.listeners[event] = [];
+          this.listeners[event].push(callback);
+        },
+        off(event, callback) {
+          if (this.listeners[event]) {
+            const index = this.listeners[event].indexOf(callback);
+            if (index > -1) {
+              this.listeners[event].splice(index, 1);
+            }
+          }
+        },
+        emit(event, data) {
+          if (this.listeners[event]) {
+            this.listeners[event].forEach(callback => {
+              try {
+                callback(data);
+              } catch (error) {
+                console.error('主题监听器执行失败:', error);
+              }
+            });
+          }
+        }
+      };
+
+      // 注册全局主题变化监听器
+      this.themeChangeHandler = (data) => {
+        if (data && data.theme && data.config) {
+          this.setData({
+            currentTheme: data.theme,
+            themeClass: data.config?.class || '',
+            themeConfig: data.config
+          })
+          console.log('🎨 场景详情页面主题已更新:', data.theme)
+        }
       }
+
+      wx.$emitter.on('themeChanged', this.themeChangeHandler)
+      console.log('✅ 场景详情页面主题监听器已注册')
+
     } catch (error) {
       console.error('初始化主题失败:', error);
+    }
+  },
+
+  /**
+   * 🔧 强制刷新主题状态（用于解决跨页面同步问题）
+   */
+  forceRefreshTheme() {
+    try {
+      const app = getApp()
+      
+      // 强制从Storage读取用户偏好（防止内存状态过期）
+      const savedTheme = wx.getStorageSync('user_preferred_theme') || 'default'
+      const currentTheme = app.globalData.currentTheme || savedTheme
+      const themeConfig = app.globalData.themeConfig
+      
+      // 如果发现不一致，以Storage为准并更新全局状态
+      if (app.globalData.currentTheme !== savedTheme) {
+        console.log('🔄 场景详情页面检测到主题不同步，强制更新:', savedTheme)
+        app.globalData.currentTheme = savedTheme
+      }
+      
+      this.setData({
+        currentTheme: currentTheme,
+        themeClass: themeConfig?.class || (currentTheme === 'default' ? '' : currentTheme),
+        themeConfig: themeConfig || { class: (currentTheme === 'default' ? '' : currentTheme) }
+      })
+      
+      console.log('🎨 场景详情页面主题强制同步完成:', currentTheme)
+    } catch (error) {
+      console.error('场景详情页面强制主题刷新失败:', error)
+      // 兜底：使用默认主题
+      this.setData({
+        currentTheme: 'default',
+        themeClass: '',
+        themeConfig: { class: '' }
+      })
     }
   },
 
@@ -696,6 +781,17 @@ Page({
       title: `AI疗愈 - ${this.data.sceneName}`,
       path: `/pages/scene/detail/detail?sceneId=${this.data.sceneId}&sceneName=${encodeURIComponent(this.data.sceneName)}&scaleType=${this.data.scaleType}&sceneTheme=${encodeURIComponent(this.data.sceneTheme)}`,
       imageUrl: '/images/share-scene.png'
+    }
+  },
+
+  /**
+   * 页面卸载时清理资源
+   */
+  onUnload() {
+    // 清理主题监听器
+    if (wx.$emitter && this.themeChangeHandler) {
+      wx.$emitter.off('themeChanged', this.themeChangeHandler);
+      console.log('🧹 场景详情页面主题监听器已清理');
     }
   }
 })

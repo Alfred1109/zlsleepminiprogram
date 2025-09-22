@@ -430,7 +430,51 @@ App({
     // 新增：主题切换系统
     currentTheme: 'default',
     themeConfig: null,
-    themeListeners: []
+    themeListeners: [],
+    
+    // 全局主题广播方法
+    broadcastThemeChange: function(theme, config) {
+      console.log('🎨 广播主题变更:', theme)
+      
+      // 更新所有已打开的页面
+      const pages = getCurrentPages()
+      pages.forEach(page => {
+        if (page && page.setData && page.data) {
+          const hasThemeFields = page.data.hasOwnProperty('currentTheme') || 
+                                page.data.hasOwnProperty('themeClass') ||
+                                page.data.hasOwnProperty('themeConfig')
+          
+          if (hasThemeFields) {
+            page.setData({
+              currentTheme: theme,
+              themeClass: config?.class || '',
+              themeConfig: config
+            })
+            console.log('✅ 已更新页面主题:', page.route || 'unknown')
+          }
+        }
+      })
+      
+      // 通过事件总线通知
+      if (typeof wx !== 'undefined') {
+        wx.$emitter = wx.$emitter || {
+          listeners: {},
+          on(event, callback) {
+            if (!this.listeners[event]) this.listeners[event] = [];
+            this.listeners[event].push(callback);
+          },
+          emit(event, data) {
+            if (this.listeners[event]) {
+              this.listeners[event].forEach(callback => {
+                try { callback(data); } catch (e) { console.error('主题事件错误:', e); }
+              });
+            }
+          }
+        }
+        
+        wx.$emitter.emit('themeChanged', { theme, config })
+      }
+    }
   },
 
   /**

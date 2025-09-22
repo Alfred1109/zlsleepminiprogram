@@ -110,8 +110,8 @@ Page({
   },
   
   onShow: function() {
-    // 刷新主题状态
-    this.refreshTheme()
+    // 🔧 强制刷新主题状态，解决跨页面同步问题
+    this.forceRefreshTheme()
     
     // 延迟检查登录状态，避免App实例未初始化的问题
     setTimeout(() => {
@@ -2074,6 +2074,42 @@ Page({
       })
     } catch (error) {
       console.error('主题刷新失败:', error)
+    }
+  },
+
+  /**
+   * 🔧 强制刷新主题状态（用于解决跨页面同步问题）
+   */
+  forceRefreshTheme() {
+    try {
+      const app = getApp()
+      
+      // 强制从Storage读取用户偏好（防止内存状态过期）
+      const savedTheme = wx.getStorageSync('user_preferred_theme') || 'default'
+      const currentTheme = app.globalData.currentTheme || savedTheme
+      const themeConfig = app.globalData.themeConfig
+      
+      // 如果发现不一致，以Storage为准并更新全局状态
+      if (app.globalData.currentTheme !== savedTheme) {
+        console.log('🔄 检测到主题不同步，强制更新:', savedTheme)
+        app.globalData.currentTheme = savedTheme
+      }
+      
+      this.setData({
+        currentTheme: currentTheme,
+        themeClass: themeConfig?.class || (currentTheme === 'default' ? '' : currentTheme),
+        themeConfig: themeConfig || { class: (currentTheme === 'default' ? '' : currentTheme) }
+      })
+      
+      console.log('🎨 首页主题强制同步完成:', currentTheme)
+    } catch (error) {
+      console.error('强制主题刷新失败:', error)
+      // 兜底：使用默认主题
+      this.setData({
+        currentTheme: 'default',
+        themeClass: '',
+        themeConfig: { class: '' }
+      })
     }
   },
 
