@@ -284,8 +284,20 @@ Page({
       
       if (result.success) {
         console.log(`✅ 成功获取${result.data.length}条评测历史`)
+        
+        // 🔧 修复：过滤掉无效的评测ID（防止传递不存在的评测ID到后端）
+        const validAssessments = (result.data || []).filter(item => {
+          const isValid = item && item.id && typeof item.id === 'number' && item.id > 0
+          if (!isValid) {
+            console.warn('⚠️ 发现无效评测记录，已过滤:', item)
+          }
+          return isValid
+        })
+
+        console.log(`🔍 评测ID有效性验证完成，有效记录数: ${validAssessments.length}`)
+        
         this.setData({
-          recentAssessments: result.data.slice(0, 3) // 只显示最近3条
+          recentAssessments: validAssessments.slice(0, 3) // 只显示最近3条
         })
       } else {
         console.log('❌ API返回失败:', result.error)

@@ -128,11 +128,33 @@ const MusicAPI = {
    * @param {object} options.sceneContext - 场景上下文信息
    */
   generateMusic(assessmentId, options = {}) {
+    // 🔧 修复：验证主评测ID的有效性
+    if (!assessmentId || typeof assessmentId !== 'number' || assessmentId <= 0) {
+      console.error('❌ 无效的主评测ID:', assessmentId)
+      return Promise.reject(new Error(`无效的评测ID: ${assessmentId}`))
+    }
+
     const requestData = { assessment_id: assessmentId }
     
     // 如果有多选参数，添加综合生成相关字段
     if (options.additionalAssessments && options.additionalAssessments.length > 0) {
-      requestData.assessment_ids = [assessmentId, ...options.additionalAssessments]
+      // 🔧 修复：验证额外评测ID的有效性
+      const validAdditionalAssessments = options.additionalAssessments.filter(id => {
+        const isValid = id && typeof id === 'number' && id > 0
+        if (!isValid) {
+          console.warn('⚠️ 过滤无效的额外评测ID:', id)
+        }
+        return isValid
+      })
+
+      if (validAdditionalAssessments.length === 0) {
+        console.warn('⚠️ 所有额外评测ID都无效，切换到单一生成模式')
+        // 如果所有额外评测ID都无效，则切换到单一生成模式
+        console.log('🎵 发送单一音乐生成请求（额外ID无效）:', assessmentId)
+        return post('/music/generate', requestData)
+      }
+
+      requestData.assessment_ids = [assessmentId, ...validAdditionalAssessments]
       requestData.generation_mode = options.mode || 'comprehensive'
       
       if (options.sceneContext) {
@@ -372,6 +394,12 @@ const LongSequenceAPI = {
    * @param {object} options.sceneContext - 场景上下文信息
    */
   createLongSequence(assessmentId, durationMinutes = 30, options = {}) {
+    // 🔧 修复：验证主评测ID的有效性
+    if (!assessmentId || typeof assessmentId !== 'number' || assessmentId <= 0) {
+      console.error('❌ 无效的主评测ID:', assessmentId)
+      return Promise.reject(new Error(`无效的评测ID: ${assessmentId}`))
+    }
+
     const requestData = {
       assessment_id: assessmentId,
       duration_minutes: durationMinutes
@@ -379,7 +407,23 @@ const LongSequenceAPI = {
     
     // 如果有多选参数，添加综合生成相关字段
     if (options.additionalAssessments && options.additionalAssessments.length > 0) {
-      requestData.assessment_ids = [assessmentId, ...options.additionalAssessments]
+      // 🔧 修复：验证额外评测ID的有效性
+      const validAdditionalAssessments = options.additionalAssessments.filter(id => {
+        const isValid = id && typeof id === 'number' && id > 0
+        if (!isValid) {
+          console.warn('⚠️ 过滤无效的额外评测ID:', id)
+        }
+        return isValid
+      })
+
+      if (validAdditionalAssessments.length === 0) {
+        console.warn('⚠️ 所有额外评测ID都无效，切换到单一生成模式')
+        // 如果所有额外评测ID都无效，则切换到单一生成模式
+        console.log('🎶 发送单一长序列创建请求（额外ID无效）:', assessmentId, durationMinutes)
+        return post('/music/create_long_sequence', requestData)
+      }
+
+      requestData.assessment_ids = [assessmentId, ...validAdditionalAssessments]
       requestData.generation_mode = options.mode || 'comprehensive'
       
       if (options.sceneContext) {

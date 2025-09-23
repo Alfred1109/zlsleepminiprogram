@@ -151,6 +151,17 @@ Page({
         // 后端已经只返回已完成的评测，无需再次过滤
         let completedAssessments = result.data || []
 
+        // 🔧 修复：过滤掉无效的评测ID（防止传递不存在的评测ID到后端）
+        completedAssessments = completedAssessments.filter(item => {
+          const isValid = item && item.id && typeof item.id === 'number' && item.id > 0
+          if (!isValid) {
+            console.warn('⚠️ 发现无效评测记录，已过滤:', item)
+          }
+          return isValid
+        })
+
+        console.log(`🔍 评测ID有效性验证完成，有效记录数: ${completedAssessments.length}`)
+
         // 使用场景映射服务过滤评测记录（与其他页面保持一致）
         const { sceneContext, isInSceneMode } = this.data
         if (isInSceneMode && sceneContext) {

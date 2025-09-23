@@ -184,8 +184,19 @@ Page({
       const result = await AssessmentAPI.getHistory(userId)
       
       if (result.success && result.data) {
+        // 🔧 修复：过滤掉无效的评测ID（防止传递不存在的评测ID到后端）
+        let validAssessments = result.data.filter(item => {
+          const isValid = item && item.id && typeof item.id === 'number' && item.id > 0
+          if (!isValid) {
+            console.warn('⚠️ 发现无效评测记录，已过滤:', item)
+          }
+          return isValid
+        })
+
+        console.log(`🔍 评测ID有效性验证完成，有效记录数: ${validAssessments.length}`)
+
         // 过滤与当前场景相关的评测记录
-        let filteredAssessments = result.data.filter(item => item.status === 'completed')
+        let filteredAssessments = validAssessments.filter(item => item.status === 'completed')
         
         // 使用场景映射服务过滤评测记录（与评测页面保持一致）
         if (this.data.sceneId) {
