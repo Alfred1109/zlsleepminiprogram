@@ -20,7 +20,7 @@ class QiniuManagerUnified {
       console.log('七牛云统一管理器初始化，API地址:', this.apiBase);
     } catch (e) {
       console.error('获取API地址失败:', e);
-      this.apiBase = 'https://medsleep.cn/api';
+      this.apiBase = 'https://medsleep.cn';
     }
   }
 

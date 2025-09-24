@@ -49,14 +49,14 @@
         <view wx:if="{{filteredScales.length > 0}}" class="list-container">
           <view
             wx:for="{{filteredScales}}"
-            wx:key="id"
+            wx:key="scale_id"
             class="list-item"
             data-scale="{{item}}"
             bindtap="onStartAssessment"
           >
             <view class="list-item-icon">{{item.icon}}</view>
             <view class="list-item-content">
-              <view class="list-item-title">{{item.name}}</view>
+              <view class="list-item-title">{{item.scale_name || '心理评测'}}</view>
               <view class="list-item-subtitle">{{item.scale_type}}</view>
               <view class="card-content">{{item.description}}</view>
               <view class="list-item-meta">
@@ -94,7 +94,7 @@
         <view class="list-container">
           <view
             wx:for="{{recentAssessments}}"
-            wx:key="id"
+            wx:key="scale_id"
             class="recent-item"
             data-assessment="{{item}}"
             bindtap="onViewResult"

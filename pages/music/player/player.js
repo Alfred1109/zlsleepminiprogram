@@ -185,7 +185,7 @@ Page({
   loadWaveformData(path) {
     let waveformUrl = path
     if (waveformUrl && !waveformUrl.startsWith('http')) {
-      const baseUrl = (app.globalData.apiBaseUrl || 'https://medsleep.cn/api').replace('/api', '')
+      const baseUrl = (app.globalData.apiBaseUrl || 'https://medsleep.cn').replace('/api', '')
       waveformUrl = baseUrl + (waveformUrl.startsWith('/') ? '' : '/') + waveformUrl
     }
     
@@ -222,7 +222,7 @@ Page({
     let audioUrl = audioSource
     if (audioUrl.indexOf('/') === 0) {
       // 如果是相对路径，使用静态资源基础URL而不是API基础URL
-      const baseUrl = (app.globalData.apiBaseUrl || 'https://medsleep.cn/api').replace('/api', '')
+      const baseUrl = (app.globalData.apiBaseUrl || 'https://medsleep.cn').replace('/api', '')
       audioUrl = baseUrl + audioUrl
     }
 

@@ -103,28 +103,38 @@ Page({
         this.addTestResult(`- 错误信息: ${mappingsResult.error || mappingsResult.message || '未知错误'}`)
       }
 
-      // 测试获取场景量表类型接口
+      // 测试新的统一场景接口
       try {
-        const scaleTypesResult = await SceneMappingAPI.getScaleTypesByScene(1)
-        this.addTestResult(`- /scene/1/scale-types 调用: ${scaleTypesResult.success ? '✅ 成功' : '❌ 失败'}`)
+        const sceneDetailResult = await SceneMappingAPI.getSceneDetail(1)
+        this.addTestResult(`- /api/scene/1 调用: ${sceneDetailResult.success ? '✅ 成功' : '❌ 失败'}`)
         
-        if (scaleTypesResult.success) {
-          this.addTestResult(`- 场景1对应量表: ${JSON.stringify(scaleTypesResult.data)}`)
+        if (sceneDetailResult.success) {
+          const { assessment_scales, music_categories } = sceneDetailResult.data
+          this.addTestResult(`- 场景1对应量表 (${assessment_scales?.length || 0}个): ${JSON.stringify(assessment_scales?.map(s => s.scale_name) || [])}`)
+          this.addTestResult(`- 场景1对应音乐 (${music_categories?.length || 0}个): ${JSON.stringify(music_categories?.map(c => c.category_name) || [])}`)
         }
       } catch (error) {
-        this.addTestResult(`- /scene/1/scale-types 调用: ❌ 失败 (${error.message})`)
+        this.addTestResult(`- /api/scene/1 调用: ❌ 失败 (${error.message})`)
       }
 
-      // 测试获取场景音乐类型接口
+      // 测试场景代码调用
       try {
-        const musicTypesResult = await SceneMappingAPI.getMusicTypesByScene(1)
-        this.addTestResult(`- /scene/1/music-types 调用: ${musicTypesResult.success ? '✅ 成功' : '❌ 失败'}`)
+        const sceneCodeResult = await SceneMappingAPI.getSceneDetail('sleep')
+        this.addTestResult(`- /api/scene/sleep 调用: ${sceneCodeResult.success ? '✅ 成功' : '❌ 失败'}`)
         
-        if (musicTypesResult.success) {
-          this.addTestResult(`- 场景1对应音乐: ${JSON.stringify(musicTypesResult.data)}`)
+        if (sceneCodeResult.success) {
+          this.addTestResult(`- 场景代码调用成功: ${sceneCodeResult.data.name}`)
         }
       } catch (error) {
-        this.addTestResult(`- /scene/1/music-types 调用: ❌ 失败 (${error.message})`)
+        this.addTestResult(`- /api/scene/sleep 调用: ❌ 失败 (${error.message})`)
+      }
+
+      // 测试废弃接口（应该返回404或警告）
+      try {
+        const deprecatedResult = await SceneMappingAPI.getScaleTypesByScene(1)
+        this.addTestResult(`- 废弃接口测试 (/scene/1/scale-types): ${deprecatedResult.success ? '⚠️ 意外成功（应该废弃）' : '✅ 正常废弃'}`)
+      } catch (error) {
+        this.addTestResult(`- 废弃接口测试: ✅ 正常废弃 (${error.message})`)
       }
 
     } catch (error) {
@@ -133,10 +143,10 @@ Page({
   },
 
   /**
-   * 测试2: 映射服务功能
+   * 测试2: 映射服务功能（更新到新字段）
    */
   async testMappingService() {
-    this.addTestResult('\n📋 测试2: 场景映射服务')
+    this.addTestResult('\n📋 测试2: 场景映射服务（新字段测试）')
     
     try {
       // 获取映射关系
@@ -281,3 +291,4 @@ Page({
     }
   }
 })
+

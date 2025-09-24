@@ -106,7 +106,7 @@ Page({
     })
 
     api.request({
-      url: '/play-records/recent',
+      url: '/api/play-records/recent',
       method: 'GET',
       data: {
         limit: 100,  // 增加到100条记录

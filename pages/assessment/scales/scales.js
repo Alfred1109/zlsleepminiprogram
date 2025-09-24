@@ -107,8 +107,21 @@ Page({
     }
     
     try {
+      // 🔧 修复：添加数据验证，确保所有量表对象都有必要的字段
+        const validScales = scales.filter(scale => {
+        const hasRequiredFields = scale && 
+          scale.scale_name &&
+          typeof scale === 'object'
+        
+        if (!hasRequiredFields) {
+          console.warn('⚠️ 发现缺少必要字段的量表记录，已跳过场景匹配:', scale)
+        }
+        
+        return hasRequiredFields
+      })
+      
       // 使用映射服务过滤量表
-      const filteredPromises = scales.map(scale => 
+      const filteredPromises = validScales.map(scale => 
         sceneMappingService.isScaleMatchingScene(
           scale, 
           sceneContext.sceneId, 
@@ -117,14 +130,15 @@ Page({
       )
       
       const matchResults = await Promise.all(filteredPromises)
-      const filtered = scales.filter((scale, index) => matchResults[index])
+      const filtered = validScales.filter((scale, index) => matchResults[index])
       
       this.setData({ filteredScales: filtered })
       
       console.log(`🎯 场景「${sceneContext.sceneName}」(ID:${sceneContext.sceneId})过滤后显示量表:`, {
         原始数量: scales.length,
+        验证后数量: validScales.length,
         过滤后数量: filtered.length,
-        过滤结果: filtered.map(s => s.name),
+        过滤结果: filtered.map(s => s.scale_name),
         映射服务调试: sceneMappingService.getDebugInfo()
       })
       
@@ -385,6 +399,9 @@ Page({
   onStartAssessment(e) {
     const { scale } = e.currentTarget.dataset
     
+    // 🔧 修复：使用统一的字段名称
+    const scaleName = scale.scale_name || '心理评测'
+    
     // 检查登录状态，未登录时引导用户登录
     if (!this.data.userInfo) {
       wx.showModal({
@@ -407,13 +424,13 @@ Page({
     // 显示确认对话框
     wx.showModal({
       title: '开始评测',
-      content: `即将开始"${scale.name}"评测，预计需要${scale.estimatedTime}。请在安静的环境中认真作答。`,
+      content: `即将开始"${scaleName}"评测，预计需要${scale.estimatedTime}。请在安静的环境中认真作答。`,
       confirmText: '开始',
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
           wx.navigateTo({
-            url: `/pages/assessment/questions/questions?scaleId=${scale.id}&scaleName=${encodeURIComponent(scale.name)}`
+            url: `/pages/assessment/questions/questions?scaleId=${scale.scale_id}&scaleName=${encodeURIComponent(scaleName)}`
           })
         }
       }

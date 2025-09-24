@@ -16,10 +16,10 @@ class SceneMappingService {
    * 获取所有场景映射关系
    * @returns {Promise<Object>} 映射关系数据
    */
-  async getMappings() {
+  async getMappings(forceRefresh = false) {
     try {
-      // 检查缓存是否有效
-      if (this.mappings && this.lastFetchTime && 
+      // 检查缓存是否有效（除非强制刷新）
+      if (!forceRefresh && this.mappings && this.lastFetchTime && 
           (Date.now() - this.lastFetchTime < this.cacheExpiration)) {
         console.log('🎯 使用缓存的场景映射关系')
         return this.mappings
@@ -27,8 +27,24 @@ class SceneMappingService {
 
       console.log('🔄 从后端获取场景映射关系...')
       
-      // 尝试从后端获取映射关系
-      const result = await get('/scene/mappings')
+      // 🔧 修复：直接使用专门的映射接口，这是正确的架构设计
+      let result
+      try {
+        // 优先使用专门的映射接口（这个接口就是为映射关系设计的）
+        result = await get('/api/scene/mappings')
+        console.log('✅ 使用专门的映射接口获取数据成功')
+      } catch (mappingApiError) {
+        console.log('🔄 映射接口失败，尝试兼容旧路径:', mappingApiError.message)
+        try {
+          // 兼容旧路径
+          result = await get('/scene/mappings')
+          console.log('✅ 使用兼容路径获取数据成功')
+        } catch (legacyApiError) {
+          console.log('🔄 所有映射接口都失败，尝试从场景列表重建映射:', legacyApiError.message)
+          // 最后的备选方案：从场景列表重建映射（需要调用详情接口）
+          result = await this.buildMappingsFromSceneList()
+        }
+      }
       
       if (result.success && result.data) {
         this.mappings = result.data
@@ -127,7 +143,11 @@ class SceneMappingService {
    * @returns {Promise<boolean>} 是否匹配
    */
   async isScaleMatchingScene(scale, sceneId, sceneName = null) {
-    if (!scale || (!sceneId && !sceneName)) return true
+    // 🔧 修复：增强数据验证，确保 scale 对象有效
+    if (!scale || typeof scale !== 'object' || (!sceneId && !sceneName)) {
+      console.warn('⚠️ 无效的量表对象或场景参数:', { scale, sceneId, sceneName })
+      return true
+    }
 
     try {
       const mappings = await this.getMappings()
@@ -146,9 +166,15 @@ class SceneMappingService {
         return false
       }
 
-      // 检查量表是否在映射列表中（优先使用name进行匹配，因为scale_type都是"international"）
-      const scaleName = scale.name || scale.scale_name || scale.type || scale.scale_type
-      const scaleType = scale.scale_type || scale.type
+      // 🔧 修复：使用统一的字段名称
+      const scaleName = scale.scale_name
+      const scaleType = scale.scale_type
+      
+      // 🔧 修复：增加数据验证，确保提取到有效的量表信息
+      if (!scaleName) {
+        console.warn('⚠️ 无法从量表对象中提取有效名称:', scale)
+        return false // 如果无法获取量表名称，不显示
+      }
       
       const matches = scaleTypes.some(mappedItem => {
         // 处理后端返回的不同数据格式，提取原始名称（不转换）
@@ -178,10 +204,20 @@ class SceneMappingService {
         return false
       })
 
-      console.log(`🔍 量表「${scale.name}」在场景${sceneId || sceneName}中匹配结果:`, {
+      // 🔧 修复：使用正确的变量 scaleName 而不是 scale.name，避免显示 undefined
+      console.log(`🔍 量表「${scaleName}」在场景${sceneId || sceneName}中匹配结果:`, {
         前端量表名称: scaleName,
         前端量表类型: scaleType,
-        后端映射量表: scaleTypes.map(item => item.name || item),
+        前端原始对象: {
+          scale_name: scale.scale_name,
+          scale_type: scale.scale_type
+        },
+        后端映射量表: scaleTypes.map(item => {
+          if (typeof item === 'object') {
+            return item.scale_name || item.name || item
+          }
+          return item
+        }),
         匹配结果: matches
       })
       return matches
@@ -193,7 +229,7 @@ class SceneMappingService {
   }
 
   /**
-   * 检查音乐/脑波是否匹配场景
+   * 检查音乐/脑波是否匹配场景（支持新的music_categories字段）
    * @param {Object} music 音乐/脑波对象
    * @param {number|string} sceneId 场景ID
    * @param {string} sceneName 场景名称
@@ -202,15 +238,33 @@ class SceneMappingService {
   async isMusicMatchingScene(music, sceneId, sceneName = null) {
     if (!music || (!sceneId && !sceneName)) return true
 
-    const musicTypes = await this.getMusicTypesByScene(sceneId, sceneName)
+    // 🔧 更新：优先尝试使用新的场景详情接口
+    let musicTypes = []
+    try {
+      const sceneDetail = await this.getSceneDetail(sceneId || sceneName)
+      if (sceneDetail.success && sceneDetail.data && sceneDetail.data.music_categories) {
+        // 使用新的music_categories字段
+        musicTypes = sceneDetail.data.music_categories
+        console.log(`🎵 使用新API获取场景${sceneId || sceneName}的音乐分类:`, musicTypes.map(c => c.category_name))
+      } else {
+        throw new Error('新API无数据')
+      }
+    } catch (error) {
+      console.log('🔄 新API失败，回退到旧映射逻辑:', error.message)
+      // 回退到旧的映射逻辑
+      musicTypes = await this.getMusicTypesByScene(sceneId, sceneName)
+    }
+    
     if (musicTypes.length === 0) return true // 如果没有映射关系，显示所有
 
-    // 获取音乐的类型信息
+    // 获取音乐的类型信息（支持新字段）
     const musicCategories = [
       music.assessment_scale_name,
       music.scale_type,
       music.scale_name,
       music.category,
+      music.category_name, // 🔧 新增：支持新字段
+      music.category_code, // 🔧 新增：支持新字段
       music.type,
       music.tags
     ].filter(Boolean)
@@ -225,7 +279,7 @@ class SceneMappingService {
       return acc
     }, [])
 
-    // 检查是否有匹配的类型
+    // 检查是否有匹配的类型（支持新格式）
     const matches = musicTypes.some(mappedItem => {
       // 处理后端返回的不同数据格式
       const mappedType = this.extractMusicType(mappedItem)
@@ -341,7 +395,7 @@ class SceneMappingService {
   }
 
   /**
-   * 从映射项中提取音乐类型（兼容不同数据格式）
+   * 从映射项中提取音乐类型（兼容不同数据格式，支持新字段）
    * @param {string|Object} mappedItem 映射项，可能是字符串或对象
    * @returns {string|null} 提取的音乐类型
    */
@@ -351,8 +405,10 @@ class SceneMappingService {
     }
     
     if (typeof mappedItem === 'object' && mappedItem !== null) {
-      // 尝试从不同的字段中提取类型
-      return mappedItem.music_type || 
+      // 🔧 更新：优先使用新的统一字段名
+      return mappedItem.category_name ||  // 新字段：音乐分类名称
+             mappedItem.category_code ||  // 新字段：音乐分类代码
+             mappedItem.music_type ||     // 旧字段：音乐类型
              mappedItem.type || 
              mappedItem.name || 
              mappedItem.category || 
@@ -363,6 +419,127 @@ class SceneMappingService {
     }
     
     return null
+  }
+
+  /**
+   * 从场景列表重建映射关系（通过调用详情接口）
+   * 这是当专门的映射接口不可用时的根源解决方案
+   * @returns {Promise<Object>} 映射关系数据
+   */
+  async buildMappingsFromSceneList() {
+    console.log('🔨 从场景列表重建映射关系...')
+    
+    try {
+      // 1. 获取场景列表
+      const sceneListResult = await get('/api/scene/list')
+      if (!sceneListResult.success || !sceneListResult.data) {
+        throw new Error('无法获取场景列表')
+      }
+      
+      const sceneList = sceneListResult.data
+      console.log('📋 获取到场景列表，数量:', sceneList.length)
+      
+      // 2. 并行获取每个场景的详情（包含assessment_scales）
+      const sceneDetailsPromises = sceneList.map(scene => 
+        this.getSceneDetail(scene.id).catch(error => {
+          console.warn(`获取场景${scene.id}详情失败:`, error)
+          return { success: false, data: null, sceneId: scene.id }
+        })
+      )
+      
+      const sceneDetailsResults = await Promise.all(sceneDetailsPromises)
+      console.log('📊 场景详情获取完成')
+      
+      // 3. 构建映射关系
+      const sceneToScales = {}
+      const sceneToMusic = {}
+      const sceneNameToScales = {}
+      const sceneNameToMusic = {}
+      const scenes = []
+      
+      sceneList.forEach((scene, index) => {
+        scenes.push({
+          id: scene.id,
+          name: scene.name,
+          code: scene.code
+        })
+        
+        const detailResult = sceneDetailsResults[index]
+        const sceneIdStr = scene.id.toString()
+        
+        if (detailResult.success && detailResult.data) {
+          // 使用真实的API数据
+          const { assessment_scales = [], music_categories = [] } = detailResult.data
+          
+          sceneToScales[sceneIdStr] = assessment_scales
+          sceneToMusic[sceneIdStr] = music_categories
+          sceneNameToScales[scene.name] = assessment_scales
+          sceneNameToMusic[scene.name] = music_categories
+          
+          console.log(`✅ 场景 ${scene.name}(ID:${scene.id}) 真实映射:`, 
+            `量表${assessment_scales.length}个, 音乐${music_categories.length}个`)
+        } else {
+          // 后备到默认映射
+          const defaultMappings = this.getDefaultMappings()
+          sceneToScales[sceneIdStr] = defaultMappings.sceneToScales[scene.id] || []
+          sceneToMusic[sceneIdStr] = defaultMappings.sceneToMusic[scene.id] || []
+          sceneNameToScales[scene.name] = defaultMappings.sceneNameToScales[scene.name] || []
+          sceneNameToMusic[scene.name] = defaultMappings.sceneNameToMusic[scene.name] || []
+          
+          console.log(`⚠️ 场景 ${scene.name}(ID:${scene.id}) 使用默认映射`)
+        }
+      })
+      
+      return {
+        success: true,
+        data: {
+          sceneToScales,
+          sceneToMusic,
+          sceneNameToScales,
+          sceneNameToMusic
+        },
+        meta: {
+          scenes,
+          generated_at: new Date().toISOString(),
+          total_scenes: sceneList.length,
+          build_method: 'scene_details'
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ 从场景列表重建映射失败:', error)
+      // 最终后备：使用默认映射
+      console.log('🔄 使用默认映射作为最终后备')
+      return {
+        success: true,
+        data: this.getDefaultMappings(),
+        meta: {
+          generated_at: new Date().toISOString(),
+          build_method: 'default_fallback'
+        }
+      }
+    }
+  }
+
+  /**
+   * 获取场景详情（支持新的统一接口）
+   * @param {string|number} sceneIdentifier 场景标识符
+   * @returns {Promise<Object>} 场景详情
+   */
+  async getSceneDetail(sceneIdentifier) {
+    try {
+      // 使用新的统一接口
+      const result = await get(`/api/scene/${sceneIdentifier}`)
+      
+      if (result.success && result.data) {
+        return result
+      } else {
+        throw new Error('场景不存在')
+      }
+    } catch (error) {
+      console.error('获取场景详情失败:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   /**
@@ -421,6 +598,15 @@ class SceneMappingService {
   }
 
   /**
+   * 强制刷新映射关系
+   */
+  async forceRefresh() {
+    console.log('🔄 强制刷新场景映射关系...')
+    this.clearCache()
+    return await this.getMappings(true)
+  }
+
+  /**
    * 获取调试信息
    */
   getDebugInfo() {
@@ -437,6 +623,10 @@ class SceneMappingService {
 
 // 创建单例实例
 const sceneMappingService = new SceneMappingService()
+
+// 🔧 修复后立即清除缓存，确保使用新的正确逻辑
+sceneMappingService.clearCache()
+console.log('🔄 场景映射服务已修复，缓存已清除，将使用正确的API调用优先级')
 
 module.exports = {
   sceneMappingService,

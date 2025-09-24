@@ -12,21 +12,21 @@ const AssessmentAPI = {
    * 获取评测量表列表
    */
   getScales() {
-    return get('/assessment/scales')
+    return get('/api/assessment/scales')
   },
 
   /**
    * 获取量表题目
    */
   getQuestions(scaleId) {
-    return get(`/assessment/scales/${scaleId}/questions`)
+    return get(`/api/assessment/scales/${scaleId}/questions`)
   },
 
   /**
    * 开始评测
    */
   startAssessment(scaleId, userId) {
-    return post('/assessment/start', {
+    return post('/api/assessment/start', {
       scale_id: scaleId,
       user_id: userId
     })
@@ -36,7 +36,7 @@ const AssessmentAPI = {
    * 提交答案
    */
   submitAnswer(assessmentId, questionId, answerValue) {
-    return post('/assessment/submit_answer', {
+    return post('/api/assessment/submit_answer', {
       assessment_id: assessmentId,
       question_id: questionId,
       answer_value: answerValue
@@ -47,7 +47,7 @@ const AssessmentAPI = {
    * 完成评测
    */
   completeAssessment(assessmentId) {
-    return post('/assessment/complete', {
+    return post('/api/assessment/complete', {
       assessment_id: assessmentId
     })
   },
@@ -56,21 +56,21 @@ const AssessmentAPI = {
    * 获取评测历史
    */
   getHistory(userId) {
-    return get(`/assessment/history/${userId}`)
+    return get(`/api/assessment/history/${userId}`)
   },
 
   /**
    * 获取单个评测结果
    */
   getResult(assessmentId) {
-    return get(`/assessment/result/${assessmentId}`)
+    return get(`/api/assessment/result/${assessmentId}`)
   },
   
   /**
    * 获取用户最新评测结果（用于推荐）
    */
   getLatestAssessment(userId) {
-    return get(`/assessment/history/${userId}`).then(result => {
+    return get(`/api/assessment/history/${userId}`).then(result => {
       if (result.success && result.data && result.data.length > 0) {
         // 返回最新的已完成评测
         const latestAssessment = result.data.find(assessment => 
@@ -90,28 +90,79 @@ const AssessmentAPI = {
 }
 
 /**
- * 场景映射API
+ * 场景映射API - 统一接口
  */
 const SceneMappingAPI = {
   /**
-   * 获取场景映射关系
+   * 获取场景映射关系（兼容旧接口）
+   * @deprecated 建议使用 getSceneDetail() 获取完整场景信息
    */
   getMappings() {
-    return get('/scene/mappings')
+    // 🔧 更新：优先尝试新接口，回退到旧接口
+    return get('/api/scene/mappings').catch(() => {
+      console.warn('⚠️ 新接口不可用，使用旧接口')
+      return get('/scene/mappings')
+    })
   },
 
   /**
-   * 根据场景ID获取评测量表类型
+   * 获取场景完整信息（统一接口）
+   * @param {string|number} sceneIdentifier - 场景标识符（ID或代码）
+   * @param {object} options - 选项
+   * @param {string} options.include - 包含的数据类型（'scales', 'music', 'all'）
+   * @param {string} options.format - 返回数据格式（'simple', 'full'）
+   */
+  getSceneDetail(sceneIdentifier, options = {}) {
+    const params = new URLSearchParams()
+    
+    if (options.include) {
+      params.append('include', options.include)
+    }
+    
+    if (options.format) {
+      params.append('format', options.format)
+    }
+    
+    const queryString = params.toString()
+    const url = `/api/scene/${sceneIdentifier}${queryString ? '?' + queryString : ''}`
+    
+    return get(url)
+  },
+
+  /**
+   * 根据场景ID获取评测量表类型（废弃接口，请使用getSceneDetail）
+   * @deprecated 使用 getSceneDetail(sceneId) 替代
    */
   getScaleTypesByScene(sceneId) {
-    return get(`/scene/${sceneId}/scale-types`)
+    console.warn('⚠️ getScaleTypesByScene 接口已废弃，请使用 getSceneDetail() 替代')
+    // 转发到新接口
+    return this.getSceneDetail(sceneId).then(result => {
+      if (result.success && result.data && result.data.assessment_scales) {
+        return {
+          success: true,
+          data: result.data.assessment_scales
+        }
+      }
+      return { success: false, error: '场景不存在或无对应量表' }
+    })
   },
 
   /**
-   * 根据场景ID获取音乐类型
+   * 根据场景ID获取音乐类型（废弃接口，请使用getSceneDetail）
+   * @deprecated 使用 getSceneDetail(sceneId) 替代
    */
   getMusicTypesByScene(sceneId) {
-    return get(`/scene/${sceneId}/music-types`)
+    console.warn('⚠️ getMusicTypesByScene 接口已废弃，请使用 getSceneDetail() 替代')
+    // 转发到新接口
+    return this.getSceneDetail(sceneId).then(result => {
+      if (result.success && result.data && result.data.music_categories) {
+        return {
+          success: true,
+          data: result.data.music_categories
+        }
+      }
+      return { success: false, error: '场景不存在或无对应音乐分类' }
+    })
   }
 }
 
@@ -151,7 +202,7 @@ const MusicAPI = {
         console.warn('⚠️ 所有额外评测ID都无效，切换到单一生成模式')
         // 如果所有额外评测ID都无效，则切换到单一生成模式
         console.log('🎵 发送单一音乐生成请求（额外ID无效）:', assessmentId)
-        return post('/music/generate', requestData)
+        return post('/api/music/generate', requestData)
       }
 
       requestData.assessment_ids = [assessmentId, ...validAdditionalAssessments]
@@ -171,7 +222,7 @@ const MusicAPI = {
       console.log('🎵 发送单一音乐生成请求:', assessmentId)
     }
     
-    return post('/music/generate', requestData, {
+    return post('/api/music/generate', requestData, {
       loadingText: options.mode === 'comprehensive' ? '正在综合分析生成音乐...' : '正在生成音乐...',
       timeout: 90000 // 综合生成可能需要更长时间，调整为90秒
     })
@@ -181,14 +232,14 @@ const MusicAPI = {
    * 查询音乐生成状态
    */
   getMusicStatus(musicId) {
-    return get(`/music/status/${musicId}`)
+    return get(`/api/music/status/${musicId}`)
   },
 
   /**
    * 下载音乐文件
    */
   downloadMusic(musicId) {
-    return downloadFile(`/music/download/${musicId}`, {
+    return downloadFile(`/api/music/download/${musicId}`, {
       loadingText: '下载音乐中...'
     })
   },
@@ -201,21 +252,21 @@ const MusicAPI = {
     if (!userId || userId === 'undefined' || userId === 'null') {
       return Promise.reject(new Error('用户ID无效，无法获取音乐数据'))
     }
-    return get(`/music/user_music/${userId}`)
+    return get(`/api/music/user_music/${userId}`)
   },
 
   /**
    * 删除音乐文件
    */
   deleteMusic(musicId) {
-    return del(`/music/delete/${musicId}`)
+    return del(`/api/music/delete/${musicId}`)
   },
 
   /**
    * 获取个性化推荐音乐
    */
   getPersonalizedRecommendations(userId) {
-    return get(`/music/personalized_recommendations/${userId}`).then(response => {
+    return get(`/api/music/personalized_recommendations/${userId}`).then(response => {
       // 🔍 诊断：检查后端返回的URL是否缺少token
       if (response.data && Array.isArray(response.data)) {
         response.data.forEach((music, index) => {
@@ -223,7 +274,7 @@ const MusicAPI = {
             console.error(`❌ 后端API返回的URL缺少token (第${index + 1}个音频):`)
             console.error('  音频ID:', music.id)
             console.error('  问题URL:', music.url)
-            console.error('  🎯 根本问题: 后端 /music/personalized_recommendations/${userId} 接口返回的URL未经过CDN token签名')
+            console.error('  🎯 根本问题: 后端 /api/music/personalized_recommendations/${userId} 接口返回的URL未经过CDN token签名')
             console.error('  💡 解决方案: 需要后端开发者修复URL生成逻辑，确保返回带token的URL')
           }
         })
@@ -270,7 +321,7 @@ const MusicAPI = {
     
     // 回退到原来的API（虽然可能不存在）
     console.warn('⚠️ 无法从URL提取文件路径，尝试原API (可能失败)')
-    return get(`/music/refresh_url/${musicId}`).then(response => {
+    return get(`/api/music/refresh_url/${musicId}`).then(response => {
       console.log('🔄 音频URL刷新响应:', response)
       
       if (response.success && response.data && response.data.url) {
@@ -290,35 +341,35 @@ const MusicAPI = {
    * 获取音乐分类（新增统一接口）
    */
   getCategories() {
-    return get('/music/categories')
+    return get('/api/music/categories')
   },
 
   /**
    * 按分类获取七牛云文件（新增统一接口）
    */
   getQiniuFilesByCategory(category) {
-    return get(`/music/qiniu/categories/${category}/files`)
+    return get(`/api/music/qiniu/categories/${category}/files`)
   },
 
   /**
    * 🎯 按分类获取数据库记录的音乐（优先使用）
    */
   getPresetMusicByCategory(categoryId) {
-    return get(`/preset-music/category/${categoryId}`)
+    return get(`/api/preset-music/category/${categoryId}`)
   },
 
   /**
    * 随机获取分类音频（新增统一接口）
    */
   getRandomAudioByCategory(category) {
-    return get(`/music/qiniu/random/${category}`)
+    return get(`/api/music/qiniu/random/${category}`)
   },
 
   /**
    * 批量生成七牛云签名URL（新增统一接口）
    */
   getBatchSignedUrls(fileKeys, expiresIn = 7200) {
-    return post('/music/qiniu/batch_signed_urls', {
+    return post('/api/music/qiniu/batch_signed_urls', {
       file_keys: fileKeys,
       expires_in: expiresIn
     })
@@ -328,7 +379,7 @@ const MusicAPI = {
    * 生成单个文件签名URL（统一API路径）
    */
   getQiniuSignedUrl(filePath, expiresIn = 3600) {
-    return post('/music/qiniu_signed_url', {
+    return post('/api/music/qiniu_signed_url', {
       file_path: filePath,
       expires_in: expiresIn
     })
@@ -420,7 +471,7 @@ const LongSequenceAPI = {
         console.warn('⚠️ 所有额外评测ID都无效，切换到单一生成模式')
         // 如果所有额外评测ID都无效，则切换到单一生成模式
         console.log('🎶 发送单一长序列创建请求（额外ID无效）:', assessmentId, durationMinutes)
-        return post('/music/create_long_sequence', requestData)
+        return post('/api/music/create_long_sequence', requestData)
       }
 
       requestData.assessment_ids = [assessmentId, ...validAdditionalAssessments]
@@ -441,7 +492,7 @@ const LongSequenceAPI = {
       console.log('🎶 发送单一长序列创建请求:', assessmentId, durationMinutes)
     }
     
-    return post('/music/create_long_sequence', requestData, {
+    return post('/api/music/create_long_sequence', requestData, {
       loadingText: options.mode === 'comprehensive' ? '正在综合分析生成长序列...' : '正在生成长序列音乐...',
       timeout: 180000 // 综合生成长序列需要更长时间，调整为3分钟
     }).then(response => {
@@ -478,7 +529,7 @@ const LongSequenceAPI = {
   getLongSequenceStatus(sessionId) {
     console.log('🔍 查询长序列状态')
     
-    return get(`/music/long_sequence_status/${sessionId}`).then(response => {
+    return get(`/api/music/long_sequence_status/${sessionId}`).then(response => {
       // 避免打印完整响应对象
       console.log('🔍 长序列状态 success:', response?.success)
       
@@ -515,7 +566,7 @@ const LongSequenceAPI = {
    * 下载长序列音乐
    */
   downloadLongSequence(sessionId) {
-    return downloadFile(`/music/download_long_sequence/${sessionId}`, {
+    return downloadFile(`/api/music/download_long_sequence/${sessionId}`, {
       loadingText: '下载长序列音乐中...'
     })
   },
@@ -528,14 +579,14 @@ const LongSequenceAPI = {
     if (!userId || userId === 'undefined' || userId === 'null') {
       return Promise.reject(new Error('用户ID无效，无法获取长序列数据'))
     }
-    return get(`/music/user_long_sequences/${userId}`)
+    return get(`/api/music/user_long_sequences/${userId}`)
   },
 
   /**
    * 检查长序列音频文件是否存在
    */
   checkLongSequenceFile(sessionId) {
-    return get(`/music/check_long_sequence_file/${sessionId}`).catch(error => {
+    return get(`/api/music/check_long_sequence_file/${sessionId}`).catch(error => {
       console.warn('检查长序列文件失败:', error)
       // 如果接口不存在，返回假设存在的默认结果
       return { success: true, data: { exists: true } }
@@ -548,7 +599,7 @@ const LongSequenceAPI = {
   deleteLongSequence(sessionId) {
     console.log('🗑️ 发送长序列删除请求, sessionId:', sessionId)
     
-    return del(`/music/delete_long_sequence/${sessionId}`, {
+    return del(`/api/music/delete_long_sequence/${sessionId}`, {
       loadingText: '正在删除长序列...'
     }).then(response => {
       console.log('🗑️ 长序列删除API响应:', response)
@@ -576,7 +627,7 @@ const LongSequenceAPI = {
   refreshLongSequenceUrl(sessionId) {
     console.log('🔄 请求刷新长序列URL, sessionId:', sessionId)
     
-    return get(`/music/refresh_long_sequence_url/${sessionId}`).then(response => {
+    return get(`/api/music/refresh_long_sequence_url/${sessionId}`).then(response => {
       console.log('🔄 长序列URL刷新响应:', response)
       
       if (response.success && response.data && response.data.final_file_path) {
@@ -603,7 +654,7 @@ const UserAPI = {
   async wechatLogin(data) {
     try {
       const response = await request({
-        url: '/auth/wechat-login',
+        url: '/api/auth/wechat-login',
         method: 'POST',
         data: data
       })
@@ -620,7 +671,7 @@ const UserAPI = {
   // async phoneLogin(data) {
   //   try {
   //     const response = await request({
-  //       url: '/auth/phone-login',
+  //       url: '/api/auth/phone-login',
   //       method: 'POST',
   //       data: data
   //     })
@@ -636,7 +687,7 @@ const UserAPI = {
   async accountLogin(data) {
     try {
       const response = await request({
-        url: '/auth/account-login',
+        url: '/api/auth/account-login',
         method: 'POST',
         data: data
       })
@@ -654,7 +705,7 @@ const UserAPI = {
   async validateToken(token) {
     try {
       const response = await request({
-        url: '/auth/validate-token',
+        url: '/api/auth/validate-token',
         method: 'POST',
         data: { token }
       })
@@ -670,7 +721,7 @@ const UserAPI = {
   async refreshToken(refreshToken) {
     try {
       const response = await request({
-      url: '/auth/refresh-token',
+      url: '/api/auth/refresh-token',
         method: 'POST',
         data: { refreshToken }
       })
@@ -688,7 +739,7 @@ const UserAPI = {
       const token = wx.getStorageSync('token')
       if (token) {
         await request({
-      url: '/auth/logout',
+      url: '/api/auth/logout',
           method: 'POST',
           data: { token }
         })
@@ -724,7 +775,7 @@ const UserAPI = {
   async getUserInfo() {
     try {
       const response = await request({
-      url: '/user/profile',
+      url: '/api/user/profile',
         method: 'GET'
       })
       return response
@@ -739,7 +790,7 @@ const UserAPI = {
   async updateUserInfo(data) {
     try {
       const response = await request({
-      url: '/auth/user/update',
+      url: '/api/auth/user/update',
         method: 'PUT',
         data: data
       })
@@ -814,7 +865,7 @@ const UserAPI = {
   async getUserDownloads(params = {}) {
     try {
       // GET /api/downloads/
-      const response = await get('/downloads/', params)
+      const response = await get('/api/downloads/', params)
       return response
     } catch (error) {
       if (error && (error.statusCode === 404 || error.code === 'HTTP_ERROR')) {
@@ -827,7 +878,7 @@ const UserAPI = {
   // 下载统计 GET /api/downloads/stats
   async getDownloadsStats() {
     try {
-      return await get('/downloads/stats/')
+      return await get('/api/downloads/stats/')
     } catch (error) {
       return { success: false, error: error.message || '获取下载统计失败' }
     }
@@ -835,12 +886,12 @@ const UserAPI = {
 
   // 生成安全下载链接 GET /api/downloads/url/<music_id>
   async getSecureDownloadUrl(musicId, quality = 'standard') {
-    return get(`/downloads/url/${musicId}/`, { quality })
+    return get(`/api/downloads/url/${musicId}/`, { quality })
   },
 
   // 删除下载记录 DELETE /api/downloads/<download_id>
   async deleteDownloadRecord(downloadId) {
-    return del(`/downloads/${downloadId}/`)
+    return del(`/api/downloads/${downloadId}/`)
   },
 
   /**
@@ -849,7 +900,7 @@ const UserAPI = {
   async getUserFavorites(params = {}) {
     try {
       // GET /api/favorites/
-      const response = await get('/favorites/', params)
+      const response = await get('/api/favorites/', params)
       return response
     } catch (error) {
       if (error && (error.statusCode === 404 || error.code === 'HTTP_ERROR')) {
@@ -865,7 +916,7 @@ const UserAPI = {
   async addToFavorites(itemId, itemType = 'music', itemData = {}) {
     try {
       // POST /api/favorites/
-      return await post('/favorites/', {
+      return await post('/api/favorites/', {
         item_id: itemId,
         item_type: itemType,
         item_data: itemData
@@ -890,17 +941,17 @@ const UserAPI = {
 
   // 检查是否已收藏 GET /api/favorites/check/<item_id>
   async checkFavorite(itemId) {
-    return get(`/favorites/check/${itemId}/`)
+    return get(`/api/favorites/check/${itemId}/`)
   },
 
   // 收藏统计 GET /api/favorites/stats
   async getFavoritesStats() {
-    try { return await get('/favorites/stats/') } catch (e) { return { success: false, error: e.message } }
+    try { return await get('/api/favorites/stats/') } catch (e) { return { success: false, error: e.message } }
   },
 
   // 批量同步收藏 PUT /api/favorites/sync
   async syncFavorites(payload) {
-    return post('/favorites/sync/', payload, { method: 'PUT' })
+    return post('/api/favorites/sync/', payload, { method: 'PUT' })
   },
 
   /**
@@ -909,7 +960,7 @@ const UserAPI = {
   async getPlayHistory() {
     try {
       const response = await request({
-        url: '/user/play-history',
+        url: '/api/user/play-history',
         method: 'GET'
       })
       return response
@@ -924,7 +975,7 @@ const UserAPI = {
   async recordPlayHistory(itemId, itemType = 'music', duration = 0) {
     try {
       const response = await request({
-        url: '/user/play-history',
+        url: '/api/user/play-history',
         method: 'POST',
         data: {
           item_id: itemId,
@@ -1060,7 +1111,7 @@ const CountPackageAPI = {
   async getPlans() {
     try {
       const response = await request({
-        url: '/count-package/plans',
+        url: '/api/count-package/plans',
         method: 'GET'
       })
       return response
@@ -1092,7 +1143,7 @@ const CountPackageAPI = {
       }
       
       const response = await request({
-        url: '/count-package/create-order',
+        url: '/api/count-package/create-order',
         method: 'POST',
         data: orderData,
         timeout: 20000
@@ -1129,7 +1180,7 @@ const CountPackageAPI = {
   async redeemCoupon(couponCode) {
     try {
       const response = await request({
-        url: '/count-package/coupon/redeem',
+        url: '/api/count-package/coupon/redeem',
         method: 'POST',
         data: { code: couponCode }
       })
@@ -1145,7 +1196,7 @@ const CountPackageAPI = {
   async getUserCounts() {
     try {
       const response = await request({
-        url: '/count-package/user-counts',
+        url: '/api/count-package/user-counts',
         method: 'GET'
       })
       return response
@@ -1165,7 +1216,7 @@ const SubscriptionAPI = {
   async getSubscriptionInfo() {
     try {
       const response = await request({
-        url: '/subscription/info',
+        url: '/api/subscription/info',
         method: 'GET'
       })
       return response
@@ -1180,7 +1231,7 @@ const SubscriptionAPI = {
   async checkPermission(feature) {
     try {
       const response = await request({
-        url: '/subscription/check-permission',
+        url: '/api/subscription/check-permission',
         method: 'POST',
         data: { feature }
       })
@@ -1196,7 +1247,7 @@ const SubscriptionAPI = {
   async startTrial() {
     try {
       const response = await request({
-        url: '/subscription/start-trial',
+        url: '/api/subscription/start-trial',
         method: 'POST'
       })
       return response
@@ -1212,7 +1263,7 @@ const SubscriptionAPI = {
   async subscribe(subscriptionData) {
     try {
       const response = await request({
-        url: '/subscription/subscribe',
+        url: '/api/subscription/subscribe',
         method: 'POST',
         data: subscriptionData
       })
@@ -1228,7 +1279,7 @@ const SubscriptionAPI = {
   async cancelSubscription() {
     try {
       const response = await request({
-        url: '/subscription/cancel',
+        url: '/api/subscription/cancel',
         method: 'POST'
       })
       return response
@@ -1243,7 +1294,7 @@ const SubscriptionAPI = {
   async getPlans() {
     try {
       const response = await request({
-        url: '/subscription/plans',
+        url: '/api/subscription/plans',
         method: 'GET'
       })
       return response
@@ -1276,7 +1327,7 @@ const SubscriptionAPI = {
       }
       
       const response = await request({
-        url: '/subscription/create-order',
+        url: '/api/subscription/create-order',
         method: 'POST',
         data: orderData,
         timeout: 20000 // 增加超时时间，因为订单创建可能需要更长时间
@@ -1328,7 +1379,7 @@ const SubscriptionAPI = {
   async requestRefund(refundData) {
     try {
       const response = await request({
-        url: '/subscription/payment/refund',
+        url: '/api/subscription/payment/refund',
         method: 'POST',
         data: refundData
       })
@@ -1347,7 +1398,7 @@ class DeviceAPI {
   static async getWhitelist() {
     try {
       const response = await request({
-        url: '/devices/whitelist',
+        url: '/api/devices/whitelist',
         method: 'GET',
         timeout: 15000, // 增加到15秒超时
         showLoading: false // 不显示加载提示
@@ -1371,7 +1422,7 @@ class DeviceAPI {
   static async verifyDevice(data) {
     try {
       const response = await request({
-        url: '/devices/verify',
+        url: '/api/devices/verify',
         method: 'POST',
         data: data,
         timeout: 3000, // 3秒超时
@@ -1400,7 +1451,7 @@ class DeviceAPI {
   static async bindDevice(data) {
     try {
       const response = await request({
-        url: '/devices/bind',
+        url: '/api/devices/bind',
         method: 'POST',
         data: data,
         timeout: 15000, // 15秒超时
@@ -1424,7 +1475,7 @@ class DeviceAPI {
   static async unbindDevice(data) {
     try {
       const response = await request({
-        url: '/devices/unbind',
+        url: '/api/devices/unbind',
         method: 'POST',
         data: data
       })
@@ -1440,7 +1491,7 @@ class DeviceAPI {
   static async getMyDevices() {
     try {
       const response = await request({
-        url: '/devices/my-devices',
+        url: '/api/devices/my-devices',
         method: 'GET'
       })
       return response

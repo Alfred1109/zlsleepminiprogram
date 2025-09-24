@@ -198,10 +198,23 @@ Page({
         // 过滤与当前场景相关的评测记录
         let filteredAssessments = validAssessments.filter(item => item.status === 'completed')
         
-        // 使用场景映射服务过滤评测记录（与评测页面保持一致）
+        // 🔧 修复：增强场景映射过滤的数据验证
         if (this.data.sceneId) {
           try {
-            const sceneFilterPromises = filteredAssessments.map(item => 
+            // 🔧 修复：添加数据验证，确保所有评测对象都有必要的字段
+            const validAssessments = filteredAssessments.filter(item => {
+              const hasRequiredFields = item && 
+                item.scale_name &&
+                typeof item === 'object'
+              
+              if (!hasRequiredFields) {
+                console.warn('⚠️ 发现缺少必要字段的评测记录，已跳过场景匹配:', item)
+              }
+              
+              return hasRequiredFields
+            })
+            
+            const sceneFilterPromises = validAssessments.map(item => 
               sceneMappingService.isScaleMatchingScene(
                 item, 
                 this.data.sceneId, 
@@ -210,11 +223,12 @@ Page({
             )
             
             const matchResults = await Promise.all(sceneFilterPromises)
-            filteredAssessments = filteredAssessments.filter((item, index) => matchResults[index])
+            filteredAssessments = validAssessments.filter((item, index) => matchResults[index])
             
             console.log(`🎯 场景${this.data.sceneName}(ID:${this.data.sceneId})评测历史过滤:`, {
               原始数量: result.data.length,
               完成的评测: result.data.filter(item => item.status === 'completed').length,
+              验证后数量: validAssessments.length,
               场景相关: filteredAssessments.length
             })
             
@@ -223,7 +237,7 @@ Page({
             // 过滤失败时保持原有的简单过滤逻辑
             if (this.data.scaleType) {
               filteredAssessments = filteredAssessments.filter(item => 
-                item.scale_type === this.data.scaleType || item.scale_name === this.data.scaleType
+                item.scale_type === this.data.scaleType
               )
             }
           }
@@ -238,7 +252,7 @@ Page({
           })
           .slice(0, 10) // 最多显示10条
           .map(item => ({
-            id: item.id || item.assessment_id,
+            id: item.scale_id || item.assessment_id,
             date: this.formatDate(item.completed_at || item.created_at),
             result: this.getAssessmentResultText(item.result || item.score),
             scaleName: item.scale_name || '心理评测',
@@ -542,16 +556,21 @@ Page({
   /**
    * 登录提示
    */
-  promptLogin(message = '该功能需要先登录账户') {
+  promptLogin() {
+    console.log('🔐 登录按钮被点击')
+    
     wx.showModal({
       title: '需要登录',
-      content: message,
+      content: '查看场景详情需要先登录账户',
       confirmText: '去登录',
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
+          const redirectUrl = `/pages/scene/detail/detail?sceneId=${this.data.sceneId}&sceneName=${encodeURIComponent(this.data.sceneName)}&scaleType=${this.data.scaleType}&sceneTheme=${encodeURIComponent(this.data.sceneTheme)}`
+          console.log('🔐 跳转到登录页面，重定向URL:', redirectUrl)
+          
           wx.navigateTo({
-            url: '/pages/login/login?redirect=' + encodeURIComponent(`/pages/scene/detail/detail?sceneId=${this.data.sceneId}&sceneName=${encodeURIComponent(this.data.sceneName)}&scaleType=${this.data.scaleType}&sceneTheme=${encodeURIComponent(this.data.sceneTheme)}`)
+            url: '/pages/login/login?redirect=' + encodeURIComponent(redirectUrl)
           })
         }
       }

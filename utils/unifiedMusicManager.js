@@ -53,7 +53,7 @@ class UnifiedMusicManager {
       
       // 添加时间戳防止浏览器缓存
       const timestamp = Date.now()
-      const requestUrl = `/music/categories?t=${timestamp}`
+      const requestUrl = `/api/music/categories?t=${timestamp}`
       
       console.log('🌐 发起API请求:', requestUrl)
       console.log('⏰ 请求时间:', new Date().toLocaleString())
@@ -733,7 +733,7 @@ class UnifiedMusicManager {
       // 直接调用服务器API，添加时间戳防止缓存
       const timestamp = Date.now()
       const response = await this.api.request({
-        url: `/music/categories?t=${timestamp}`,
+        url: `/api/music/categories?t=${timestamp}`,
         method: 'GET',
         showLoading: false
       })

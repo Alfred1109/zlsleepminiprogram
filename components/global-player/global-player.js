@@ -1014,7 +1014,7 @@ Component({
         // 调用API记录播放记录
         const api = require('../../utils/api');
         api.request({
-          url: '/play-records/',
+          url: '/api/play-records/',
           method: 'POST',
           data: playRecordData,
           showLoading: false

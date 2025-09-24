@@ -233,7 +233,9 @@ Page({
   async fetchScenesFromBackend() {
     try {
       const { get } = require('../../utils/api')
-      const result = await get('/scene/mappings')
+      // 🔧 更新：添加新API支持的注释
+      // TODO: 后续可更新为 /api/scene/list 获取更完整的场景信息
+      const result = await get('/api/scene/mappings')
       
       if (result && result.success && result.meta && result.meta.scenes) {
         const backendScenes = result.meta.scenes
@@ -250,14 +252,15 @@ Page({
           if (sceneScales.length > 0) {
             const primaryScale = sceneScales.find(s => s.is_primary) || sceneScales[0]
             if (primaryScale) {
-              // 映射评测量表名称到代码
-              if (primaryScale.name.includes('匹兹堡睡眠')) {
+              // 🔧 更新：使用统一的字段名称
+              const scaleName = primaryScale.scale_name || primaryScale.name
+              if (scaleName && scaleName.includes('匹兹堡睡眠')) {
                 scaleType = 'PSQI'
                 sceneName = '助眠疗愈'
-              } else if (primaryScale.name.includes('汉密尔顿抑郁')) {
+              } else if (scaleName && scaleName.includes('汉密尔顿抑郁')) {
                 scaleType = 'HAMD-17' 
                 sceneName = '抑郁疗愈'
-              } else if (primaryScale.name.includes('广泛性焦虑')) {
+              } else if (scaleName && scaleName.includes('广泛性焦虑')) {
                 scaleType = 'GAD-7'
                 sceneName = '情绪疗愈'
               }
@@ -1093,7 +1096,13 @@ Page({
     // 对于非脑波音频，显示合适的频率信息
     if (!sound.baseFreq && !sound.beatFreq) {
       // 兼容旧的分类检查逻辑，同时支持新的分类ID
-      if (sound.category === '助眠疗愈' || sound.category === '自然音' || sound.categoryId === 1 || sound.category_id === 1) {
+      // 🔧 更新：支持新的统一字段名称
+      if (sound.category === '助眠疗愈' || 
+          sound.category === '自然音' || 
+          sound.categoryId === 1 || 
+          sound.category_id === 1 || 
+          sound.category_name === '助眠疗愈' || 
+          sound.category_name === '自然音') {
         brainwaveInfo.baseFreq = '8-15';
         brainwaveInfo.beatFreq = '10';
       } else if (sound.category === '专注疗愈' || sound.category === '白噪音') {
@@ -1933,8 +1942,10 @@ Page({
         content_type: contentType,
         content_id: sound.id || 'unknown',
         content_title: sound.name || sound.title || '未知音乐',
-        category_name: sound.category || sound.category_name || '未知分类',
-        category_id: sound.categoryId || sound.category_id,
+        // 🔧 更新：统一使用新字段名称
+        category_name: sound.category_name || sound.category || '未知分类',
+        category_id: sound.category_id || sound.categoryId,
+        category_code: sound.category_code,
         play_duration: actualPlayDuration,
         total_duration: this.currentPlayRecord.totalDuration,
         play_progress: playProgress,
@@ -1948,7 +1959,7 @@ Page({
       // 调用API记录播放记录
       const api = require('../../utils/api');
       api.request({
-        url: '/play-records/',
+        url: '/api/play-records/',
         method: 'POST',
         data: playRecordData,
         showLoading: false

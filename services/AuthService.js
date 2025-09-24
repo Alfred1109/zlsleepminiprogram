@@ -183,12 +183,12 @@ class AuthService {
             apiBaseUrl = getApiBaseUrl()
           } catch (error) {
             console.error('获取API基础URL失败:', error)
-            apiBaseUrl = 'https://medsleep.cn/api'
+            apiBaseUrl = 'https://medsleep.cn'
           }
         }
         
         wx.request({
-          url: `${apiBaseUrl}/auth/refresh-token`,
+          url: `${apiBaseUrl}/api/auth/refresh-token`,
           method: 'POST',
           data: { refresh_token: refreshToken },
           header: { 'Content-Type': 'application/json' },
@@ -247,19 +247,19 @@ class AuthService {
             apiBaseUrl = getApiBaseUrl()
           } catch (error) {
             console.error('获取API基础URL失败:', error)
-            apiBaseUrl = 'https://medsleep.cn/api'
+            apiBaseUrl = 'https://medsleep.cn'
           }
         }
         
         console.log('账号登录请求详情:', {
-          url: `${apiBaseUrl}/auth/account-login`,
+          url: `${apiBaseUrl}/api/auth/account-login`,
           method: 'POST',
           data: { username, password: '***' },
           header: { 'Content-Type': 'application/json' }
         })
         
         wx.request({
-          url: `${apiBaseUrl}/auth/account-login`,
+          url: `${apiBaseUrl}/api/auth/account-login`,
           method: 'POST',
           data: { username, password },
           header: { 
@@ -434,11 +434,11 @@ class AuthService {
             console.log('微信登录：使用配置文件API地址:', apiBaseUrl)
           } catch (error) {
             console.error('获取API基础URL失败:', error)
-            apiBaseUrl = 'https://medsleep.cn/api' // 兜底配置
+            apiBaseUrl = 'https://medsleep.cn' // 兜底配置
           }
         }
         
-        const fullUrl = `${apiBaseUrl}/auth/wechat-login`
+        const fullUrl = `${apiBaseUrl}/api/auth/wechat-login`
         console.log('微信登录API完整URL:', fullUrl)
         
         wx.request({
@@ -542,14 +542,14 @@ class AuthService {
           apiBaseUrl = getApiBaseUrl()
         } catch (error) {
           console.error('获取API基础URL失败:', error)
-          apiBaseUrl = 'https://medsleep.cn/api'
+          apiBaseUrl = 'https://medsleep.cn'
         }
       }
       
       // 发起一个简单的测试请求（比如获取用户信息）
       const response = await new Promise((resolve, reject) => {
         wx.request({
-          url: `${apiBaseUrl}/user/profile`,
+          url: `${apiBaseUrl}/api/user/profile`,
           method: 'GET',
           header: { 
             'Authorization': `Bearer ${token}`,
@@ -630,14 +630,14 @@ class AuthService {
           apiBaseUrl = getApiBaseUrl()
         } catch (error) {
           console.error('获取API基础URL失败:', error)
-          apiBaseUrl = 'https://medsleep.cn/api'
+          apiBaseUrl = 'https://medsleep.cn'
         }
       }
 
       const token = this.getAccessToken()
       const response = await new Promise((resolve, reject) => {
         wx.request({
-          url: `${apiBaseUrl}/user/profile`,
+          url: `${apiBaseUrl}/api/user/profile`,
           method: 'GET',
           header: { 
             'Authorization': `Bearer ${token}`,

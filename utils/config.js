@@ -58,7 +58,7 @@ function detectEnvironment() {
 // 这样无论是本地调试、真机调试、体验版还是正式版都不会出错
 const UNIFIED_CONFIG = {
   // 核心服务器配置 - 所有环境统一
-  API_BASE_URL: 'https://medsleep.cn/api',
+  API_BASE_URL: 'https://medsleep.cn',
   STATIC_BASE_URL: 'https://medsleep.cn',
   QINIU_BASE_DOMAIN: 'https://cdn.medsleep.cn',
   QINIU_CATEGORY_DIRS: {

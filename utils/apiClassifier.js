@@ -12,27 +12,37 @@ const PUBLIC_APIS = [
   '/devices/verify',
   
   // 音乐分类（公开）
-  '/music/categories',
+  '/api/music/categories',
+  '/music/categories',  // 兼容旧路径
   
   // 预设音乐（公开） - 修复关键问题
+  '/api/preset-music/category',
   '/preset-music/category',
   '/preset-music',
   
   // 评测量表（公开）
-  '/assessment/scales',
+  '/api/assessment/scales',
+  '/assessment/scales',  // 兼容旧路径
   
   // 七牛云文件（公开）
-  '/music/qiniu/categories',
-  '/music/qiniu_signed_url',
+  '/api/music/qiniu/categories',
+  '/music/qiniu/categories',  // 兼容旧路径
+  '/api/music/qiniu_signed_url',
+  '/music/qiniu_signed_url',  // 兼容旧路径
+  
+  // 场景相关（公开）
+  '/api/scene/mappings',
+  '/scene/mappings',  // 兼容旧路径
   
   // 其他公开API
-  '/music/random', // 随机音乐可以是公开的
+  '/api/music/random', // 随机音乐可以是公开的
+  '/music/random',  // 兼容旧路径
 ]
 
 // 需要认证的API列表
 const PRIVATE_APIS = [
   // 用户认证
-  '/auth/',
+  '/api/auth/',
   
   // 用户相关
   '/user/',
@@ -48,11 +58,11 @@ const PRIVATE_APIS = [
   '/play-records/',
   
   // 用户特定的音乐
-  '/music/user_music',
-  '/music/user_long_sequences',
-  '/music/long_sequence_status',
-  '/music/generate',
-  '/music/long_sequence',
+  '/api/music/user_music',
+  '/api/music/user_long_sequences',
+  '/api/music/long_sequence_status',
+  '/api/music/generate',
+  '/api/music/long_sequence',
   
   // 设备绑定（需要认证）
   '/devices/bind',
@@ -60,8 +70,8 @@ const PRIVATE_APIS = [
   '/devices/my-devices',
   
   // 评测历史（用户特定）
-  '/assessment/history',
-  '/assessment/submit',
+  '/api/assessment/history',
+  '/api/assessment/submit',
   
   // 企业功能
   '/enterprise/',

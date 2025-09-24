@@ -256,7 +256,7 @@ Page({
       // 使用播放历史接口计算统计数据
       const api = require('../../utils/api');
       const result = await api.request({
-        url: '/play-records/recent',
+        url: '/api/play-records/recent',
         method: 'GET',
         data: {
           limit: 1000,  // 获取更多记录用于统计
@@ -424,7 +424,7 @@ Page({
     try {
       const api = require('../../utils/api');
       const result = await api.request({
-        url: `/assessment/history/${userInfo.id}`,
+        url: `/api/assessment/history/${userInfo.id}`,
         method: 'GET',
         showLoading: false  // 统计数据后台加载，不显示loading
       });

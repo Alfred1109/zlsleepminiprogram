@@ -47,7 +47,7 @@
         <text class="prompt-desc">登录账户以查看评测记录和个性化脑波</text>
       </view>
       <view class="prompt-action">
-        <view class="login-btn" bindtap="promptLogin" data-message="查看场景详情需要先登录账户">立即登录</view>
+        <view class="login-btn" bindtap="promptLogin">立即登录</view>
       </view>
     </view>
   </view>

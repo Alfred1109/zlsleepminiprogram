@@ -153,7 +153,7 @@ Page({
 
         // 🔧 修复：过滤掉无效的评测ID（防止传递不存在的评测ID到后端）
         completedAssessments = completedAssessments.filter(item => {
-          const isValid = item && item.id && typeof item.id === 'number' && item.id > 0
+          const isValid = item && item.scale_id && typeof item.scale_id === 'number' && item.scale_id > 0
           if (!isValid) {
             console.warn('⚠️ 发现无效评测记录，已过滤:', item)
           }
@@ -162,11 +162,31 @@ Page({
 
         console.log(`🔍 评测ID有效性验证完成，有效记录数: ${completedAssessments.length}`)
 
-        // 使用场景映射服务过滤评测记录（与其他页面保持一致）
+        // 🔧 修复：增强场景映射过滤的数据验证
         const { sceneContext, isInSceneMode } = this.data
-        if (isInSceneMode && sceneContext) {
+        if (isInSceneMode && sceneContext && sceneContext.sceneId) {
           try {
-            const sceneFilterPromises = completedAssessments.map(item => 
+            // 🔧 修复：添加数据验证，确保所有评测对象都有必要的字段
+            const validAssessments = completedAssessments.filter(item => {
+              const hasRequiredFields = item && 
+                item.scale_name &&
+                typeof item === 'object'
+              
+              if (!hasRequiredFields) {
+                console.warn('⚠️ 发现缺少必要字段的评测记录，已跳过场景匹配:', item)
+              }
+              
+              return hasRequiredFields
+            })
+            
+            console.log(`🔍 音乐生成页面数据验证完成:`, {
+              原始评测数量: completedAssessments.length,
+              有效评测数量: validAssessments.length,
+              场景ID: sceneContext.sceneId,
+              场景名称: sceneContext.sceneName
+            })
+            
+            const sceneFilterPromises = validAssessments.map(item => 
               sceneMappingService.isScaleMatchingScene(
                 item, 
                 sceneContext.sceneId, 
@@ -175,10 +195,10 @@ Page({
             )
             
             const matchResults = await Promise.all(sceneFilterPromises)
-            const filteredAssessments = completedAssessments.filter((item, index) => matchResults[index])
+            const filteredAssessments = validAssessments.filter((item, index) => matchResults[index])
             
             console.log(`🎯 音乐生成页面场景${sceneContext.sceneName}(ID:${sceneContext.sceneId})评测过滤:`, {
-              原始数量: completedAssessments.length,
+              验证后数量: validAssessments.length,
               场景相关: filteredAssessments.length
             })
             
@@ -234,12 +254,12 @@ Page({
    */
   toggleAssessmentSelection(assessment) {
     const { selectedAssessments } = this.data
-    const isSelected = selectedAssessments.some(item => item.id === assessment.id)
+    const isSelected = selectedAssessments.some(item => item.scale_id === assessment.scale_id)
     
     let newSelectedAssessments
     if (isSelected) {
       // 取消选中
-      newSelectedAssessments = selectedAssessments.filter(item => item.id !== assessment.id)
+      newSelectedAssessments = selectedAssessments.filter(item => item.scale_id !== assessment.scale_id)
       console.log('🎯 多选模式取消选择:', assessment.scale_name)
     } else {
       // 选中
@@ -265,9 +285,9 @@ Page({
     const { selectionMode, selectedAssessment, selectedAssessments } = this.data
     
     if (selectionMode === 'single') {
-      return selectedAssessment && selectedAssessment.id === assessment.id
+      return selectedAssessment && selectedAssessment.scale_id === assessment.scale_id
     } else {
-      return selectedAssessments.some(item => item.id === assessment.id)
+      return selectedAssessments.some(item => item.scale_id === assessment.scale_id)
     }
   },
 
@@ -283,7 +303,7 @@ Page({
       let initialSelection = displayAssessments[0] || null
       
       if (preselectedAssessmentId) {
-        const preselected = displayAssessments.find(item => item.id === preselectedAssessmentId)
+        const preselected = displayAssessments.find(item => item.scale_id === preselectedAssessmentId)
         if (preselected) {
           initialSelection = preselected
           console.log('🎯 预选评测匹配成功:', preselected.scale_name)
@@ -304,7 +324,7 @@ Page({
       let initialSelections = [...displayAssessments] // 默认全选
       
       if (preselectedAssessmentId) {
-        const preselected = displayAssessments.find(item => item.id === preselectedAssessmentId)
+        const preselected = displayAssessments.find(item => item.scale_id === preselectedAssessmentId)
         if (preselected) {
           // 如果找到预选评测，确保它在选中列表中（通常已经在全选中了）
           console.log('🎯 多选模式预选评测:', preselected.scale_name, '+ 其他相关评测')
@@ -478,7 +498,7 @@ Page({
         
       } else {
         // 多选模式：基于多个评测综合生成
-        const assessmentIds = selectedAssessments.map(item => item.id)
+        const assessmentIds = selectedAssessments.map(item => item.scale_id)
         console.log('🎵 多选模式生成音乐，评测IDs:', assessmentIds)
         console.log('🎵 基于量表:', selectedAssessments.map(item => item.scale_name))
         

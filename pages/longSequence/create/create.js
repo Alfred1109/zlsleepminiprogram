@@ -417,14 +417,14 @@ Page({
       
       if (selectionMode === 'single') {
         // 单选模式：基于单个评测生成
-        console.log('🎵 单选模式生成长序列，评测ID:', selectedAssessment.id)
+        console.log('🎵 单选模式生成长序列，评测ID:', selectedAssessment.scale_id)
         result = await LongSequenceAPI.createLongSequence(
-          selectedAssessment.id,
+          selectedAssessment.scale_id,
           durationMinutes
         )
       } else {
         // 多选模式：基于多个评测综合生成
-        const assessmentIds = selectedAssessments.map(item => item.id)
+        const assessmentIds = selectedAssessments.map(item => item.scale_id)
         console.log('🎵 多选模式生成长序列，评测IDs:', assessmentIds)
         console.log('🎵 基于量表:', selectedAssessments.map(item => item.scale_name))
         

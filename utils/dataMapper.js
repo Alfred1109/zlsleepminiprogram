@@ -246,7 +246,7 @@ const AssessmentMapper = {
 };
 
 /**
- * 分类数据映射
+ * 分类数据映射（支持新的music_categories字段）
  */
 const CategoryMapper = {
   /**
@@ -256,15 +256,25 @@ const CategoryMapper = {
     if (!backendCategory) return null;
     
     return {
-      id: backendCategory.id,
-      name: backendCategory.name,
-      code: backendCategory.code,
+      // 🔧 统一字段名称（优先使用新字段）
+      id: backendCategory.category_id || backendCategory.id,
+      categoryId: backendCategory.category_id || backendCategory.id,
+      name: backendCategory.category_name || backendCategory.name,
+      categoryName: backendCategory.category_name || backendCategory.name,
+      code: backendCategory.category_code || backendCategory.code,
+      categoryCode: backendCategory.category_code || backendCategory.code,
+      
+      // 保持兼容性的字段
       description: backendCategory.description,
       icon: backendCategory.icon || backendCategory.emoji_code,
       emojiCode: backendCategory.emoji_code,
       tags: backendCategory.tags || [],
       musicCount: backendCategory.music_count || backendCategory.count || 0,
       count: backendCategory.count || backendCategory.music_count || 0,
+      
+      // 新字段：映射相关
+      weight: backendCategory.weight,
+      isPrimary: backendCategory.is_primary,
       
       // 存储配置
       storageInfo: backendCategory.storage_info,
@@ -275,6 +285,23 @@ const CategoryMapper = {
       // 扩展字段
       type: backendCategory.type || 'audio_file',
       isActive: backendCategory.is_active !== false
+    };
+  },
+  
+  /**
+   * 前端分类数据转后端格式
+   */
+  toBackend(frontendCategory) {
+    if (!frontendCategory) return null;
+    
+    return {
+      category_id: frontendCategory.categoryId || frontendCategory.id,
+      category_name: frontendCategory.categoryName || frontendCategory.name,
+      category_code: frontendCategory.categoryCode || frontendCategory.code,
+      description: frontendCategory.description,
+      icon: frontendCategory.icon,
+      weight: frontendCategory.weight,
+      is_primary: frontendCategory.isPrimary
     };
   }
 };
