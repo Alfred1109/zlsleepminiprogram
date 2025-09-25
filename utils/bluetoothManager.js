@@ -242,19 +242,15 @@ class BluetoothManager {
       
       // 检查是否启用设备白名单
       if (!config.ENABLE_DEVICE_WHITELIST) {
-        console.log('设备白名单功能已禁用，使用本地验证')
         this.useWhitelist = false;
         this.whitelistLoaded = true;
         return true;
       }
-
-      console.log('按需加载设备白名单...')
       
       // 尝试加载白名单，但不阻塞核心功能
       try {
         await this.deviceWhitelistManager.getWhitelist();
         this.whitelistLoaded = true;
-        console.log('设备白名单加载成功')
         return true;
       } catch (error) {
         console.warn('设备白名单加载失败，将使用本地验证:', error.message)
@@ -278,7 +274,6 @@ class BluetoothManager {
       // 检查是否支持音频上下文
       if (wx.createInnerAudioContext) {
         this.audioContext = wx.createInnerAudioContext();
-        console.log('音频上下文初始化成功');
         
         // 监听音频错误
         this.audioContext.onError((res) => {
@@ -297,7 +292,6 @@ class BluetoothManager {
    * @param {Boolean} filter 是否过滤
    */
   setFilterHeadphones(filter) {
-    console.log(`设置耳机过滤: ${filter}`);
     this.filterHeadphones = filter;
   }
   
@@ -307,7 +301,6 @@ class BluetoothManager {
    * @deprecated 现在使用白名单机制，此方法仅保留兼容性
    */
   setFilterBTPrefix(filter) {
-    console.log(`设置BT前缀过滤: ${filter} (已弃用，使用白名单机制)`);
     this.filterBTPrefix = filter;
   }
 
@@ -358,7 +351,6 @@ class BluetoothManager {
       wx.openBluetoothAdapter({
         mode: 'central', // 作为中央设备扫描外围设备
         success: (res) => {
-          console.log('蓝牙适配器初始化成功:', res);
           resolve(true);
         },
         fail: (err) => {
@@ -613,44 +605,7 @@ class BluetoothManager {
    * @private
    */
   _logDeviceInfo(device) {
-    if (!this.extraLogging) return;
-    
-    console.log('==================================================');
-    console.log(`详细设备信息 - ${device.name || '未命名设备'}`);
-    console.log('--------------------------------------------------');
-    console.log(`设备ID: ${device.deviceId || 'N/A'}`);
-    console.log(`设备名称: ${device.name || 'N/A'}`);
-    console.log(`本地名称: ${device.localName || 'N/A'}`);
-    console.log(`RSSI: ${device.RSSI || 'N/A'}`);
-    console.log(`设备类型: ${device.deviceType || 'N/A'}`);
-    console.log(`MAC地址: ${device.macAddress || 'N/A'}`);
-    
-    if (device.advertisServiceUUIDs && device.advertisServiceUUIDs.length > 0) {
-      console.log('广播服务UUID:');
-      device.advertisServiceUUIDs.forEach((uuid, index) => {
-        console.log(`  ${index + 1}. ${uuid}`);
-      });
-    } else {
-      console.log('广播服务UUID: 无');
-    }
-    
-    if (device.serviceData) {
-      console.log('服务数据:');
-      for (let key in device.serviceData) {
-        const hexData = this._ab2hex(device.serviceData[key]);
-        console.log(`  ${key}: ${hexData}`);
-      }
-    } else {
-      console.log('服务数据: 无');
-    }
-    
-    if (device.advertisData) {
-      this._logAdvertisingData(device.advertisData);
-    } else {
-      console.log('广播数据: 无');
-    }
-    
-    console.log('==================================================');
+    // 详细设备信息日志已移除，减少冗余输出
   }
 
   /**
@@ -685,40 +640,30 @@ class BluetoothManager {
           return;
         }
         
-        // 为了调试，打印设备的所有信息
-        console.log('--------------------------------------------------');
-        console.log(`设备ID: ${device.deviceId}`);
-        
         // 格式化MAC地址
         const macAddress = this._formatMacAddress(device.deviceId);
-        console.log(`设备MAC地址: ${macAddress}`);
         
         // 检查设备是否为特殊关注设备
         const rawMacWithoutColons = macAddress.replace(/:/g, '');
         const isSpecialDevice = this._isSpecialDevice(device, rawMacWithoutColons);
         if (isSpecialDevice) {
-          console.log(`匹配到特殊关注设备: ${isSpecialDevice}`);
           // 如果是特殊关注的设备，确保名称正确
           if (isSpecialDevice === "BT-Music" && (!device.name || device.name !== "BT-Music")) {
             device.name = "BT-Music";
-            console.log(`已重命名设备为: ${device.name}`);
           }
         }
         
         // 解析并增强设备名称
         let deviceName = device.name || device.localName || '';
-        console.log(`原始设备名称: ${deviceName || '空'}`);
         
         // 如果设备名称为空，尝试从其他信息中获取
         if (!deviceName) {
           // 从广播数据中提取名称
           deviceName = this._extractNameFromAdvertisingData(device.advertisData);
-          console.log(`从广播数据中提取名称: ${deviceName || '失败'}`);
           
           // 如果是特殊设备但没有名称，使用固定名称
           if (isSpecialDevice && !deviceName) {
             deviceName = isSpecialDevice;
-            console.log(`使用特殊设备名称: ${deviceName}`);
           }
           
           // 如果仍然为空，尝试从MAC地址获取厂商信息
@@ -726,7 +671,6 @@ class BluetoothManager {
             const vendor = this._getVendorFromMac(macAddress);
             if (vendor) {
               deviceName = `${vendor}设备`;
-              console.log(`从MAC地址获取厂商: ${vendor}`);
             }
           }
           
@@ -735,7 +679,6 @@ class BluetoothManager {
             const deviceType = this._getDeviceTypeFromClass(device.deviceClass);
             if (deviceType) {
               deviceName = deviceType;
-              console.log(`从设备类型获取名称: ${deviceType}`);
             }
           }
         }

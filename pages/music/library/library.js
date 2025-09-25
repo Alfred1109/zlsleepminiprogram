@@ -48,7 +48,6 @@ Page({
   },
 
   onLoad() {
-    console.log('脑波库页面加载')
 
     // 检查场景上下文
     this.checkSceneContext()
@@ -104,7 +103,6 @@ Page({
     const isInSceneMode = sceneContextManager.isInSceneMode()
     const sceneHint = sceneContextManager.getSceneNavigationHint()
     
-    console.log('🎯 脑波页面检查场景上下文:', { context, isInSceneMode, sceneHint })
     
     this.setData({
       sceneContext: context,

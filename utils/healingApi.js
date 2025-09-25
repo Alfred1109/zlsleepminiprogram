@@ -190,7 +190,6 @@ const MusicAPI = {
     // 🔧 适配后端新接口：发送scene_id而不是scene_context对象
     if (options.sceneContext && options.sceneContext.sceneId) {
       requestData.scene_id = options.sceneContext.sceneId
-      console.log('🎯 音乐生成传递场景ID:', requestData.scene_id)
     }
     
     // 添加默认时长参数（后端可能需要）
@@ -200,13 +199,6 @@ const MusicAPI = {
       requestData.duration_seconds = 60  // 默认60秒
     }
 
-    console.log('🔍 音乐生成API - 发送数据:', requestData)
-    console.log('🔍 音乐生成API - 请求详情:', {
-      url: '/api/music/generate',
-      method: 'POST',
-      assessmentId: assessmentId,
-      options: options
-    })
     
     // 如果有多选参数，添加综合生成相关字段
     if (options.additionalAssessments && options.additionalAssessments.length > 0) {
@@ -222,7 +214,6 @@ const MusicAPI = {
       if (validAdditionalAssessments.length === 0) {
         console.warn('⚠️ 所有额外评测ID都无效，切换到单一生成模式')
         // 如果所有额外评测ID都无效，则切换到单一生成模式
-        console.log('🎵 发送单一音乐生成请求（额外ID无效）:', assessmentId)
         return post('/api/music/generate', requestData)
       }
 

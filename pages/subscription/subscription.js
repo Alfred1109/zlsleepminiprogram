@@ -25,8 +25,6 @@ Page({
   },
 
   onLoad(options) {
-    console.log('📱 订阅页面加载', options)
-    
     // 检查支付环境
     const paymentEnv = PaymentConfig.checkPaymentEnvironment()
     if (!paymentEnv.isReady) {

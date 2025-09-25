@@ -43,7 +43,6 @@ Page({
   },
 
   onLoad(options) {
-    console.log('🎯 场景详情页面加载，参数:', options)
     
     // 初始化主题
     this.initTheme()
@@ -80,20 +79,10 @@ Page({
    */
   async checkLoginAndLoadData() {
     try {
-      console.log('🔍 [调试] 开始检查登录状态并加载数据，当前场景:', {
-        sceneId: this.data.sceneId,
-        sceneName: this.data.sceneName,
-        scaleType: this.data.scaleType
-      })
       
       const userInfo = AuthService.getCurrentUser()
       const isLoggedIn = !!userInfo
       
-      console.log('🔍 [调试] 登录状态检查结果:', {
-        userInfo: userInfo,
-        isLoggedIn: isLoggedIn,
-        userId: userInfo?.id || userInfo?.user_id
-      })
       
       this.setData({
         userInfo,
@@ -107,15 +96,12 @@ Page({
       this.checkSceneContext()
       
       if (isLoggedIn) {
-        console.log('✅ [调试] 用户已登录，开始并行加载场景数据...')
         // 并行加载评测历史和脑波历史
         await Promise.all([
           this.loadAssessmentHistory(),
           this.loadBrainwaveHistory()
         ])
-        console.log('✅ [调试] 场景数据加载任务完成')
       } else {
-        console.log('ℹ️ [调试] 用户未登录，重置数据并显示登录引导')
         this.setData({
           assessmentHistory: [],
           brainwaveHistory: []
@@ -196,7 +182,6 @@ Page({
     })
     
     if (!this.data.userInfo) {
-      console.log('❌ [调试] 用户未登录，跳过评测历史加载')
       return
     }
     
@@ -345,7 +330,6 @@ Page({
     })
     
     if (!this.data.userInfo) {
-      console.log('❌ [调试] 用户未登录，跳过脑波历史加载')
       return
     }
     

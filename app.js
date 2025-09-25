@@ -9,7 +9,6 @@ const bus = require('./utils/eventEmitter');
 
 App({
   onLaunch: async function () {
-    console.log('小程序启动')
 
     // 注入全局拦截：定位/屏蔽包含 total_fee/totol_fee/支付JSAPI/缺少参数 的用户可见提示
     try {
@@ -67,7 +66,6 @@ App({
       this.globalData.currentTheme = savedTheme
       // 兜底：当无详细themeConfig时，至少提供class
       this.globalData.themeConfig = this.globalData.themeConfig || { class: (savedTheme === 'default' ? '' : savedTheme) }
-      console.log('已加载用户偏好主题:', savedTheme)
     } catch (e) {
       console.warn('加载用户偏好主题失败:', e)
     }
@@ -79,7 +77,6 @@ App({
     try {
       const { getApiBaseUrl } = require('./utils/config')
       this.globalData.apiBaseUrl = getApiBaseUrl()
-      console.log('动态API基础URL设置:', this.globalData.apiBaseUrl)
     } catch (e) {
       console.warn('API配置设置失败:', e)
       this.globalData.apiBaseUrl = 'https://medsleep.cn' // 兜底配置
@@ -89,7 +86,6 @@ App({
     try {
       const { refreshApiConfig } = require('./utils/api')
       refreshApiConfig()
-      console.log('API配置强制刷新完成')
     } catch (e) {
       console.warn('API配置刷新失败:', e)
     }
