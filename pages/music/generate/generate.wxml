@@ -38,10 +38,10 @@
         <view class="section-header">
           <view>
             <view class="section-title">
-              {{selectionMode === 'single' ? '选择评测记录' : '选择评测记录 (多选)'}}
+              选择评测记录
             </view>
             <view class="section-subtitle">
-              {{selectionMode === 'single' ? '基于单个评测结果生成音乐' : '基于多个评测结果综合生成音乐'}}
+              选择1个评测生成音乐，或选择多个评测进行综合生成
             </view>
           </view>
         </view>
@@ -59,19 +59,14 @@
         <view 
           wx:for="{{recentAssessments}}" 
           wx:key="id"
-          class="assessment-item {{item.isSelected ? (selectionMode === 'single' ? 'selected' : 'selected-multiple') : ''}}"
+          class="assessment-item {{item.isSelected ? 'selected-multiple' : ''}}"
           data-assessment="{{item}}"
           bindtap="onSelectAssessment"
         >
-          <!-- 单选/多选指示器 -->
+          <!-- 多选指示器 -->
           <view class="selection-indicator">
-            <!-- 单选模式：圆形radio -->
-            <view wx:if="{{selectionMode === 'single'}}" class="radio-indicator {{item.isSelected ? 'radio-checked' : ''}}">
-              <view wx:if="{{item.isSelected}}" class="radio-dot"></view>
-            </view>
-            
-            <!-- 多选模式：方形checkbox -->
-            <view wx:else class="checkbox-indicator {{item.isSelected ? 'checkbox-checked' : ''}}">
+            <!-- 统一使用方形checkbox -->
+            <view class="checkbox-indicator {{item.isSelected ? 'checkbox-checked' : ''}}">
               <image wx:if="{{item.isSelected}}" class="checkbox-icon" src="/images/check.svg" mode="aspectFit"></image>
             </view>
           </view>
@@ -112,17 +107,22 @@
           <view class="generate-info">
             <view class="info-title">生成说明</view>
             <view class="info-content">
-              <view wx:if="{{selectionMode === 'single'}}" class="single-mode-info">
+              <view wx:if="{{selectedCount === 1}}" class="single-mode-info">
                 <view class="info-item">• 基于您的评测结果分析情绪状态</view>
                 <view class="info-item">• 智能匹配适合的音乐元素</view>
                 <view class="info-item">• 生成个性化的60秒疗愈音乐</view>
               </view>
               
-              <view wx:else class="multiple-mode-info">
+              <view wx:elif="{{selectedCount > 1}}" class="multiple-mode-info">
                 <view class="info-item">• 综合分析多个评测的心理状态</view>
                 <view class="info-item">• 场景化智能匹配最佳音乐元素</view>
                 <view class="info-item">• 生成综合疗愈的60秒个性化音乐</view>
                 <view class="info-item selected-count">• 已选择 {{selectedCount}} 个评测进行综合生成</view>
+              </view>
+              
+              <view wx:else class="no-selection-info">
+                <view class="info-item">• 请先选择至少一个评测记录</view>
+                <view class="info-item">• 选择多个评测可进行综合分析</view>
               </view>
             </view>
           </view>
