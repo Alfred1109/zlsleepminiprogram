@@ -1,0 +1,168 @@
+<!-- 主题文字配色预览页面 -->
+<view class="preview-container">
+  
+  <!-- 页面标题 -->
+  <view class="preview-header">
+    <text class="header-title">🎨 主题文字配色预览</text>
+    <text class="header-subtitle">白色文字配色标准规范 v3.0</text>
+  </view>
+
+  <!-- 主题切换器 -->
+  <view class="theme-switcher">
+    <button wx:for="{{themes}}" wx:key="value" 
+            class="theme-btn {{currentTheme === item.value ? 'active' : ''}}"
+            data-theme="{{item.value}}"
+            bindtap="switchTheme">
+      {{item.name}}
+    </button>
+  </view>
+
+  <!-- 文字层级预览 -->
+  <view class="text-hierarchy-section">
+    <view class="section-title">📝 文字层级体系</view>
+    
+    <view class="text-sample-card">
+      <view class="text-primary sample-text">主要文字 (Primary) - 对比度 8:1+</view>
+      <view class="text-secondary sample-text">次要文字 (Secondary) - 对比度 6:1+</view>
+      <view class="text-muted sample-text">辅助文字 (Muted) - 对比度 4.5:1+</view>
+      <view class="text-placeholder sample-text">占位文字 (Placeholder) - 对比度 3:1+</view>
+    </view>
+  </view>
+
+  <!-- 白色文字替换测试 -->
+  <view class="white-text-section">
+    <view class="section-title">🔄 白色文字智能替换测试</view>
+    
+    <view class="test-card">
+      <view class="test-label">硬编码白色文字测试：</view>
+      <view class="text-white">这段文字原本是 color: white</view>
+      <view class="white-text">这段文字使用 .white-text 类</view>
+      <view style="color: white;">这段文字使用内联样式 color: white</view>
+      <view style="color: #fff;">这段文字使用内联样式 color: #fff</view>
+    </view>
+  </view>
+
+  <!-- 深色背景元素测试 -->
+  <view class="dark-bg-section">
+    <view class="section-title">🌑 深色背景元素（保持白色）</view>
+    
+    <view class="dark-elements">
+      <button class="btn-primary">主要按钮</button>
+      <button class="btn-brand">品牌按钮</button>
+      <view class="vip-tag">VIP</view>
+      <view class="badge">徽章</view>
+    </view>
+  </view>
+
+  <!-- 对比度数据展示 -->
+  <view class="contrast-data-section">
+    <view class="section-title">📊 当前主题对比度数据</view>
+    
+    <view class="contrast-table">
+      <view class="table-row header">
+        <view class="table-cell">文字类型</view>
+        <view class="table-cell">颜色值</view>
+        <view class="table-cell">对比度</view>
+        <view class="table-cell">WCAG等级</view>
+      </view>
+      
+      <view wx:for="{{contrastData}}" wx:key="type" class="table-row">
+        <view class="table-cell">{{item.type}}</view>
+        <view class="table-cell">{{item.color}}</view>
+        <view class="table-cell">{{item.contrast}}</view>
+        <view class="table-cell {{item.grade}}">{{item.grade}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 实际应用场景测试 -->
+  <view class="real-world-section">
+    <view class="section-title">🌍 实际应用场景</view>
+    
+    <!-- 卡片组件 -->
+    <view class="demo-card">
+      <view class="card-title">音乐播放器</view>
+      <view class="card-content">
+        <view class="text-primary">正在播放：放松冥想音乐</view>
+        <view class="text-secondary">艺术家：疗愈音频工作室</view>
+        <view class="text-muted">时长：15:30 | 已播放：5:42</view>
+      </view>
+      <view class="card-actions">
+        <button class="btn-primary">播放</button>
+        <button class="btn-secondary">收藏</button>
+      </view>
+    </view>
+
+    <!-- 表单组件 -->
+    <view class="demo-form">
+      <view class="form-title text-primary">用户设置</view>
+      <view class="form-item">
+        <view class="form-label text-secondary">用户名</view>
+        <input class="form-input" placeholder="请输入用户名" />
+      </view>
+      <view class="form-item">
+        <view class="form-label text-secondary">个人简介</view>
+        <textarea class="form-textarea" placeholder="介绍一下你自己..."></textarea>
+      </view>
+      <view class="form-hint text-muted">提示：个人信息将用于个性化推荐</view>
+    </view>
+
+    <!-- 列表组件 -->
+    <view class="demo-list">
+      <view class="list-title text-primary">我的播放列表</view>
+      <view wx:for="{{playlist}}" wx:key="id" class="list-item">
+        <view class="item-title text-primary">{{item.title}}</view>
+        <view class="item-desc text-secondary">{{item.artist}}</view>
+        <view class="item-meta text-muted">{{item.duration}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 无障碍功能测试 -->
+  <view class="accessibility-section">
+    <view class="section-title">♿ 无障碍功能测试</view>
+    
+    <view class="accessibility-tests">
+      <view class="test-item">
+        <view class="test-name">高对比度模式</view>
+        <button bindtap="toggleHighContrast" class="test-btn">
+          {{highContrast ? '关闭' : '开启'}}
+        </button>
+      </view>
+      
+      <view class="test-item">
+        <view class="test-name">减少动效模式</view>
+        <button bindtap="toggleReducedMotion" class="test-btn">
+          {{reducedMotion ? '关闭' : '开启'}}
+        </button>
+      </view>
+      
+      <view class="test-item">
+        <view class="test-name">大字体模式</view>
+        <button bindtap="toggleLargeText" class="test-btn">
+          {{largeText ? '关闭' : '开启'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 开发者信息 -->
+  <view class="developer-info">
+    <view class="info-title">📝 开发者备注</view>
+    <view class="info-content">
+      <view class="text-muted">
+        • 本预览页面展示了所有主题下的文字配色效果
+      </view>
+      <view class="text-muted">
+        • 对比度数据基于WCAG 2.1标准计算
+      </view>
+      <view class="text-muted">
+        • 智能替换系统会自动处理硬编码的白色文字
+      </view>
+      <view class="text-muted">
+        • 深色背景元素保持白色文字确保可读性
+      </view>
+    </view>
+  </view>
+
+</view>

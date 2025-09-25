@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "评测历史",
+  "navigationBarBackgroundColor": "#4A90E2",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#F4F2F3",
+  "backgroundTextStyle": "light",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "theme-switcher": "/components/theme-switcher/theme-switcher",
+    "global-tabbar": "/components/global-tabbar/global-tabbar"
+  }
+}

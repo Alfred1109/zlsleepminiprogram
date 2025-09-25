@@ -75,7 +75,7 @@
       </view>
       <view class="stat-item">
         <text class="stat-number">{{stats.sequenceCount}}</text>
-        <text class="stat-label">长序列</text>
+        <text class="stat-label">疗愈脑波</text>
       </view>
     </view>
   </view>

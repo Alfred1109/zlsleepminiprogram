@@ -1,0 +1,157 @@
+<!-- pages/assessment/history/history.wxml -->
+<!-- 主题切换器 -->
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="assessment"
+  bind:themechange="onThemeChange"
+/>
+
+<view class="container page-with-tabbar {{themeClass}}">
+  <!-- 头部统计信息 -->
+  <view class="stats-header">
+    <view class="stats-card">
+      <view class="stat-item">
+        <text class="stat-number">{{totalAssessments}}</text>
+        <text class="stat-label">总评测</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{completedAssessments}}</text>
+        <text class="stat-label">已完成</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{averageScore}}</text>
+        <text class="stat-label">平均分</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选和排序控制 -->
+  <view class="filter-controls">
+    <view class="filter-section">
+      <text class="filter-title">筛选：</text>
+      <view class="filter-options">
+        <view class="filter-option {{currentFilter === 'all' ? 'active' : ''}}" 
+              data-filter="all" bindtap="onFilterChange">
+          全部
+        </view>
+        <view class="filter-option {{currentFilter === 'completed' ? 'active' : ''}}" 
+              data-filter="completed" bindtap="onFilterChange">
+          已完成
+        </view>
+        <view class="filter-option {{currentFilter === 'pending' ? 'active' : ''}}" 
+              data-filter="pending" bindtap="onFilterChange">
+          进行中
+        </view>
+      </view>
+    </view>
+    
+    <view class="sort-section">
+      <text class="sort-title">排序：</text>
+      <view class="sort-options">
+        <view class="sort-option {{currentSort === 'time' ? 'active' : ''}}" 
+              data-sort="time" bindtap="onSortChange">
+          时间
+        </view>
+        <view class="sort-option {{currentSort === 'score' ? 'active' : ''}}" 
+              data-sort="score" bindtap="onSortChange">
+          分数
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 未登录提示 -->
+  <view class="login-prompt" wx:if="{{!isLoggedIn}}">
+    <view class="prompt-card">
+      <view class="prompt-icon">🔐</view>
+      <view class="prompt-content">
+        <text class="prompt-title">登录后查看评测历史</text>
+        <text class="prompt-desc">登录账户以查看完整的评测记录和趋势分析</text>
+      </view>
+      <view class="prompt-action">
+        <view class="login-btn" bindtap="promptLogin">立即登录</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评测历史内容 -->
+  <view class="history-content" wx:else>
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loadingAssessments}}">
+      <text class="loading-text">加载评测历史中...</text>
+    </view>
+    
+    <!-- 评测历史列表 -->
+    <view class="history-list" wx:elif="{{assessmentHistory.length > 0}}">
+      <view class="history-item" wx:for="{{assessmentHistory}}" wx:key="id">
+        <view class="item-header">
+          <view class="item-info">
+            <text class="item-title">{{item.scaleName}}</text>
+            <text class="item-date">{{item.date}}</text>
+          </view>
+          <view class="item-status {{item.status === 'completed' ? 'completed' : 'pending'}}">
+            {{item.status === 'completed' ? '已完成' : '进行中'}}
+          </view>
+        </view>
+        
+        <view class="item-body">
+          <view class="score-display" wx:if="{{item.status === 'completed' && item.score}}">
+            <view class="score-circle">
+              <text class="score-number">{{item.score}}</text>
+              <text class="score-unit">分</text>
+            </view>
+            <view class="score-label">
+              <text class="result-text">{{item.result}}</text>
+            </view>
+          </view>
+          
+          <view class="item-description" wx:if="{{item.description}}">
+            <text class="description-text">{{item.description}}</text>
+          </view>
+        </view>
+        
+        <view class="item-actions">
+          <view class="action-btn secondary" wx:if="{{item.status === 'completed'}}" 
+                data-id="{{item.id}}" bindtap="onViewAssessmentResult">
+            查看详情
+          </view>
+          <view class="action-btn primary" wx:else>
+            继续评测
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/images/empty-assessment.svg" />
+      <text class="empty-text">暂无评测记录</text>
+      <text class="empty-hint">完成专业评测后，可查看历史记录和趋势分析</text>
+      <view class="empty-action">
+        <view class="start-assessment-btn" bindtap="navigateToAssessment">
+          开始评测
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快速操作 -->
+  <view class="quick-actions" wx:if="{{isLoggedIn}}">
+    <view class="quick-action-btn" bindtap="navigateToAssessment">
+      <image class="action-icon" src="/images/assessment.svg" />
+      <text class="action-text">新建评测</text>
+    </view>
+    <view class="quick-action-btn" bindtap="onBackToScene" wx:if="{{sceneId}}">
+      <image class="action-icon" src="/images/info.svg" />
+      <text class="action-text">返回场景</text>
+    </view>
+  </view>
+</view>
+
+<!-- 全局底部菜单栏 -->
+<global-tabbar 
+  id="globalTabbar"
+  current-page="assessment"
+  theme-class="{{themeClass}}"
+  visible="{{true}}"
+/>

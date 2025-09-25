@@ -6,19 +6,26 @@
   page-type="default"
   bind:themechange="onThemeChange"
 />
-<view class="page-container {{themeClass}}">
+<view class="page-container page-with-tabbar {{themeClass}}">
   <!-- 用户信息头部 -->
   <view class="profile-header">
     <view class="user-main-info">
       <view class="user-info">
         <!-- 头像选择按钮 -->
         <button wx:if="{{isLoggedIn}}" class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-          <image class="avatar" src="{{userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}"/>
+          <image class="avatar" 
+                 src="{{userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}"
+                 bind:error="onAvatarError"
+                 mode="aspectFill"/>
           <view class="avatar-overlay">
             <text class="avatar-tip">点击更换</text>
           </view>
         </button>
-        <image wx:else class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}"/>
+        <image wx:else 
+               class="avatar" 
+               src="{{userInfo.avatarUrl || '/images/default-avatar.svg'}}"
+               bind:error="onAvatarError"
+               mode="aspectFill"/>
         
         <view class="user-detail">
           <!-- 昵称输入框 -->
@@ -258,3 +265,11 @@
     </view>
   </view>
 </view>
+
+<!-- 全局底部菜单栏 -->
+<global-tabbar 
+  id="globalTabbar"
+  current-page="profile"
+  theme-class="{{themeClass}}"
+  visible="{{true}}"
+/>

@@ -247,7 +247,7 @@
 .save-btn {
   width: 100%;
   background: #C0A9BD; /* 主色纯色 */
-  color: white;
+  color: #FFFFFF;
   border: none;
   border-radius: 16rpx;
   padding: 20rpx;
@@ -439,11 +439,11 @@ slider {
   }
   
   .section-title {
-    color: #ffffff;
+    color: #FFFFFF;
   }
   
   .label-text {
-    color: #ffffff;
+    color: #FFFFFF;
   }
   
   .label-desc {
@@ -459,6 +459,6 @@ slider {
   }
   
   .selector-title {
-    color: #ffffff;
+    color: #FFFFFF;
   }
 }

@@ -39,7 +39,7 @@
         <view class="music-info-section">
           <view class="music-title">{{musicInfo.title || '个性化疗愈音乐'}}</view>
           <view class="music-subtitle">
-            {{musicType === '60s' ? '60秒版本' : '长序列版本'}} · 
+            {{musicType === '60s' ? '60秒版本' : '疗愈脑波'}} · 
             {{musicInfo.mood || '放松疗愈'}}
           </view>
           <view wx:if="{{musicInfo.description}}" class="music-description">

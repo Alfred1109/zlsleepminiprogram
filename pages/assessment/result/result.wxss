@@ -369,7 +369,7 @@
   padding: 32rpx;
   border-radius: 20rpx;
   overflow: hidden;
-  /* color: white; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -439,13 +439,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* color: white; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
 }
 .generating-spinner {
   width: 32rpx;
   height: 32rpx;
   border: 4rpx solid rgba(255,255,255,0.5);
-  border-top-color: white; /* 边框颜色保持不变 */
+  border-top-color: #FFFFFF; /* 边框颜色保持不变 */
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-right: 16rpx;
@@ -527,7 +527,7 @@
 }
 .primary-btn {
   background: #C0A9BD;
-  /* color: white; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
   font-weight: 600;
   font-size: 30rpx;
   box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.12);
@@ -627,7 +627,7 @@
 }
 .generating-content {
   text-align: center;
-  /* color: white; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
 }
 .generating-title {
   font-size: 36rpx;

@@ -62,7 +62,7 @@
 .track-title {
   font-size: 28rpx;
   font-weight: 500;
-  color: white;
+  color: #FFFFFF;
   margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -136,7 +136,7 @@
 
 .iconfont {
   font-size: 32rpx;
-  color: white;
+  color: #FFFFFF;
 }
 
 .play-btn .iconfont {
@@ -321,7 +321,7 @@
 
 .timer-option .timer-text {
   font-size: 26rpx;
-  color: white;
+  color: #FFFFFF;
   font-weight: 500;
 }
 

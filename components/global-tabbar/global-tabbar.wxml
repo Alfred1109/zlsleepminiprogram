@@ -1,0 +1,44 @@
+<!-- 全局底部菜单栏组件 -->
+<view class="global-tabbar {{themeClass}}" wx:if="{{visible}}">
+  <view class="tabbar-container">
+    <!-- 首页 -->
+    <view class="tabbar-item {{currentPage === 'index' ? 'active' : ''}}" 
+          bindtap="navigateToPage" 
+          data-page="index"
+          data-url="/pages/index/index">
+      <image class="tabbar-icon" 
+             src="{{currentPage === 'index' ? '/images/tab-home-active.png' : '/images/tab-home.png'}}" />
+      <text class="tabbar-text">首页</text>
+    </view>
+    
+    <!-- 评测 -->
+    <view class="tabbar-item {{currentPage === 'assessment' ? 'active' : ''}}" 
+          bindtap="navigateToPage" 
+          data-page="assessment"
+          data-url="/pages/assessment/scales/scales">
+      <image class="tabbar-icon" 
+             src="{{currentPage === 'assessment' ? '/images/tab-assessment-active.png' : '/images/tab-assessment.png'}}" />
+      <text class="tabbar-text">评测</text>
+    </view>
+    
+    <!-- 脑波 -->
+    <view class="tabbar-item {{currentPage === 'music' ? 'active' : ''}}" 
+          bindtap="navigateToPage" 
+          data-page="music"
+          data-url="/pages/music/library/library">
+      <image class="tabbar-icon" 
+             src="{{currentPage === 'music' ? '/images/tab-music-active.png' : '/images/tab-music.png'}}" />
+      <text class="tabbar-text">脑波</text>
+    </view>
+    
+    <!-- 我的 -->
+    <view class="tabbar-item {{currentPage === 'profile' ? 'active' : ''}}" 
+          bindtap="navigateToPage" 
+          data-page="profile"
+          data-url="/pages/profile/profile">
+      <image class="tabbar-icon" 
+             src="{{currentPage === 'profile' ? '/images/tab-profile-active.png' : '/images/tab-profile.png'}}" />
+      <text class="tabbar-text">我的</text>
+    </view>
+  </view>
+</view>

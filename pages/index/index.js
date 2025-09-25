@@ -6,6 +6,7 @@ const AuthService = require('../../services/AuthService')
 const { getCurrentConfig } = require('../../utils/config')
 const { MusicAPI, LongSequenceAPI } = require('../../utils/healingApi')
 const { getUnifiedSubscriptionStatus } = require('../../utils/subscription')
+const { getDeviceWhitelistManager } = require('../../utils/deviceWhitelist')
 
 Page({
   data: {
@@ -23,6 +24,11 @@ Page({
     // 订阅状态相关
     subscriptionStatus: null,
     unifiedStatus: null,
+    
+    // 设备绑定状态相关
+    hasBindedDevice: false,
+    bindedDeviceCount: 0,
+    loadingDeviceStatus: false,
     
     // 全局播放器相关
     showGlobalPlayer: false,
@@ -118,6 +124,9 @@ Page({
       try {
         // 检查登录状态
         this.checkLoginStatus();
+        
+        // 检查设备绑定状态
+        this.checkDeviceBindingStatus();
         
       } catch (error) {
         console.error('检查登录状态失败:', error);
@@ -375,6 +384,56 @@ Page({
       });
       return false;
     }
+  },
+
+  /**
+   * 检查设备绑定状态
+   */
+  async checkDeviceBindingStatus() {
+    try {
+      // 只有登录用户才检查设备绑定状态
+      if (!this.data.isLoggedIn) {
+        this.setData({
+          hasBindedDevice: false,
+          bindedDeviceCount: 0,
+          loadingDeviceStatus: false
+        });
+        return;
+      }
+
+      this.setData({ loadingDeviceStatus: true });
+
+      const deviceManager = getDeviceWhitelistManager();
+      const devices = await deviceManager.getMyDevices();
+      
+      console.log('📱 首页设备状态检查完成:', {
+        设备数量: devices.length,
+        已绑定: devices.length > 0
+      });
+      
+      this.setData({
+        hasBindedDevice: devices.length > 0,
+        bindedDeviceCount: devices.length,
+        loadingDeviceStatus: false
+      });
+
+    } catch (error) {
+      console.error('设备绑定状态检查失败:', error);
+      this.setData({
+        hasBindedDevice: false,
+        bindedDeviceCount: 0,
+        loadingDeviceStatus: false
+      });
+    }
+  },
+
+  /**
+   * 跳转到设备绑定页面
+   */
+  goToDeviceBinding() {
+    wx.navigateTo({
+      url: '/pages/device/device'
+    });
   },
 
   /**
@@ -2058,5 +2117,24 @@ Page({
     } catch (error) {
       console.error('清理主题监听器失败:', error)
     }
+  },
+
+  /**
+   * 头像加载错误处理
+   */
+  onAvatarError(e) {
+    console.error('❌ 首页头像图片加载失败:', e.detail.errMsg)
+    
+    // 设置默认头像
+    const userInfo = { ...this.data.userInfo }
+    userInfo.avatar = '/images/default-avatar.svg'
+    userInfo.avatarUrl = '/images/default-avatar.svg'
+    userInfo.avatar_url = '/images/default-avatar.svg'
+    
+    this.setData({
+      userInfo: userInfo
+    })
+    
+    console.log('🔄 首页已切换到默认头像')
   }
 });

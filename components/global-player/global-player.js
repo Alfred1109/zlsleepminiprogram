@@ -427,11 +427,16 @@ Component({
 
     // 绑定全局事件
     bindGlobalEvents() {
-      // 监听全局播放事件
+      // 监听全局播放事件 - 修复：不依赖页面实例，直接绑定到当前组件
       if (app.globalData) {
         app.globalData.onPlayTrack = this.playTrack.bind(this)
         app.globalData.onPauseTrack = this.pauseTrack.bind(this)
         app.globalData.onStopTrack = this.stopTrack.bind(this)
+        
+        // 设置全局播放器组件实例引用，供其他地方调用
+        app.globalData.globalPlayerComponent = this
+        
+        console.log('✅ 全局播放器事件已绑定到当前组件实例')
       }
     },
 
@@ -1088,7 +1093,11 @@ Component({
         app.globalData.onPlayTrack = null
         app.globalData.onPauseTrack = null
         app.globalData.onStopTrack = null
+        // 清理全局播放器组件引用
+        app.globalData.globalPlayerComponent = null
       }
+      
+      console.log('🧹 全局播放器组件已清理')
     }
   }
 })

@@ -47,25 +47,25 @@
 
 .btn-success {
   background: linear-gradient(135deg, #059669, #047857);
-  color: white;
+  color: #FFFFFF;
   box-shadow: 0 4rpx 16rpx rgba(5, 150, 105, 0.3);
 }
 
 .btn-warning {
   background: linear-gradient(135deg, #D97706, #B45309);
-  color: white;
+  color: #FFFFFF;
   box-shadow: 0 4rpx 16rpx rgba(217, 119, 6, 0.3);
 }
 
 .btn-info {
   background: linear-gradient(135deg, #2563EB, #1D4ED8);
-  color: white;
+  color: #FFFFFF;
   box-shadow: 0 4rpx 16rpx rgba(37, 99, 235, 0.3);
 }
 
 .btn-error {
   background: linear-gradient(135deg, #DC2626, #B91C1C);
-  color: white;
+  color: #FFFFFF;
   box-shadow: 0 4rpx 16rpx rgba(220, 38, 38, 0.3);
 }
 
@@ -157,7 +157,7 @@
 .badge-text {
   font-size: 24rpx;
   font-weight: 500;
-  color: white;
+  color: #FFFFFF;
 }
 
 /* 信息提示 */
@@ -238,7 +238,7 @@
 .gradient-text {
   font-size: 32rpx;
   font-weight: 600;
-  color: white;
+  color: #FFFFFF;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
   position: relative;
   z-index: 2;

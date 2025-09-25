@@ -258,7 +258,7 @@
 
 .login-btn.primary {
   background: #C0A9BD; /* 主色纯色 */
-  color: #ffffff;
+  color: #FFFFFF;
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
 }
 
@@ -353,7 +353,7 @@
 }
 
 .terms-link {
-  color: #ffffff;
+  color: #FFFFFF;
   text-decoration: underline;
   font-weight: bold;
   padding: 4rpx 8rpx;

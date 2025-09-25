@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "🎨 主题文字配色预览",
+  "navigationBarBackgroundColor": "#C0A9BD",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#F4F2F3",
+  "backgroundTextStyle": "dark",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "disableScroll": false,
+  "usingComponents": {}
+}

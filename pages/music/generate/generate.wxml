@@ -6,7 +6,7 @@
   page-type="default"
   bind:themechange="onThemeChange"
 />
-<view class="page-container {{themeClass}}">
+<view class="page-container page-with-tabbar {{themeClass}}">
   <!-- 页面标题 -->
   <view class="page-header">
     <view class="header-icon">🎵</view>
@@ -110,13 +110,13 @@
               <view wx:if="{{selectedCount === 1}}" class="single-mode-info">
                 <view class="info-item">• 基于您的评测结果分析情绪状态</view>
                 <view class="info-item">• 智能匹配适合的音乐元素</view>
-                <view class="info-item">• 生成个性化的60秒疗愈音乐</view>
+                <view class="info-item">• 生成个性化的疗愈音乐</view>
               </view>
               
               <view wx:elif="{{selectedCount > 1}}" class="multiple-mode-info">
                 <view class="info-item">• 综合分析多个评测的心理状态</view>
                 <view class="info-item">• 场景化智能匹配最佳音乐元素</view>
-                <view class="info-item">• 生成综合疗愈的60秒个性化音乐</view>
+                <view class="info-item">• 生成综合疗愈的个性化音乐</view>
                 <view class="info-item selected-count">• 已选择 {{selectedCount}} 个评测进行综合生成</view>
               </view>
               
@@ -171,4 +171,12 @@
   bind:previousTrack="onPreviousTrack"
   bind:closePlayer="onCloseGlobalPlayer"
   bind:expandPlayer="onExpandGlobalPlayer"
+/>
+
+<!-- 全局底部菜单栏 -->
+<global-tabbar 
+  id="globalTabbar"
+  current-page="music"
+  theme-class="{{themeClass}}"
+  visible="{{true}}"
 />

@@ -263,7 +263,7 @@
   padding: 8rpx 16rpx;
   border-radius: 20rpx;
   font-size: 22rpx;
-  color: white;
+  color: #FFFFFF;
   text-align: center;
 }
 
@@ -516,6 +516,225 @@
 .list-item-action {
   padding: 8rpx;
   opacity: 0.6;
+}
+
+/* 趋势图样式 */
+.trend-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  margin: 0 24rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
+  overflow: hidden;
+}
+
+.trend-overview {
+  padding: 32rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+}
+
+.trend-stats {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.trend-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.stat-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #4A90E2;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #94A7AE;
+  opacity: 0.8;
+}
+
+.simple-chart {
+  padding: 32rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+}
+
+.chart-title {
+  font-size: 24rpx;
+  color: #64766A;
+  font-weight: 500;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.chart-container {
+  position: relative;
+  height: 200rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.05);
+  margin: 0 16rpx;
+}
+
+.chart-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1rpx;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.chart-line {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.trend-point {
+  position: absolute;
+  transform: translate(-50%, 50%);
+}
+
+.point-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #4A90E2;
+  border: 2rpx solid #FFFFFF;
+  box-shadow: 0 2rpx 8rpx rgba(74, 144, 226, 0.3);
+  transition: all 0.3s ease;
+}
+
+.point-dot.latest {
+  width: 16rpx;
+  height: 16rpx;
+  background: #FF6B6B;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.4);
+}
+
+.point-label {
+  position: absolute;
+  top: -40rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20rpx;
+  color: #2D3A36;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.trend-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.line-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12rpx;
+  padding: 0 16rpx;
+}
+
+.label-left,
+.label-right {
+  font-size: 20rpx;
+  color: #94A7AE;
+  opacity: 0.8;
+}
+
+.latest-result {
+  padding: 32rpx;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.result-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2D3A36;
+}
+
+.result-date {
+  font-size: 22rpx;
+  color: #94A7AE;
+  opacity: 0.8;
+}
+
+.result-content {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.result-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4A90E2 0%, #5BA3F2 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4rpx 16rpx rgba(74, 144, 226, 0.3);
+}
+
+.score-number {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.score-unit {
+  font-size: 16rpx;
+  opacity: 0.8;
+}
+
+.result-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.result-name {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #2D3A36;
+}
+
+.result-status {
+  font-size: 24rpx;
+  color: #4A90E2;
+  font-weight: 500;
 }
 
 /* 调整卡片样式 */

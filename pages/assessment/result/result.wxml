@@ -6,7 +6,7 @@
   page-type="default"
   bind:themechange="onThemeChange"
 />
-<view class="page-container {{themeClass}}">
+<view class="page-container page-with-tabbar {{themeClass}}">
   <!-- 页面内容 -->
   <view class="page-content">
   <view wx:if="{{loading}}" class="loading-container">
@@ -123,31 +123,7 @@
       </view>
 
       <view class="music-options-new">
-        <view class="option-card-new quick-option" bindtap="generate60sMusic">
-          <view class="option-header">
-            <view class="option-icon">⚡</view>
-            <view class="option-badge">快速体验</view>
-          </view>
-          <view class="option-content">
-            <view class="option-title">60秒疗愈音频</view>
-            <view class="option-description">AI智能生成，快速缓解当前状态</view>
-            <view class="option-features">
-              <text class="feature">• 即时生成</text>
-              <text class="feature">• 针对性强</text>
-              <text class="feature">• 随时聆听</text>
-            </view>
-          </view>
-          <view class="option-action">
-            <view wx:if="{{generating && generationType === '60s'}}" class="generating-status">
-              <view class="generating-spinner"></view>
-              <text>生成中...</text>
-            </view>
-            <view wx:else class="action-button quick-btn">
-              <text>立即生成</text>
-              <text class="btn-arrow">→</text>
-            </view>
-          </view>
-        </view>
+        <!-- 60秒疗愈音频选项已隐藏，但功能保留 -->
 
         <view class="option-card-new deep-option">
           <view class="option-header">
@@ -258,9 +234,17 @@
   <view wx:if="{{generating}}" class="generating-overlay">
     <view class="generating-content">
       <view class="generating-spinner"></view>
-      <view class="generating-title">{{generationType === '60s' ? '正在生成60秒音频...' : '正在生成30分钟疗愈音频...'}}</view>
+      <view class="generating-title">正在生成30分钟疗愈音频...</view>
       <view class="generating-subtitle">基于您的评测结果，AI正在为您定制专属音频</view>
     </view>
   </view>
   </view>
 </view>
+
+<!-- 全局底部菜单栏 -->
+<global-tabbar 
+  id="globalTabbar"
+  current-page="assessment"
+  theme-class="{{themeClass}}"
+  visible="{{true}}"
+/>

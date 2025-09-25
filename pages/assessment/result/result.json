@@ -6,6 +6,7 @@
   "enablePullDownRefresh": false,
   "disableScroll": false,
   "usingComponents": {
-    "theme-switcher": "/components/theme-switcher/theme-switcher"
+    "theme-switcher": "/components/theme-switcher/theme-switcher",
+    "global-tabbar": "/components/global-tabbar/global-tabbar"
   }
 }

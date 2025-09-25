@@ -1,9 +1,9 @@
 <!--pages/longSequence/create/create.wxml-->
-<!-- 长序列脑波创建页面 -->
+<!-- 疗愈脑波创建页面 -->
 <view class="container">
   <!-- 页面标题 -->
   <view class="page-header">
-    <view class="header-title">创建AI长序列脑波</view>
+    <view class="header-title">创建AI疗愈脑波</view>
     <view class="header-subtitle">基于评测结果生成长时间AI疗愈脑波体验</view>
   </view>
 
@@ -141,7 +141,7 @@
     <!-- 创建说明 -->
     <view wx:if="{{recentAssessments.length > 0}}" class="section">
       <view class="section-title">
-        <text class="title-text">长序列脑波说明</text>
+        <text class="title-text">疗愈脑波说明</text>
       </view>
 
       <view class="info-content">
@@ -192,7 +192,7 @@
             <image class="info-icon" src="/images/info-personalized.svg" mode="aspectFit"></image>
             <view class="info-text">
               <view class="info-title">全面疗愈</view>
-              <view class="info-desc">生成综合性长序列脑波疗愈方案</view>
+              <view class="info-desc">生成综合性疗愈脑波疗愈方案</view>
             </view>
           </view>
           
@@ -212,7 +212,7 @@
         bindtap="onCreateSequence"
       >
         <image class="btn-icon" src="/images/create-music.svg" mode="aspectFit"></image>
-        <text wx:if="{{selectionMode === 'single'}}">创建长序列脑波</text>
+        <text wx:if="{{selectionMode === 'single'}}">创建疗愈脑波</text>
         <text wx:else>综合创建脑波{{selectedCount > 0 ? ' (' + selectedCount + '个评测)' : ''}}</text>
       </button>
 

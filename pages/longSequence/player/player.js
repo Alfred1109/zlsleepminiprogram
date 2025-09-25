@@ -31,6 +31,9 @@ Page({
   onLoad(options) {
     console.log('长序列播放器页面加载', options)
     
+    // 初始化全局播放器 - 修复全局播放器在长序列播放器页面不工作的问题
+    this.initGlobalPlayerRef()
+    
     const { sessionId } = options
     this.setData({
       sessionId: parseInt(sessionId)
@@ -38,6 +41,18 @@ Page({
 
     this.initTheme()
     this.loadSessionInfo()
+  },
+  
+  /**
+   * 初始化全局播放器引用 - 确保全局播放器在当前页面正常工作
+   */
+  initGlobalPlayerRef() {
+    const app = getApp()
+    if (app.globalData) {
+      // 设置页面引用，供全局播放器组件使用
+      app.globalData.currentPageInstance = this
+      console.log('✅ 长序列播放器页面 - 全局播放器引用已初始化')
+    }
   },
 
   onShow() {

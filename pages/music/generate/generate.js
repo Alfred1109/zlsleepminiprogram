@@ -40,15 +40,61 @@ Page({
   },
 
   onLoad(options) {
-    console.log('🎵 音乐生成页面加载', options)
+    console.log('🚀 generate页面加载，参数:', options);
     
-    // 保存预选的评测ID
-    if (options.assessmentId) {
-      this.setData({
-        preselectedAssessmentId: parseInt(options.assessmentId)
-      })
-      console.log('🎯 预选评测ID:', options.assessmentId)
+    // 初始化全局播放器 - 修复全局播放器在音乐生成页面不工作的问题
+    this.initGlobalPlayerRef()
+    
+    // 🔧 修复：确保关键变量初始化
+    const defaultData = {
+      selectionMode: 'multiple', // 保持现有的统一多选模式
+      selectedAssessments: [],
+      sceneId: null,
+      sceneContext: null,
+      isFromSceneHistory: false,
+      preselectedAssessmentId: null
+    };
+    
+    // 解析入口参数
+    if (options.from === 'scene_history' || options.source === 'scene_history') {
+      // 🔧 场景历史入口特殊处理
+      defaultData.selectionMode = 'scene_history';
+      defaultData.isFromSceneHistory = true;
+      defaultData.sceneId = options.sceneId ? parseInt(options.sceneId) : null;
+      
+      if (options.assessmentIds) {
+        try {
+          defaultData.selectedAssessments = JSON.parse(decodeURIComponent(options.assessmentIds));
+          console.log('🎯 场景历史模式，解析到评测IDs:', defaultData.selectedAssessments);
+        } catch (e) {
+          console.error('❌ 解析assessmentIds失败:', e);
+          defaultData.selectedAssessments = [];
+        }
+      }
+    } else if (options.assessmentId) {
+      // 单个评测入口
+      defaultData.preselectedAssessmentId = parseInt(options.assessmentId);
+      console.log('🎯 预选评测ID:', options.assessmentId);
+    } else if (options.assessmentIds) {
+      // 多评测入口
+      try {
+        defaultData.selectedAssessments = JSON.parse(decodeURIComponent(options.assessmentIds));
+        defaultData.selectionMode = 'multiple';
+        console.log('🎯 多评测模式，解析到评测IDs:', defaultData.selectedAssessments);
+      } catch (e) {
+        console.error('❌ 解析多评测IDs失败:', e);
+        // 回退到单个评测处理
+        if (options.assessmentId) {
+          defaultData.preselectedAssessmentId = parseInt(options.assessmentId);
+        }
+      }
     }
+    
+    // 设置初始数据
+    this.setData(defaultData);
+    
+    // 验证必要参数
+    this.validateRequiredParams();
     
     // 检查场景上下文
     this.checkSceneContext()
@@ -58,6 +104,26 @@ Page({
     this.checkUserLogin()
     this.loadRecentAssessments()
     this.loadSubscriptionInfo()
+    
+    // 🔍 调试信息：验证修复效果
+    console.log('🔍 调试信息:', {
+      selectionMode: this.data.selectionMode,
+      selectedAssessments: this.data.selectedAssessments,
+      sceneId: this.data.sceneId,
+      isFromSceneHistory: this.data.isFromSceneHistory
+    });
+  },
+  
+  /**
+   * 初始化全局播放器引用 - 确保全局播放器在当前页面正常工作
+   */
+  initGlobalPlayerRef() {
+    const app = getApp()
+    if (app.globalData) {
+      // 设置页面引用，供全局播放器组件使用
+      app.globalData.currentPageInstance = this
+      console.log('✅ 音乐生成页面 - 全局播放器引用已初始化')
+    }
   },
 
   onShow() {
@@ -94,6 +160,48 @@ Page({
     if (this.data.recentAssessments.length > 0) {
       this.loadRecentAssessments()
     }
+  },
+
+  /**
+   * 验证必要参数
+   */
+  validateRequiredParams() {
+    const { selectedAssessments, sceneId, isFromSceneHistory } = this.data;
+    
+    if (isFromSceneHistory && !sceneId) {
+      console.error('❌ 场景历史模式缺少sceneId');
+      this.showErrorAndReturn('参数错误：缺少场景信息');
+      return false;
+    }
+    
+    if (isFromSceneHistory && (!selectedAssessments || selectedAssessments.length === 0)) {
+      console.error('❌ 场景历史模式缺少评测数据');
+      this.showErrorAndReturn('参数错误：缺少评测数据');
+      return false;
+    }
+    
+    console.log('✅ 参数验证通过:', { 
+      isFromSceneHistory, 
+      sceneId, 
+      selectedAssessmentsCount: selectedAssessments ? selectedAssessments.length : 0 
+    });
+    return true;
+  },
+
+  /**
+   * 错误提示并返回上一页
+   */
+  showErrorAndReturn(message) {
+    wx.showModal({
+      title: '错误',
+      content: message,
+      showCancel: false,
+      success: () => {
+        wx.navigateBack({
+          delta: 1
+        });
+      }
+    });
   },
 
   /**
@@ -352,48 +460,80 @@ Page({
    * 更新UI状态（简化WXML表达式）
    */
   updateUIState() {
+    // 🔧 修复：添加 selectionMode 变量安全检查
+    const selectionMode = this.data.selectionMode || this.selectionMode || 'single';
     const { selectedAssessments, generating, recentAssessments } = this.data
     
-    // 计算基础状态
-    const selectedCount = selectedAssessments.length
-    const canGenerate = !generating && selectedCount > 0
+    console.log('🔍 updateUIState - selectionMode:', selectionMode);
     
-    // 🔧 修复：统一使用多选逻辑的按钮文案
-    let generateButtonText
-    let generatingText
-    
-    if (selectedCount === 1) {
-      generateButtonText = '生成音乐 (1个评测)'
-      generatingText = '生成中...'
-    } else if (selectedCount > 1) {
-      generateButtonText = `综合生成音乐 (${selectedCount}个评测)`
-      generatingText = '综合生成中...'
-    } else {
-      generateButtonText = '选择评测后生成'
-      generatingText = '生成中...'
+    try {
+      // 计算基础状态
+      const selectedCount = selectedAssessments.length
+      const canGenerate = !generating && selectedCount > 0
+      
+      // 🔧 修复：统一使用多选逻辑的按钮文案
+      let generateButtonText
+      let generatingText
+      
+      if (selectionMode === 'single') {
+        // 单选模式UI更新
+        generateButtonText = selectedCount > 0 ? '生成音乐' : '选择评测后生成'
+        generatingText = '生成中...'
+      } else if (selectionMode === 'multiple') {
+        // 多选模式UI更新
+        if (selectedCount === 1) {
+          generateButtonText = '生成音乐 (1个评测)'
+          generatingText = '生成中...'
+        } else if (selectedCount > 1) {
+          generateButtonText = `综合生成音乐 (${selectedCount}个评测)`
+          generatingText = '综合生成中...'
+        } else {
+          generateButtonText = '选择评测后生成'
+          generatingText = '生成中...'
+        }
+      } else if (selectionMode === 'scene_history') {
+        // 🔧 新增：场景历史模式UI更新
+        generateButtonText = selectedCount > 0 ? '基于历史评测生成音乐' : '选择评测后生成'
+        generatingText = '基于历史评测生成中...'
+      } else {
+        // 默认处理
+        console.warn('⚠️ 未知的selectionMode:', selectionMode, '使用默认单选模式');
+        generateButtonText = selectedCount > 0 ? '生成音乐' : '选择评测后生成'
+        generatingText = '生成中...'
+      }
+      
+      // 给评测记录添加选中状态标记
+      const updatedAssessments = recentAssessments.map(item => ({
+        ...item,
+        isSelected: this.isAssessmentSelected(item)
+      }))
+      
+      // 批量更新状态
+      this.setData({
+        canGenerate,
+        generateButtonText,
+        generatingText,
+        selectedCount,
+        recentAssessments: updatedAssessments
+      })
+      
+      console.log('🎯 UI状态更新:', {
+        selectionMode,
+        selectedCount,
+        canGenerate,
+        generateButtonText
+      })
+      
+    } catch (error) {
+      console.error('❌ updateUIState 执行失败:', error);
+      // 降级处理：使用基础UI状态
+      this.setData({
+        selectionMode: 'single',
+        canGenerate: false,
+        generateButtonText: '选择评测后生成',
+        generatingText: '生成中...'
+      });
     }
-    
-    // 给评测记录添加选中状态标记
-    const updatedAssessments = recentAssessments.map(item => ({
-      ...item,
-      isSelected: this.isAssessmentSelected(item)
-    }))
-    
-    // 批量更新状态
-    this.setData({
-      canGenerate,
-      generateButtonText,
-      generatingText,
-      selectedCount,
-      recentAssessments: updatedAssessments
-    })
-    
-    console.log('🎯 UI状态更新:', {
-      selectionMode,
-      selectedCount,
-      canGenerate,
-      generateButtonText
-    })
   },
 
   /**
@@ -470,82 +610,205 @@ Page({
    * 音乐生成核心流程
    */
   async generateMusicProcess() {
-    this.setData({ generating: true })
-    this.updateUIState()
-
     try {
+      // 🔧 修复：确保 selectionMode 存在
+      const selectionMode = this.data.selectionMode || 'multiple';
+      const { selectedAssessments, sceneId, isFromSceneHistory } = this.data;
+      
+      console.log('🎵 开始生成音乐:', { selectionMode, selectedAssessments, sceneId });
+      
+      // 🔍 详细调试信息
+      this.logGenerateDebugInfo({ selectionMode, selectedAssessments, sceneId, isFromSceneHistory });
+      
+      this.setData({ generating: true })
+      this.updateUIState()
+
       let result
-      const { selectedAssessments } = this.data
       const assessmentIds = selectedAssessments.map(item => item.id)
       
       console.log('🎵 生成音乐，评测IDs:', assessmentIds)
       console.log('🎵 基于量表:', selectedAssessments.map(item => item.scale_name))
+      
+      // 🔧 验证评测ID的有效性
+      const invalidIds = assessmentIds.filter(id => !id || typeof id !== 'number' || id <= 0)
+      if (invalidIds.length > 0) {
+        throw new Error(`发现无效的评测ID: ${invalidIds.join(', ')}, 请重新选择评测`)
+      }
+      
+      // 构建请求参数
+      const generateParams = {
+        assessment_id: assessmentIds[0], // 主评测ID
+        duration_seconds: 60
+      };
+      
+      // 🔧 确保scene_id传递
+      if (sceneId) {
+        generateParams.scene_id = sceneId;
+      }
+      
+      // 根据模式添加额外参数
+      if (selectionMode === 'multiple' || assessmentIds.length > 1) {
+        generateParams.assessment_ids = assessmentIds;
+        generateParams.generation_mode = 'comprehensive';
+      }
+      
+      if (isFromSceneHistory && sceneId) {
+        generateParams.scene_context = {
+          sceneId: sceneId,
+          source: 'history'
+        };
+      }
+      
+      // 传递场景上下文（如果存在）
+      if (this.data.sceneContext) {
+        generateParams.sceneContext = this.data.sceneContext;
+        console.log('🎯 传递场景上下文:', this.data.sceneContext);
+      }
       
       // 🔧 修复：统一使用多选逻辑处理
       // 当选择1个评测时相当于单选，多个评测时进行综合生成
       if (assessmentIds.length === 1) {
         // 只有一个评测，按单选模式调用API
         console.log('🎵 单个评测生成模式')
-        const generateOptions = {
-          duration_seconds: 60
-        }
-        if (this.data.sceneContext) {
-          generateOptions.sceneContext = this.data.sceneContext
-          console.log('🎯 传递场景上下文:', this.data.sceneContext)
-        }
-        result = await MusicAPI.generateMusic(assessmentIds[0], generateOptions)
+        console.log('🔍 单个生成API参数:', { assessmentId: assessmentIds[0], generateParams });
+        result = await MusicAPI.generateMusic(assessmentIds[0], generateParams)
         
       } else {
         // 多个评测，按综合生成模式调用API
         console.log('🎵 多评测综合生成模式')
-        result = await MusicAPI.generateMusic(assessmentIds[0], {
+        const comprehensiveParams = {
           mode: 'comprehensive',
           additionalAssessments: assessmentIds.slice(1),
-          sceneContext: this.data.sceneContext,
-          duration_seconds: 60
-        })
+          ...generateParams
+        };
+        console.log('🔍 综合生成API参数:', { assessmentId: assessmentIds[0], comprehensiveParams });
+        result = await MusicAPI.generateMusic(assessmentIds[0], comprehensiveParams)
       }
       
+      console.log('🔍 API调用结果:', { success: result?.success, hasData: !!result?.data, error: result?.error });
+      
       if (result.success) {
-        this.setData({ musicResult: result.data })
-        
-        // 🔧 修复：根据选择数量生成成功消息
-        const successMessage = selectedAssessments.length === 1
-          ? '音乐生成成功' 
-          : `综合${selectedAssessments.length}个评测的音乐生成成功`
-          
-        wx.showToast({
-          title: successMessage,
-          icon: 'success'
-        })
-
-        // 跳转到播放页面
-        setTimeout(() => {
-          wx.navigateTo({
-            url: `/pages/music/player/player?musicId=${result.data.music_id}&type=60s`
-          })
-        }, 1500)
+        this.handleGenerateSuccess(result);
       } else {
-        throw new Error(result.error || '音乐生成失败')
+        this.handleGenerateError(result.error || '生成失败');
       }
 
     } catch (error) {
-      console.error('生成音乐失败:', error)
-      wx.showModal({
-        title: '生成失败',
-        content: error.message || '音乐生成失败，请重试',
-        showCancel: true,
-        confirmText: '重试',
-        success: (res) => {
-          if (res.confirm) {
-            this.generateMusicProcess() // 重试时调用核心流程方法
-          }
-        }
-      })
+      console.error('❌ generateMusicProcess 执行失败:', error);
+      
+      // 🔧 改善错误信息传递
+      let processedError;
+      if (typeof error === 'string') {
+        processedError = error;
+      } else if (error && typeof error === 'object') {
+        // 保留完整的错误对象，让 handleGenerateError 进一步处理
+        processedError = error;
+      } else {
+        processedError = '音乐生成过程出错，请重试';
+      }
+      
+      console.log('🔍 传递错误对象:', processedError);
+      this.handleGenerateError(processedError);
     } finally {
       this.setData({ generating: false })
       this.updateUIState()
     }
+  },
+
+  /**
+   * 记录生成音乐的调试信息
+   */
+  logGenerateDebugInfo(params) {
+    console.log('🔍 ============ 音乐生成调试信息 ============');
+    console.log('🔍 页面模式:', params.selectionMode);
+    console.log('🔍 场景ID:', params.sceneId);
+    console.log('🔍 来自场景历史:', params.isFromSceneHistory);
+    console.log('🔍 选择的评测数量:', params.selectedAssessments?.length || 0);
+    
+    if (params.selectedAssessments?.length > 0) {
+      params.selectedAssessments.forEach((assessment, index) => {
+        console.log(`🔍 评测${index + 1}:`, {
+          id: assessment.id,
+          scale_name: assessment.scale_name,
+          completed_at: assessment.completed_at
+        });
+      });
+    }
+    
+    console.log('🔍 场景上下文:', this.data.sceneContext);
+    console.log('🔍 ========================================');
+  },
+
+  /**
+   * 处理音乐生成成功
+   */
+  handleGenerateSuccess(result) {
+    this.setData({ musicResult: result.data })
+    
+    // 🔧 修复：根据选择数量生成成功消息
+    const { selectedAssessments, selectionMode } = this.data;
+    let successMessage;
+    
+    if (selectionMode === 'scene_history') {
+      successMessage = '基于历史评测的音乐生成成功';
+    } else if (selectedAssessments.length === 1) {
+      successMessage = '音乐生成成功';
+    } else {
+      successMessage = `综合${selectedAssessments.length}个评测的音乐生成成功`;
+    }
+      
+    wx.showToast({
+      title: successMessage,
+      icon: 'success'
+    })
+
+    // 跳转到播放页面
+    setTimeout(() => {
+      wx.navigateTo({
+        url: `/pages/music/player/player?musicId=${result.data.music_id}&type=60s`
+      })
+    }, 1500)
+  },
+
+  /**
+   * 处理音乐生成错误
+   */
+  handleGenerateError(error) {
+    console.error('生成音乐失败:', error)
+    
+    // 🔧 改善错误处理，提取更详细的错误信息
+    let errorMessage = '音乐生成失败，请重试';
+    
+    if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error && typeof error === 'object') {
+      // 处理不同格式的错误对象
+      if (error.error && typeof error.error === 'string') {
+        errorMessage = error.error;
+      } else if (error.message && typeof error.message === 'string') {
+        errorMessage = error.message;
+      } else if (error.data && error.data.error) {
+        errorMessage = error.data.error;
+      } else if (error.details && error.details.error) {
+        errorMessage = error.details.error;
+      } else if (error.statusCode) {
+        errorMessage = `服务器错误 (${error.statusCode}): ${error.error || '请稍后重试'}`;
+      }
+    }
+    
+    console.log('🔍 最终错误消息:', errorMessage);
+    
+    wx.showModal({
+      title: '生成失败',
+      content: errorMessage,
+      showCancel: true,
+      confirmText: '重试',
+      success: (res) => {
+        if (res.confirm) {
+          this.generateMusicProcess() // 重试时调用核心流程方法
+        }
+      }
+    })
   },
 
   /**

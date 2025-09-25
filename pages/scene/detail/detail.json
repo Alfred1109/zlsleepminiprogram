@@ -7,6 +7,7 @@
   "enablePullDownRefresh": true,
   "usingComponents": {
     "global-player": "/components/global-player/global-player",
-    "theme-switcher": "/components/theme-switcher/theme-switcher"
+    "theme-switcher": "/components/theme-switcher/theme-switcher",
+    "global-tabbar": "/components/global-tabbar/global-tabbar"
   }
 }

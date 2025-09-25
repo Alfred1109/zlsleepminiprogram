@@ -220,6 +220,6 @@
 
 .timer-option.active {
   background: linear-gradient(135deg, #C0A9BD 0%, #94A7AE 100%);
-  color: white;
+  color: #FFFFFF;
   box-shadow: 0 4rpx 12rpx rgba(43, 186, 165, 0.3);
 }

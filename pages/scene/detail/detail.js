@@ -28,6 +28,13 @@ Page({
     assessmentHistory: [],
     loadingAssessments: false,
     
+    // 趋势图数据
+    trendData: [],
+    trendLinePoints: '',
+    latestScore: null,
+    latestAssessment: null,
+    trendDirection: '--',
+    
     // 脑波历史
     brainwaveHistory: [],
     loadingBrainwaves: false,
@@ -47,6 +54,9 @@ Page({
     // 初始化主题
     this.initTheme()
     
+    // 初始化全局播放器 - 修复全局播放器在场景详情页面不工作的问题
+    this.initGlobalPlayerRef()
+    
     // 解析URL参数
     const { sceneId, sceneName, scaleType, sceneTheme } = options
     this.setData({
@@ -63,6 +73,18 @@ Page({
     
     // 检查登录状态并加载数据
     this.checkLoginAndLoadData()
+  },
+  
+  /**
+   * 初始化全局播放器引用 - 确保全局播放器在当前页面正常工作
+   */
+  initGlobalPlayerRef() {
+    const app = getApp()
+    if (app.globalData) {
+      // 设置页面引用，供全局播放器组件使用
+      app.globalData.currentPageInstance = this
+      console.log('✅ 场景详情页面 - 全局播放器引用已初始化')
+    }
   },
 
   onShow() {
@@ -149,20 +171,20 @@ Page({
   },
 
   /**
-   * 退出场景模式
+   * 切换到全部场景
    */
   exitSceneMode() {
     wx.showModal({
-      title: '退出场景模式',
-      content: '是否退出当前场景模式？退出后将清除场景过滤状态。',
-      confirmText: '退出',
+      title: '切换到全部场景',
+      content: '是否切换到全部场景模式？将清除当前场景过滤状态。',
+      confirmText: '切换',
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
           sceneContextManager.clearSceneContext()
           this.checkSceneContext()
           wx.showToast({
-            title: '已退出场景模式',
+            title: '已切换到全部场景',
             icon: 'success'
           })
         }
@@ -174,12 +196,7 @@ Page({
    * 加载评测历史（针对当前场景）
    */
   async loadAssessmentHistory() {
-    console.log('🔍 [调试] 开始加载评测历史，用户信息:', {
-      userInfo: this.data.userInfo,
-      sceneId: this.data.sceneId,
-      sceneName: this.data.sceneName,
-      isLoggedIn: this.data.isLoggedIn
-    })
+    console.log('📊 加载场景评测历史:', this.data.sceneName)
     
     if (!this.data.userInfo) {
       return
@@ -277,35 +294,43 @@ Page({
             return dateB - dateA
           })
           .slice(0, 10) // 最多显示10条
-          .map(item => ({
-            id: item.id || item.assessment_id,  // 🔧 修复：使用正确的评测记录ID
-            date: this.formatDate(item.completed_at || item.created_at),
-            result: this.getAssessmentResultText(item.result || item.score),
-            scaleName: item.scale_name || '心理评测',
-            scaleType: item.scale_type,
-            score: item.result || item.score,
-            rawData: item
-          }))
+          .map(item => {
+            // 🔧 修复：更全面地查找分数字段
+            const scoreValue = item.result || item.score || item.total_score || item.assessment_result || 
+                               item.final_score || item.points || item.grade || item.assessment_score ||
+                               item.raw_score || item.calculated_score
+            
+            // 调试：记录分数查找结果
+            if (!scoreValue) {
+              console.warn('⚠️ 评测记录无分数:', item.id, item.scale_name)
+            }
+            
+            return {
+              id: item.id || item.assessment_id,  // 🔧 修复：使用正确的评测记录ID
+              date: this.formatDate(item.completed_at || item.created_at),
+              result: this.getAssessmentResultText(scoreValue),
+              scaleName: item.scale_name || '心理评测',
+              scaleType: item.scale_type,
+              score: typeof scoreValue === 'number' ? scoreValue : (typeof scoreValue === 'string' && !isNaN(Number(scoreValue)) ? Number(scoreValue) : scoreValue),
+              rawData: item
+            }
+          })
         
-        console.log('🎯 [调试] 最终评测历史数据处理:', {
-          原始API数据数量: result.data.length,
-          原始API数据样本: result.data.slice(0, 2),
-          有效评测数量: validAssessments.length,
-          完成状态评测数量: filteredAssessments.length,
-          最终页面显示数量: sortedAssessments.length,
-          最终显示数据: sortedAssessments
+        console.log('📊 评测历史数据处理完成:', {
+          场景: this.data.sceneName,
+          原始数量: result.data.length,
+          场景相关: filteredAssessments.length,
+          最终显示: sortedAssessments.length
         })
 
         this.setData({
           assessmentHistory: sortedAssessments
         })
         
-        console.log(`📊 [调试] 场景${this.data.sceneName}评测历史加载完成并设置到页面:`, {
-          总数: result.data.length,
-          场景相关: filteredAssessments.length,
-          显示: sortedAssessments.length,
-          页面数据: this.data.assessmentHistory
-        })
+        // 生成趋势图数据
+        this.generateTrendData(sortedAssessments)
+        
+        console.log(`✅ 场景${this.data.sceneName}评测历史加载完成:`, sortedAssessments.length, '条记录')
       } else {
         console.warn('评测历史加载失败:', result.error)
         this.setData({ assessmentHistory: [] })
@@ -322,12 +347,7 @@ Page({
    * 加载脑波历史（针对当前场景）
    */
   async loadBrainwaveHistory() {
-    console.log('🔍 [调试] 开始加载脑波历史，用户信息:', {
-      userInfo: this.data.userInfo,
-      sceneId: this.data.sceneId,
-      sceneName: this.data.sceneName,
-      isLoggedIn: this.data.isLoggedIn
-    })
+    console.log('🧠 加载场景脑波历史:', this.data.sceneName)
     
     if (!this.data.userInfo) {
       return
@@ -474,6 +494,168 @@ Page({
   },
 
   /**
+   * 生成趋势图数据
+   */
+  generateTrendData(assessments) {
+    console.log('📈 生成趋势图数据:', assessments?.length || 0, '条评测记录')
+    
+    if (!assessments || assessments.length === 0) {
+      console.log('⚠️ [场景趋势图] 评测数据为空，返回空趋势图')
+      this.setData({
+        trendData: [],
+        trendLinePoints: '',
+        latestScore: null,
+        latestAssessment: null,
+        trendDirection: '--'
+      })
+      return
+    }
+
+    // 取最近7次评测数据用于趋势图
+    const recentAssessments = assessments.slice(0, 7).reverse() // 按时间正序排列
+    
+    // 过滤出有分数的评测（检查原始字段）
+    const scoredAssessments = recentAssessments.filter(item => {
+      // 检查更多可能的分数字段
+      const hasScore = (typeof item.score === 'number' && item.score >= 0) ||
+                      (typeof item.result === 'number' && item.result >= 0) ||
+                      (typeof item.total_score === 'number' && item.total_score >= 0) ||
+                      (typeof item.assessment_result === 'number' && item.assessment_result >= 0) ||
+                      (typeof item.final_score === 'number' && item.final_score >= 0) ||
+                      (typeof item.points === 'number' && item.points >= 0) ||
+                      (typeof item.grade === 'number' && item.grade >= 0)
+      
+      // 分数检查：保留有效的数字分数
+      
+      return hasScore
+    })
+    
+    console.log('📈 趋势图数据过滤:', recentAssessments.length, '条记录，', scoredAssessments.length, '条有分数')
+    
+    if (scoredAssessments.length === 0) {
+      console.log('⚠️ 有评测记录但无有效分数')
+      // 如果有评测记录但没有分数，显示评测数量但提示暂无分数
+      const latestAssessment = assessments[0]
+      this.setData({
+        trendData: [],
+        trendLinePoints: '',
+        latestScore: null,
+        latestAssessment: latestAssessment ? {
+          ...latestAssessment,
+          date: this.formatDate(latestAssessment.completed_at || latestAssessment.created_at),
+          result: latestAssessment.result || '暂无分数'
+        } : null,
+        trendDirection: '暂无数据'
+      })
+      return
+    }
+
+    // 统一分数字段
+    const processedAssessments = scoredAssessments.map(item => ({
+      ...item,
+      score: item.score || item.result || item.total_score || item.assessment_result || item.final_score || item.points || item.grade || 0,
+      date: this.formatDate(item.completed_at || item.created_at)
+    }))
+
+    // 计算分数范围
+    const scores = processedAssessments.map(item => item.score)
+    const minScore = Math.min(...scores)
+    const maxScore = Math.max(...scores)
+    const scoreRange = maxScore - minScore || 1 // 避免除零
+
+    // 生成趋势点数据
+    const trendData = processedAssessments.map((item, index) => {
+      const x = processedAssessments.length > 1 ? (index / (processedAssessments.length - 1)) * 80 + 10 : 50
+      const y = ((item.score - minScore) / scoreRange) * 60 + 20 // 20-80%范围
+      
+      return {
+        x: x,
+        y: y,
+        score: item.score,
+        date: item.date,
+        isLatest: index === processedAssessments.length - 1
+      }
+    })
+
+    // 生成连接线点坐标
+    const linePoints = trendData.map(point => `${point.x},${100 - point.y}`).join(' ')
+
+    // 计算趋势方向
+    let trendDirection = '--'
+    if (processedAssessments.length >= 2) {
+      const latestScore = processedAssessments[processedAssessments.length - 1].score
+      const previousScore = processedAssessments[processedAssessments.length - 2].score
+      
+      if (latestScore > previousScore) {
+        trendDirection = '↗ 上升'
+      } else if (latestScore < previousScore) {
+        trendDirection = '↘ 下降'
+      } else {
+        trendDirection = '→ 稳定'
+      }
+    }
+
+    // 获取最新评测数据
+    const latestAssessment = assessments[0] // 原始数组是按时间倒序的
+    const latestScore = latestAssessment?.score || latestAssessment?.result || latestAssessment?.total_score || null
+
+    this.setData({
+      trendData: trendData,
+      trendLinePoints: linePoints,
+      latestScore: latestScore,
+      latestAssessment: latestAssessment,
+      trendDirection: trendDirection
+    })
+
+    console.log('📈 场景页面趋势图数据生成完成:', {
+      原始评测数量: assessments.length,
+      原始评测样本: assessments.slice(0, 2).map(item => ({
+        id: item.id,
+        score: item.score,
+        result: item.result,
+        total_score: item.total_score,
+        date: item.date
+      })),
+      过滤后有效分数数量: processedAssessments.length,
+      处理后评测样本: processedAssessments.slice(0, 2).map(item => ({
+        id: item.id,
+        score: item.score,
+        date: item.date
+      })),
+      趋势点数据: trendData,
+      趋势方向: trendDirection,
+      最新分数: latestScore
+    })
+  },
+
+  /**
+   * 跳转到评测历史页面
+   */
+  navigateToAssessmentHistory() {
+    console.log('📊 跳转到评测历史页面')
+    
+    // 如果未登录，先引导登录
+    if (!this.data.isLoggedIn) {
+      this.promptLogin('查看评测历史需要先登录账户')
+      return
+    }
+    
+    // 构建跳转URL，传递场景信息
+    const url = `/pages/assessment/history/history?sceneId=${this.data.sceneId}&sceneName=${encodeURIComponent(this.data.sceneName)}&scaleType=${this.data.scaleType}&sceneTheme=${encodeURIComponent(this.data.sceneTheme)}`
+    
+    console.log('🎯 跳转到评测历史页面，参数:', {
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      scaleType: this.data.scaleType,
+      url: url
+    })
+    
+    wx.navigateTo({
+      url: url
+    })
+  },
+
+  /**
    * 跳转到评测页面
    */
   navigateToAssessment() {
@@ -599,7 +781,7 @@ Page({
       name: music.name || '未知脑波',
       url: music.url,
       image: music.image || '/images/default-music-cover.svg',
-      category: music.type === '60s_generated' ? '60秒脑波' : '长序列脑波',
+      category: music.type === '60s_generated' ? '60秒脑波' : '疗愈脑波',
       type: music.type || 'brainwave',
       id: music.id,
       duration: music.duration || 60
@@ -877,7 +1059,7 @@ Page({
     if (duration <= 120) {
       return '60秒定制音乐'
     } else if (duration >= 1800) {
-      return '长序列脑波'
+      return '疗愈脑波'
     }
     
     const id = item.session_id || item.id || 'unknown'

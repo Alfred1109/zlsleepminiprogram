@@ -681,13 +681,20 @@ Page({
 
   // 头像选择处理
   async onChooseAvatar(e) {
-    const { avatarUrl } = e.detail
-    console.log('🖼️ 用户选择头像:', avatarUrl)
-    
-    // 显示加载状态
-    wx.showLoading({ title: '保存头像到数据库...' })
-    
     try {
+      const { avatarUrl } = e.detail
+      
+      // 检查是否有有效的头像URL
+      if (!avatarUrl) {
+        console.log('🚫 用户取消了头像选择')
+        return
+      }
+      
+      console.log('🖼️ 用户选择头像:', avatarUrl)
+      
+      // 显示加载状态
+      wx.showLoading({ title: '保存头像...' })
+      
       // 立即同步到数据库
       const user = AuthService.getCurrentUser() || {}
       console.log('🔄 准备保存头像到数据库:', {
@@ -726,13 +733,43 @@ Page({
       }
     } catch (error) {
       console.error('❌ 头像保存失败:', error)
+      
+      // 根据错误类型提供更友好的提示
+      let errorMessage = '保存失败，请重试'
+      if (error.message) {
+        if (error.message.includes('网络')) {
+          errorMessage = '网络连接异常，请检查网络后重试'
+        } else if (error.message.includes('服务器')) {
+          errorMessage = '服务器暂时繁忙，请稍后重试'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
       wx.showToast({ 
-        title: error.message || '保存失败，请重试', 
-        icon: 'none' 
+        title: errorMessage, 
+        icon: 'none',
+        duration: 3000
       })
     } finally {
       wx.hideLoading()
     }
+  },
+
+  // 头像加载错误处理
+  onAvatarError(e) {
+    console.error('❌ 头像图片加载失败:', e.detail.errMsg)
+    
+    // 设置默认头像
+    const userInfo = { ...this.data.userInfo }
+    userInfo.avatarUrl = '/images/default-avatar.svg'
+    userInfo.avatar_url = '/images/default-avatar.svg'
+    
+    this.setData({
+      userInfo: userInfo
+    })
+    
+    console.log('🔄 已切换到默认头像')
   },
 
   // 昵称输入处理 - 立即同步到数据库
@@ -967,18 +1004,18 @@ Page({
       // 根据订阅类型设置详细信息
       if (unifiedStatus.isSubscribed) {
         if (unifiedStatus.type === 'premium') {
-          status.features = ['60秒音乐生成', 'AI音乐生成', '长序列音乐', '无限播放']
+          status.features = ['60秒音乐生成', 'AI音乐生成', '疗愈脑波', '无限播放']
           status.statusColor = '#10b981'
           status.statusIcon = '💎'
         } else if (unifiedStatus.type === 'vip') {
-          status.features = ['60秒音乐生成', 'AI音乐生成', '长序列音乐', '无限播放', '专属客服']
+          status.features = ['60秒音乐生成', 'AI音乐生成', '疗愈脑波', '无限播放', '专属客服']
           status.statusColor = '#8b5cf6'
           status.statusIcon = '👑'
         }
         status.showUpgrade = false
         status.daysLeft = this.calculateDaysLeft(unifiedStatus.subscriptionEndDate)
       } else if (unifiedStatus.isInTrial) {
-        status.features = ['60秒音乐生成', 'AI音乐生成', '长序列音乐']
+        status.features = ['60秒音乐生成', 'AI音乐生成', '疗愈脑波']
         status.statusColor = '#f59e0b'
         status.statusIcon = '⭐'
         status.daysLeft = unifiedStatus.trialDaysLeft

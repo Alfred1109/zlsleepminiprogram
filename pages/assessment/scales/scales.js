@@ -14,6 +14,13 @@ Page({
     userInfo: null,
     recentAssessments: [],
     
+    // 趋势图数据
+    trendData: [],
+    trendLinePoints: '',
+    latestScore: null,
+    latestAssessment: null,
+    trendDirection: '--',
+    
     // 场景上下文相关
     sceneContext: null,
     isInSceneMode: false,
@@ -160,12 +167,12 @@ Page({
       // 🔧 修复：显示错误提示但保持场景模式，让用户决定是否退出
       wx.showModal({
         title: '场景映射失败',
-        content: `获取${sceneContext.sceneName}的量表映射失败，是否退出场景模式查看所有量表？`,
-        confirmText: '退出场景模式',
+        content: `获取${sceneContext.sceneName}的量表映射失败，是否切换到全部场景查看所有量表？`,
+        confirmText: '切换到全部场景',
         cancelText: '重试',
         success: (res) => {
           if (res.confirm) {
-            // 用户选择退出场景模式
+            // 用户选择切换到全部场景
             sceneContextManager.clearSceneContext()
             this.setData({ 
               filteredScales: scales,
@@ -182,20 +189,20 @@ Page({
   },
 
   /**
-   * 退出场景模式
+   * 切换到全部场景
    */
   exitSceneMode() {
     wx.showModal({
-      title: '退出场景模式',
-      content: '是否退出当前场景模式，查看所有评测量表？',
-      confirmText: '退出',
+      title: '切换到全部场景',
+      content: '是否切换到全部场景模式，查看所有评测量表？',
+      confirmText: '切换',
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
           sceneContextManager.clearSceneContext()
           this.checkSceneContext()
           wx.showToast({
-            title: '已退出场景模式',
+            title: '已切换到全部场景',
             icon: 'success'
           })
         }
@@ -346,6 +353,9 @@ Page({
         this.setData({
           recentAssessments: validAssessments.slice(0, 3) // 只显示最近3条
         })
+        
+        // 生成趋势图数据
+        this.generateTrendData(validAssessments)
       } else {
         console.log('❌ API返回失败:', result.error)
         wx.showToast({
@@ -479,6 +489,158 @@ Page({
     wx.navigateTo({
       url: `/pages/assessment/result/result?assessmentId=${assessment.id}`
     })
+  },
+
+  /**
+   * 生成趋势图数据
+   */
+  generateTrendData(assessments) {
+    if (!assessments || assessments.length === 0) {
+      this.setData({
+        trendData: [],
+        trendLinePoints: '',
+        latestScore: null,
+        latestAssessment: null,
+        trendDirection: '--'
+      })
+      return
+    }
+
+    // 取最近7次评测数据用于趋势图
+    const recentAssessments = assessments.slice(0, 7).reverse() // 按时间正序排列
+    
+    // 过滤出有分数的评测
+    const scoredAssessments = recentAssessments.filter(item => 
+      (typeof item.total_score === 'number' && item.total_score >= 0) ||
+      (typeof item.result === 'number' && item.result >= 0)
+    )
+    
+    if (scoredAssessments.length === 0) {
+      this.setData({
+        trendData: [],
+        trendLinePoints: '',
+        latestScore: null,
+        latestAssessment: null,
+        trendDirection: '--'
+      })
+      return
+    }
+
+    // 统一分数字段
+    const processedAssessments = scoredAssessments.map(item => ({
+      ...item,
+      score: item.total_score || item.result || 0,
+      date: this.formatDate(item.completed_at || item.created_at)
+    }))
+
+    // 计算分数范围
+    const scores = processedAssessments.map(item => item.score)
+    const minScore = Math.min(...scores)
+    const maxScore = Math.max(...scores)
+    const scoreRange = maxScore - minScore || 1 // 避免除零
+
+    // 生成趋势点数据
+    const trendData = processedAssessments.map((item, index) => {
+      const x = processedAssessments.length > 1 ? (index / (processedAssessments.length - 1)) * 80 + 10 : 50
+      const y = ((item.score - minScore) / scoreRange) * 60 + 20 // 20-80%范围
+      
+      return {
+        x: x,
+        y: y,
+        score: item.score,
+        date: item.date,
+        isLatest: index === processedAssessments.length - 1
+      }
+    })
+
+    // 生成连接线点坐标
+    const linePoints = trendData.map(point => `${point.x},${100 - point.y}`).join(' ')
+
+    // 计算趋势方向
+    let trendDirection = '--'
+    if (processedAssessments.length >= 2) {
+      const latestScore = processedAssessments[processedAssessments.length - 1].score
+      const previousScore = processedAssessments[processedAssessments.length - 2].score
+      
+      if (latestScore > previousScore) {
+        trendDirection = '↗ 上升'
+      } else if (latestScore < previousScore) {
+        trendDirection = '↘ 下降'
+      } else {
+        trendDirection = '→ 稳定'
+      }
+    }
+
+    // 获取最新评测数据
+    const latestAssessment = assessments[0] // 原始数组是按时间倒序的
+    const latestScore = latestAssessment?.total_score || latestAssessment?.result || null
+
+    this.setData({
+      trendData: trendData,
+      trendLinePoints: linePoints,
+      latestScore: latestScore,
+      latestAssessment: latestAssessment ? {
+        ...latestAssessment,
+        date: this.formatDate(latestAssessment.completed_at || latestAssessment.created_at),
+        result: this.getAssessmentResultText(latestScore)
+      } : null,
+      trendDirection: trendDirection
+    })
+
+    console.log('📈 评测趋势图数据生成完成:', {
+      原始评测数量: assessments.length,
+      有效分数数量: scoredAssessments.length,
+      趋势点数据: trendData,
+      趋势方向: trendDirection,
+      最新分数: latestScore
+    })
+  },
+
+  /**
+   * 格式化日期显示
+   */
+  formatDate(dateString) {
+    if (!dateString) return '未知日期'
+    
+    try {
+      const date = new Date(dateString)
+      const now = new Date()
+      const diffTime = now - date
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+      
+      if (diffDays === 0) {
+        return '今天'
+      } else if (diffDays === 1) {
+        return '昨天'
+      } else if (diffDays < 7) {
+        return `${diffDays}天前`
+      } else {
+        return date.toLocaleDateString('zh-CN', { 
+          year: 'numeric',
+          month: 'numeric', 
+          day: 'numeric' 
+        })
+      }
+    } catch (error) {
+      console.warn('日期格式化失败:', dateString, error)
+      return '未知日期'
+    }
+  },
+
+  /**
+   * 获取评测结果文本
+   */
+  getAssessmentResultText(score) {
+    if (!score && score !== 0) return '评测完成'
+    
+    if (typeof score === 'number') {
+      if (score >= 80) return '状态良好'
+      else if (score >= 60) return '轻度压力'
+      else if (score >= 40) return '中度压力'
+      else return '需要关注'
+    }
+    
+    return score.toString()
   },
 
   /**

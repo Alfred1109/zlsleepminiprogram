@@ -6,7 +6,7 @@
   bind:themechange="onThemeChange"
 />
 
-<view class="container {{themeClass}}">
+<view class="container page-with-tabbar {{themeClass}}">
   <!-- 场景头部信息 -->
   <view class="scene-header">
     <view class="scene-title-section">
@@ -24,7 +24,7 @@
         <text class="scene-indicator-subtitle">场景模式已激活</text>
       </view>
       <view class="scene-indicator-action" bindtap="exitSceneMode">
-        <text class="exit-text">退出</text>
+        <text class="exit-text">全部场景</text>
       </view>
     </view>
   </view>
@@ -55,34 +55,103 @@
   <!-- 专业评测模块 -->
   <view class="section-card assessment-section">
     <view class="section-header">
-      <text class="section-title">专业评测</text>
-      <view class="section-action" bindtap="navigateToAssessment">开始评测</view>
+      <text class="section-title">专业评测趋势</text>
+      <view class="section-actions">
+        <view class="section-action secondary" bindtap="navigateToAssessmentHistory" wx:if="{{isLoggedIn && assessmentHistory.length > 0}}">
+          查看历史
+        </view>
+        <view class="section-action primary" bindtap="navigateToAssessment">开始评测</view>
+      </view>
     </view>
     
     <view class="section-body">
       <!-- 未登录状态 -->
       <view class="empty-state" wx:if="{{!isLoggedIn}}">
         <image class="empty-icon" src="/images/empty-assessment.svg" />
-        <text class="empty-text">请先登录查看评测记录</text>
-        <text class="empty-hint">登录后可查看专业评测历史</text>
+        <text class="empty-text">请先登录查看评测趋势</text>
+        <text class="empty-hint">登录后可查看专业评测趋势图</text>
       </view>
       
       <!-- 已登录状态 -->
       <block wx:else>
         <!-- 加载状态 -->
         <view class="loading-state" wx:if="{{loadingAssessments}}">
-          <text class="loading-text">加载评测记录中...</text>
+          <text class="loading-text">加载评测数据中...</text>
         </view>
         
-        <!-- 评测历史列表 -->
-        <view class="history-list" wx:elif="{{assessmentHistory.length > 0}}">
-          <view class="history-item" wx:for="{{assessmentHistory}}" wx:key="id">
-            <view class="history-info">
-              <text class="history-name">{{item.scaleName}} · {{item.result}}</text>
-              <text class="history-date">{{item.date}}</text>
+        <!-- 评测趋势图 -->
+        <view class="trend-chart" wx:elif="{{assessmentHistory.length > 0}}">
+          <!-- 趋势概览 -->
+          <view class="trend-overview">
+            <view class="trend-stats">
+              <view class="trend-stat">
+                <text class="stat-value">{{assessmentHistory.length}}</text>
+                <text class="stat-label">总评测</text>
+              </view>
+              <view class="trend-stat">
+                <text class="stat-value">{{latestScore || '--'}}</text>
+                <text class="stat-label">最新分数</text>
+              </view>
+              <view class="trend-stat">
+                <text class="stat-value">{{trendDirection}}</text>
+                <text class="stat-label">趋势</text>
+              </view>
             </view>
-            <view class="history-action" data-id="{{item.id}}" bindtap="onViewAssessmentResult">
-              <text class="action-text">查看报告</text>
+          </view>
+          
+          <!-- 简化趋势图 -->
+          <view class="simple-chart">
+            <view class="chart-title">评测分数趋势（最近7次）</view>
+            <view class="chart-container">
+              <view class="chart-grid">
+                <!-- 网格线 -->
+                <view class="grid-line" wx:for="{{5}}" wx:key="*this" style="bottom: {{item * 20}}%"></view>
+              </view>
+              <view class="chart-line">
+                <!-- 趋势点 -->
+                <view class="trend-point" 
+                      wx:for="{{trendData}}" 
+                      wx:key="index"
+                      style="left: {{item.x}}%; bottom: {{item.y}}%"
+                      data-score="{{item.score}}"
+                      data-date="{{item.date}}">
+                  <view class="point-dot {{item.isLatest ? 'latest' : ''}}"></view>
+                  <view class="point-label">{{item.score}}</view>
+                </view>
+                <!-- 连接线 -->
+                <view class="trend-line" wx:if="{{trendData.length > 1}}">
+                  <svg class="line-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline points="{{trendLinePoints}}" 
+                              fill="none" 
+                              stroke="#4A90E2" 
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                  </svg>
+                </view>
+              </view>
+            </view>
+            <view class="chart-labels">
+              <text class="label-left">最早</text>
+              <text class="label-right">最新</text>
+            </view>
+          </view>
+          
+          <!-- 最新评测结果 -->
+          <view class="latest-result" wx:if="{{latestAssessment}}">
+            <view class="result-header">
+              <text class="result-title">最新评测</text>
+              <text class="result-date">{{latestAssessment.date}}</text>
+            </view>
+            <view class="result-content">
+              <view class="result-score">
+                <text class="score-number">{{latestAssessment.score}}</text>
+                <text class="score-unit">分</text>
+              </view>
+              <view class="result-info">
+                <text class="result-name">{{latestAssessment.scaleName}}</text>
+                <text class="result-status">{{latestAssessment.result}}</text>
+              </view>
             </view>
           </view>
         </view>
@@ -90,8 +159,8 @@
         <!-- 空状态 -->
         <view class="empty-state" wx:else>
           <image class="empty-icon" src="/images/empty-assessment.svg" />
-          <text class="empty-text">暂无相关评测记录</text>
-          <text class="empty-hint">完成专业评测后，可生成个性化脑波</text>
+          <text class="empty-text">暂无评测数据</text>
+          <text class="empty-hint">完成专业评测后，可查看趋势分析</text>
         </view>
       </block>
     </view>
@@ -126,8 +195,8 @@
               <text class="history-name">{{item.name}}</text>
               <view class="history-meta">
                 <text class="history-date">{{item.date}}</text>
-                <text class="history-type {{item.type === '60s_generated' ? 'type-60s' : 'type-long'}}">
-                  {{item.type === '60s_generated' ? '60秒定制' : '长序列'}}
+                <text class="history-type type-long">
+                  {{item.type === '60s_generated' ? '疗愈脑波' : '疗愈脑波'}}
                 </text>
               </view>
             </view>
@@ -157,4 +226,12 @@
   bind:previousTrack="onPreviousTrack"
   bind:closePlayer="onCloseGlobalPlayer"
   bind:expandPlayer="onExpandGlobalPlayer"
+/>
+
+<!-- 全局底部菜单栏 -->
+<global-tabbar 
+  id="globalTabbar"
+  current-page="index"
+  theme-class="{{themeClass}}"
+  visible="{{true}}"
 />

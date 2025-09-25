@@ -7,7 +7,7 @@
   bind:toggleplayer="onToggleGlobalPlayer"
 />
 
-<view class="container {{themeClass}}">
+<view class="container page-with-tabbar {{themeClass}}">
   <!-- 顶部Logo区域 -->
   <view class="header-section">
     <view class="logo-container">
@@ -35,7 +35,11 @@
     <!-- 已登录状态 -->
     <view class="user-card" wx:else>
       <view class="user-avatar">
-        <image class="avatar-image" src="{{userInfo.avatar || '/images/default-avatar.png'}}" wx:if="{{userInfo.avatar}}" />
+        <image class="avatar-image" 
+               src="{{userInfo.avatar || userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}" 
+               wx:if="{{userInfo.avatar || userInfo.avatarUrl || userInfo.avatar_url}}"
+               bind:error="onAvatarError"
+               mode="aspectFill" />
         <text class="avatar-icon" wx:else>{{subscriptionStatus.statusIcon || '👤'}}</text>
       </view>
       <view class="user-details">
@@ -53,6 +57,22 @@
           <text class="status-text free" wx:else>
             {{subscriptionStatus.description || '免费版用户'}}
           </text>
+          
+          <!-- 设备绑定状态 -->
+          <view class="device-status">
+            <view wx:if="{{loadingDeviceStatus}}" class="device-loading">
+              <text class="loading-text">检查设备状态...</text>
+            </view>
+            <view wx:elif="{{hasBindedDevice}}" class="device-info bound">
+              <image class="device-icon" src="/images/check.svg" mode="aspectFit" />
+              <text class="device-text">已绑定 {{bindedDeviceCount}} 台设备</text>
+            </view>
+            <view wx:else class="device-info unbound" bindtap="goToDeviceBinding">
+              <image class="device-icon" src="/images/phone-icon.svg" mode="aspectFit" />
+              <text class="device-text">未绑定设备</text>
+              <text class="device-action">绑定设备 →</text>
+            </view>
+          </view>
         </view>
       </view>
       <!-- 订阅引导按钮 -->
@@ -74,25 +94,22 @@
     </view>
   </view>
   
-  <!-- 疗愈场景布局 -->
-  <view class="scene-categories">
+  <!-- 疗愈场景布局 - 方块形式 -->
+  <view class="scene-categories scene-grid">
     <view wx:for="{{categories}}" wx:key="id" 
-          class="scene-category-item" 
+          class="scene-category-card" 
           bindtap="onSceneTap" 
           data-id="{{item.id}}"
           data-name="{{item.name}}"
           data-scale-type="{{item.scaleType}}"
           data-scene-name="{{item.sceneName}}"
           data-index="{{index}}">
-      <view class="scene-category-icon category-icon-{{item.id}}">
+      <view class="scene-card-icon category-icon-{{item.id}}">
         <text class="category-emoji">{{item.icon || '🎯'}}</text>
       </view>
-      <view class="scene-info">
-        <text class="scene-name">{{item.name || '未知场景'}}</text>
-        <text class="scene-desc">{{item.description || '疗愈场景'}}</text>
-      </view>
-      <view class="scene-arrow">
-        <text class="arrow-icon">→</text>
+      <view class="scene-card-info">
+        <text class="scene-card-name">{{item.name || '未知场景'}}</text>
+        <text class="scene-card-desc">{{item.description || '疗愈场景'}}</text>
       </view>
     </view>
   </view>
@@ -118,4 +135,12 @@
   bind:previousTrack="onPreviousTrack"
   bind:closePlayer="onCloseGlobalPlayer"
   bind:expandPlayer="onExpandGlobalPlayer"
+/>
+
+<!-- 全局底部菜单栏 -->
+<global-tabbar 
+  id="globalTabbar"
+  current-page="index"
+  theme-class="{{themeClass}}"
+  visible="{{true}}"
 />

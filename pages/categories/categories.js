@@ -67,6 +67,9 @@ Page({
     // 初始化主题
     this.initTheme()
     
+    // 初始化全局播放器 - 修复全局播放器在分类页面不工作的问题
+    this.initGlobalPlayerRef()
+    
     // 检查登录状态，未登录时引导用户登录
     if (!AuthService.getCurrentUser()) {
       wx.showModal({
@@ -90,6 +93,18 @@ Page({
     }
     
     this.initCategories()
+  },
+  
+  /**
+   * 初始化全局播放器引用 - 确保全局播放器在当前页面正常工作
+   */
+  initGlobalPlayerRef() {
+    const app = getApp()
+    if (app.globalData) {
+      // 设置页面引用，供全局播放器组件使用
+      app.globalData.currentPageInstance = this
+      console.log('✅ 分类页面 - 全局播放器引用已初始化')
+    }
   },
 
   onShow: function () {

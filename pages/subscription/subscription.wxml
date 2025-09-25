@@ -73,7 +73,7 @@
         您正在免费试用高级功能，还剩<text class="highlight">{{unifiedStatus.trialDaysLeft}}</text>天
         <view class="trial-features">
           ✅ 无限制AI音乐生成
-          ✅ 长序列音乐播放
+          ✅ 疗愈脑波播放
           ✅ 高品质音频下载
         </view>
       </view>
@@ -90,7 +90,7 @@
       <view class="trial-desc">
         立即开始免费试用，体验所有高级功能：
         · 无限制AI音乐生成
-        · 长序列音乐播放
+        · 疗愈脑波播放
         · 高品质音频下载
       </view>
       <view class="trial-btn" bind:tap="onStartTrial">
@@ -107,7 +107,7 @@
         您的7天免费试用期已结束，当前使用免费版功能
         <view class="trial-features expired">
           ❌ AI音乐生成受限
-          ❌ 无法播放长序列音乐
+          ❌ 无法播放疗愈脑波
           ❌ 无法下载高品质音频
         </view>
       </view>

@@ -118,7 +118,7 @@
 }
 
 .playing-icon {
-  color: white;
+  color: #FFFFFF;
   font-size: 24rpx;
   animation: pulse 1.5s ease-in-out infinite;
 }

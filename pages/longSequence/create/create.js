@@ -1,5 +1,5 @@
 // pages/longSequence/create/create.js
-// 长序列脑波创建页面
+// 疗愈脑波创建页面
 const app = getApp()
 const { AssessmentAPI, LongSequenceAPI } = require('../../../utils/healingApi')
 const { sceneContextManager } = require('../../../utils/sceneContextManager')
@@ -374,7 +374,7 @@ Page({
   },
 
   /**
-   * 创建长序列脑波（模板调用的方法名）
+   * 创建疗愈脑波（模板调用的方法名）
    */
   async onCreateSequence() {
     return this.onStartGeneration()

@@ -6,7 +6,7 @@
   page-type="default"
   bind:themechange="onThemeChange"
 />
-<view class="page-container {{themeClass}}">
+<view class="page-container page-with-tabbar {{themeClass}}">
   <!-- 页面标题 -->
   <view class="page-header">
     <view class="page-header-title">脑波库</view>
@@ -22,7 +22,7 @@
         <text class="scene-indicator-subtitle">只显示相关脑波</text>
       </view>
       <view class="scene-indicator-action" bindtap="exitSceneMode">
-        <text class="exit-text">退出</text>
+        <text class="exit-text">全部场景</text>
       </view>
     </view>
   </view>
@@ -30,33 +30,21 @@
   <!-- 页面内容 -->
   <view class="page-content">
 
-    <!-- 标签页切换 -->
-    <view class="tab-container">
-      <view
-        class="tab-item {{currentTab === 'music' ? 'active' : ''}}"
-        data-tab="music"
-        bindtap="onTabChange"
-      >
-        <view class="tab-icon">🎵</view>
-        <text class="tab-text">60秒脑波</text>
-        <view wx:if="{{filteredMusicList.length > 0}}" class="tab-badge">{{filteredMusicList.length}}</view>
-        <view wx:if="{{isInSceneMode && filteredMusicList.length !== musicList.length}}" class="tab-filter-hint">
-          /{{musicList.length}}
-        </view>
-      </view>
+    <!-- 标签页切换 - 疗愈脑波tab已隐藏 -->
+    <!-- <view class="tab-container">
       <view
         class="tab-item {{currentTab === 'longSequence' ? 'active' : ''}}"
         data-tab="longSequence"
         bindtap="onTabChange"
       >
         <view class="tab-icon">🎼</view>
-        <text class="tab-text">长序列脑波</text>
+        <text class="tab-text">疗愈脑波</text>
         <view wx:if="{{filteredLongSequenceList.length > 0}}" class="tab-badge">{{filteredLongSequenceList.length}}</view>
         <view wx:if="{{isInSceneMode && filteredLongSequenceList.length !== longSequenceList.length}}" class="tab-filter-hint">
           /{{longSequenceList.length}}
         </view>
       </view>
-    </view>
+    </view> -->
 
     <!-- 订阅状态卡片 -->
     <view class="subscription-status-card">
@@ -96,8 +84,8 @@
       <view class="loading-text">加载脑波库中...</view>
     </view>
 
-  <!-- 60秒脑波列表 -->
-  <view wx:elif="{{currentTab === 'music'}}" class="content-container">
+  <!-- 60秒脑波列表已隐藏，但功能保留 -->
+  <view wx:elif="{{false}}" class="content-container">
     <!-- 空状态 -->
     <view wx:if="{{filteredMusicList.length === 0}}" class="empty-state">
       <image class="empty-icon" src="/images/empty-music.svg" mode="aspectFit" />
@@ -112,7 +100,7 @@
       <!-- 场景模式下无匹配脑波 -->
       <block wx:elif="{{isInSceneMode && musicList.length > 0}}">
         <view class="empty-text">当前场景暂无相关脑波</view>
-        <view class="empty-desc">您可以生成更多脑波或退出场景模式查看全部</view>
+        <view class="empty-desc">您可以生成更多脑波或切换到全部场景查看全部</view>
         <view class="empty-actions">
           <button class="btn-secondary" bindtap="exitSceneMode">查看全部脑波</button>
           <button class="btn-primary" bindtap="onGoToGenerate">生成脑波</button>
@@ -218,34 +206,34 @@
     </view>
   </view>
 
-  <!-- 长序列脑波列表 -->
-  <view wx:elif="{{currentTab === 'longSequence'}}" class="content-container">
+  <!-- 疗愈脑波列表 -->
+  <view class="content-container">
     <!-- 空状态 -->
     <view wx:if="{{filteredLongSequenceList.length === 0}}" class="empty-state">
       <image class="empty-icon" src="/images/empty-sequence.svg" mode="aspectFit" />
       
       <!-- 访客模式 -->
       <block wx:if="{{isGuestMode}}">
-        <view class="empty-text">请先登录查看您的长序列脑波</view>
+        <view class="empty-text">请先登录查看您的疗愈脑波</view>
         <view class="empty-desc">登录后可查看您创建的专属长时间AI疗愈脑波</view>
         <button class="btn-primary" bindtap="promptLogin">去登录</button>
       </block>
       
       <!-- 场景模式下无匹配脑波 -->
       <block wx:elif="{{isInSceneMode && longSequenceList.length > 0}}">
-        <view class="empty-text">当前场景暂无相关长序列脑波</view>
-        <view class="empty-desc">您可以创建更多长序列脑波或退出场景模式查看全部</view>
+        <view class="empty-text">当前场景暂无相关疗愈脑波</view>
+        <view class="empty-desc">您可以创建更多疗愈脑波或切换到全部场景查看全部</view>
         <view class="empty-actions">
           <button class="btn-secondary" bindtap="exitSceneMode">查看全部脑波</button>
-          <button class="btn-primary" bindtap="onGoToCreateSequence">创建长序列</button>
+          <button class="btn-primary" bindtap="onGoToCreateSequence">创建脑波</button>
         </view>
       </block>
       
       <!-- 普通空状态 -->
       <block wx:else>
-        <view class="empty-text">暂无长序列脑波</view>
+        <view class="empty-text">暂无疗愈脑波</view>
         <view class="empty-desc">创建您的专属长时间AI疗愈脑波</view>
-        <button class="btn-primary" bindtap="onGoToCreateSequence">创建长序列</button>
+        <button class="btn-primary" bindtap="onGoToCreateSequence">创建脑波</button>
       </block>
     </view>
 
@@ -317,12 +305,9 @@
     </view>
   </view>
 
-    <!-- 浮动操作按钮 -->
+    <!-- 浮动操作按钮 - 疗愈脑波创建 -->
     <view class="fab-container">
-      <button wx:if="{{currentTab === 'music'}}" class="fab" bindtap="onGoToGenerate">
-        <image class="fab-icon" src="/images/add-music.svg" mode="aspectFit" />
-      </button>
-      <button wx:else class="fab" bindtap="onGoToCreateSequence">
+      <button class="fab" bindtap="onGoToCreateSequence">
         <image class="fab-icon" src="/images/add-sequence.svg" mode="aspectFit" />
       </button>
     </view>
@@ -338,4 +323,12 @@
   bind:previousTrack="onPreviousTrack"
   bind:closePlayer="onCloseGlobalPlayer"
   bind:expandPlayer="onExpandGlobalPlayer"
+/>
+
+<!-- 全局底部菜单栏 -->
+<global-tabbar 
+  id="globalTabbar"
+  current-page="music"
+  theme-class="{{themeClass}}"
+  visible="{{true}}"
 />

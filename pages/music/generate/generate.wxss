@@ -19,7 +19,7 @@
   padding: 48rpx 32rpx;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 24rpx;
-  /* color: white; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
   border: 1rpx solid rgba(255, 255, 255, 0.2);
 }
 
@@ -31,7 +31,7 @@
 .page-title {
   font-size: 48rpx;
   font-weight: 700;
-  /* color: #ffffff; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
   margin-bottom: 16rpx;
 }
 
@@ -46,7 +46,7 @@
 .header-title {
   font-size: 48rpx;
   font-weight: 600;
-  /* color: #ffffff; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
   margin-bottom: 16rpx;
 }
 
@@ -395,7 +395,7 @@
 
 .btn-primary {
   background: #C0A9BD;
-  /* color: white; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
   height: 96rpx;
 }
 
@@ -405,7 +405,7 @@
 
 .btn-generate {
   background: #C0A9BD;
-  /* color: #ffffff; -- 使用主题适配文字颜色 */
+  /* color: #FFFFFF; -- 使用主题适配文字颜色 */
 }
 
 .btn-generate:disabled {

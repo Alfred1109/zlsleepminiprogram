@@ -14,8 +14,8 @@ Page({
     musicList: [],
     longSequenceList: [],
     filteredMusicList: [], // 过滤后的60秒脑波
-    filteredLongSequenceList: [], // 过滤后的长序列脑波
-    currentTab: 'music', // 'music' or 'longSequence'
+    filteredLongSequenceList: [], // 过滤后的疗愈脑波
+    currentTab: 'longSequence', // 默认显示疗愈脑波，60秒脑波已隐藏
     loading: false,
     currentPlayingId: null,
     currentPlayingType: null, // 'music' or 'longSequence'
@@ -145,7 +145,7 @@ Page({
         )
       )
       
-      // 使用映射服务过滤长序列脑波
+      // 使用映射服务过滤疗愈脑波
       const longSequenceFilterPromises = longSequenceList.map(sequence => 
         sceneMappingService.isMusicMatchingScene(
           sequence,
@@ -185,20 +185,20 @@ Page({
   },
 
   /**
-   * 退出场景模式
+   * 切换到全部场景
    */
   exitSceneMode() {
     wx.showModal({
-      title: '退出场景模式',
-      content: '是否退出当前场景模式，查看所有脑波？',
-      confirmText: '退出',
+      title: '切换到全部场景',
+      content: '是否切换到全部场景模式，查看所有脑波？',
+      confirmText: '切换',
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
           sceneContextManager.clearSceneContext()
           this.checkSceneContext()
           wx.showToast({
-            title: '已退出场景模式',
+            title: '已切换到全部场景',
             icon: 'success'
           })
         }
@@ -328,6 +328,21 @@ Page({
     player.on('play', this.onPlayerPlay.bind(this))
     player.on('pause', this.onPlayerPause.bind(this))
     player.on('stop', this.onPlayerStop.bind(this))
+    
+    // 初始化全局播放器组件引用 - 修复全局播放器在所有页面都能工作
+    this.initGlobalPlayerRef()
+  },
+  
+  /**
+   * 初始化全局播放器引用 - 确保全局播放器在当前页面正常工作
+   */
+  initGlobalPlayerRef() {
+    const app = getApp()
+    if (app.globalData) {
+      // 设置页面引用，供全局播放器组件使用
+      app.globalData.currentPageInstance = this
+      console.log('✅ 脑波库页面 - 全局播放器引用已初始化')
+    }
   },
 
   /**
@@ -650,7 +665,7 @@ Page({
   },
 
   /**
-   * 跳转到创建长序列页面
+   * 跳转到创建疗愈脑波页面
    */
   onGoToCreateSequence() {
     wx.navigateTo({
@@ -1910,7 +1925,16 @@ Page({
       }
     }
     
-    // 清理播放器
-    this.cleanupPlayer();
+    // 清理播放器资源
+    try {
+      if (this.data.player) {
+        // 移除播放器事件监听
+        this.data.player.off('stop', this.onPlayerStop);
+        this.data.player.off('ended', this.onPlayerStop);
+        console.log('🧹 音乐库页面播放器已清理');
+      }
+    } catch (error) {
+      console.error('清理播放器失败:', error);
+    }
   },
 })

@@ -3,7 +3,7 @@
   padding: 20rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-  color: white;
+  color: #FFFFFF;
 }
 
 .page-header {
@@ -71,7 +71,7 @@
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: white;
+  color: #FFFFFF;
 }
 
 .search-input::placeholder {
@@ -90,7 +90,7 @@
 
 .clear-icon {
   font-size: 24rpx;
-  color: white;
+  color: #FFFFFF;
 }
 
 /* 筛选面板 */
@@ -172,7 +172,7 @@
 
 .filter-option.active {
   background: #667eea;
-  color: white;
+  color: #FFFFFF;
 }
 
 .option-icon {
@@ -202,7 +202,7 @@
 
 .action-button.secondary {
   background: #6c757d;
-  color: white;
+  color: #FFFFFF;
 }
 
 /* 统计卡片 */
@@ -296,7 +296,7 @@
   border-radius: 15rpx;
   font-size: 24rpx;
   border: none;
-  color: white;
+  color: #FFFFFF;
 }
 
 .batch-btn.delete {
@@ -372,7 +372,7 @@
 
 .btn-explore {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: #FFFFFF;
   font-size: 28rpx;
   padding: 20rpx 40rpx;
   border-radius: 25rpx;
@@ -478,7 +478,7 @@
 
 .progress-text {
   font-size: 20rpx;
-  color: white;
+  color: #FFFFFF;
 }
 
 .item-content {

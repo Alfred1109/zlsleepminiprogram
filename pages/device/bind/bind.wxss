@@ -126,7 +126,7 @@
   border-radius: 45rpx;
   font-size: 34rpx;
   font-weight: bold;
-  color: #fff;
+  color: #FFFFFF;
   background: linear-gradient(135deg, #C0A9BD, #94A7AE);
   box-shadow: 0 4rpx 12rpx rgba(43, 186, 165, 0.4);
   transition: all 0.3s;
@@ -261,7 +261,7 @@
 
 .special-tag {
   font-size: 20rpx;
-  color: #fff;
+  color: #FFFFFF;
   background-color: #C0A9BD;
   padding: 4rpx 10rpx;
   border-radius: 20rpx;

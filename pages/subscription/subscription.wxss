@@ -15,7 +15,7 @@ page {
   border-radius: 20rpx;
   padding: 40rpx;
   margin-bottom: 30rpx;
-  color: white;
+  color: #FFFFFF;
   position: relative;
   overflow: hidden;
 }
@@ -91,11 +91,11 @@ page {
 /* 试用中状态 */
 .trial-card.trial-active {
   background: linear-gradient(135deg, #55a3ff 0%, #003d82 100%);
-  color: white;
+  color: #FFFFFF;
 }
 
 .trial-card.trial-active .trial-content {
-  color: white;
+  color: #FFFFFF;
 }
 
 .trial-card.trial-active .highlight {
@@ -147,11 +147,11 @@ page {
 /* 需要登录状态 */
 .trial-card.trial-login-required {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
+  color: #FFFFFF;
 }
 
 .trial-card.trial-login-required .trial-content {
-  color: white;
+  color: #FFFFFF;
 }
 
 .trial-card.trial-login-required .trial-btn {
@@ -200,7 +200,7 @@ page {
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: #FFFFFF;
   padding: 8rpx 20rpx;
   border-radius: 0 0 15rpx 15rpx;
   font-size: 22rpx;
@@ -281,7 +281,7 @@ page {
 
 .purchase-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: #FFFFFF;
   border-radius: 50rpx;
   height: 90rpx;
   line-height: 90rpx;
@@ -382,7 +382,7 @@ page {
 
 .tab-item.active {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: #FFFFFF;
   font-weight: bold;
 }
 
@@ -410,7 +410,7 @@ page {
 
 .coupon-btn-inline {
   background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
-  color: white;
+  color: #FFFFFF;
   padding: 16rpx 32rpx;
   border-radius: 20rpx;
   font-size: 26rpx;
@@ -494,7 +494,7 @@ page {
   left: 50%;
   transform: translateX(-50%);
   background: #ff6b6b;
-  color: white;
+  color: #FFFFFF;
   padding: 8rpx 16rpx;
   border-radius: 0 0 12rpx 12rpx;
   font-size: 24rpx;

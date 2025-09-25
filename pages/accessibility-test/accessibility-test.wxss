@@ -58,7 +58,7 @@
 
 .btn-secondary {
   background: #4B5563;
-  color: white;
+  color: #FFFFFF;
   box-shadow: 0 4rpx 16rpx rgba(75, 85, 99, 0.3);
 }
 
@@ -290,7 +290,7 @@
   border-radius: 20rpx;
   font-size: 24rpx;
   font-weight: 600;
-  color: white;
+  color: #FFFFFF;
   text-transform: uppercase;
 }
 
@@ -415,7 +415,7 @@
 .custom-level {
   padding: 8rpx 16rpx;
   border-radius: 20rpx;
-  color: white;
+  color: #FFFFFF;
   font-weight: 600;
   text-transform: uppercase;
   align-self: flex-start;
@@ -457,7 +457,7 @@
   border-radius: 12rpx;
   font-size: 24rpx;
   font-weight: 700;
-  color: white;
+  color: #FFFFFF;
   margin-right: 20rpx;
   text-transform: uppercase;
 }

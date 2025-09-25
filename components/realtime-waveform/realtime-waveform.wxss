@@ -34,7 +34,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.6);
-  color: white;
+  color: #FFFFFF;
   padding: 12rpx 24rpx;
   border-radius: 20rpx;
   font-size: 24rpx;
