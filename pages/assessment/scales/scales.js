@@ -99,10 +99,17 @@ Page({
   async filterScalesByScene() {
     const { scales, sceneContext, isInSceneMode } = this.data
     
+    console.log('🔍 开始场景量表过滤，当前状态:', {
+      isInSceneMode,
+      sceneContext,
+      scales数量: scales.length,
+      scales列表: scales.map(s => ({ name: s.scale_name, type: s.scale_type }))
+    })
+    
     if (!isInSceneMode || !sceneContext) {
       // 没有场景限制，显示所有量表
       this.setData({ filteredScales: scales })
-      console.log('📋 显示所有量表，共', scales.length, '个')
+      console.log('📋 没有场景模式，显示所有量表，共', scales.length, '个')
       return
     }
     
@@ -134,17 +141,43 @@ Page({
       
       this.setData({ filteredScales: filtered })
       
-      console.log(`🎯 场景「${sceneContext.sceneName}」(ID:${sceneContext.sceneId})过滤后显示量表:`, {
-        原始数量: scales.length,
+      console.log(`🎯 场景「${sceneContext.sceneName}」(ID:${sceneContext.sceneId})过滤结果详情:`, {
+        原始量表数量: scales.length,
         验证后数量: validScales.length,
         过滤后数量: filtered.length,
-        过滤结果: filtered.map(s => s.scale_name),
-        映射服务调试: sceneMappingService.getDebugInfo()
+        原始量表列表: scales.map(s => ({ name: s.scale_name, type: s.scale_type })),
+        过滤后量表列表: filtered.map(s => ({ name: s.scale_name, type: s.scale_type })),
+        被过滤掉的量表: validScales.filter(s => !filtered.includes(s)).map(s => ({ name: s.scale_name, type: s.scale_type })),
+        映射服务调试: sceneMappingService.getDebugInfo(),
+        匹配结果详情: matchResults.map((match, index) => ({
+          量表: validScales[index]?.scale_name,
+          是否匹配: match
+        }))
       })
       
     } catch (error) {
-      console.error('❌ 场景量表过滤失败，显示所有量表:', error)
-      this.setData({ filteredScales: scales })
+      console.error('❌ 场景量表过滤失败:', error)
+      // 🔧 修复：显示错误提示但保持场景模式，让用户决定是否退出
+      wx.showModal({
+        title: '场景映射失败',
+        content: `获取${sceneContext.sceneName}的量表映射失败，是否退出场景模式查看所有量表？`,
+        confirmText: '退出场景模式',
+        cancelText: '重试',
+        success: (res) => {
+          if (res.confirm) {
+            // 用户选择退出场景模式
+            sceneContextManager.clearSceneContext()
+            this.setData({ 
+              filteredScales: scales,
+              isInSceneMode: false,
+              sceneContext: null
+            })
+          } else {
+            // 用户选择重试，重新过滤
+            this.filterScalesByScene()
+          }
+        }
+      })
     }
   },
 
@@ -627,10 +660,14 @@ Page({
    * 页面卸载时清理资源
    */
   onUnload() {
-    // 清理主题监听器
-    if (wx.$emitter && this.themeChangeHandler) {
-      wx.$emitter.off('themeChanged', this.themeChangeHandler);
-      console.log('🧹 评测页面主题监听器已清理');
+    // 清理主题监听器 - 增加安全检查
+    if (wx.$emitter && typeof wx.$emitter.off === 'function' && this.themeChangeHandler) {
+      try {
+        wx.$emitter.off('themeChanged', this.themeChangeHandler);
+        console.log('🧹 评测页面主题监听器已清理');
+      } catch (error) {
+        console.error('清理主题监听器失败:', error);
+      }
     }
   },
 })

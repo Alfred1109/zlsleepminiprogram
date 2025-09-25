@@ -2,6 +2,7 @@
 // 评测结果页面
 const app = getApp()
 const { AssessmentAPI, MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
+const { sceneContextManager } = require('../../../utils/sceneContextManager')
 
 Page({
   data: {
@@ -20,7 +21,11 @@ Page({
     // 主题相关
     currentTheme: 'default',
     themeClass: '',
-    themeConfig: null
+    themeConfig: null,
+    
+    // 🔧 新增：场景上下文相关
+    sceneContext: null,
+    isInSceneMode: false
   },
 
   onLoad(options) {
@@ -28,6 +33,9 @@ Page({
     
     // 初始化主题
     this.initTheme()
+    
+    // 🔧 新增：检查场景上下文
+    this.checkSceneContext()
     
     // 兼容 id 和 assessmentId 两种参数名
     const assessmentId = options.assessmentId || options.id
@@ -66,35 +74,78 @@ Page({
     this.setData({ loading: true })
 
     try {
-      // 使用历史记录接口获取评测结果
       const AuthService = require('../../../services/AuthService')
       const userInfo = AuthService.getCurrentUser()
       if (!userInfo) {
         throw new Error('用户未登录')
       }
 
-      console.log('📡 请求用户评测历史, userId:', userInfo.id)
-      const result = await AssessmentAPI.getHistory(userInfo.id)
-      console.log('📡 API响应结果:', result)
+      let assessment = null
 
-      if (result.success && result.data.length > 0) {
-        // 简单粗暴：直接使用最新的评测记录
-        const assessment = result.data[0] // 假设API返回的数据是按时间倒序的
-        
-        // 确保有max_score字段
-        if (!assessment.max_score) {
-          assessment.max_score = 100
+      // 🔧 修复：如果有具体的assessmentId，先尝试获取特定评测记录
+      if (this.data.assessmentId) {
+        console.log('📡 根据ID获取特定评测记录, assessmentId:', this.data.assessmentId)
+        try {
+          const specificResult = await AssessmentAPI.getResult(this.data.assessmentId)
+          console.log('📡 特定评测记录API响应:', specificResult)
+          
+          if (specificResult.success && specificResult.data) {
+            assessment = specificResult.data
+            console.log('✅ 成功获取到特定评测记录')
+          }
+        } catch (specificError) {
+          console.warn('⚠️ 获取特定评测记录失败，回退到历史记录模式:', specificError)
         }
-        
-        this.setData({ 
-          assessment,
-          assessmentDimensions: this.generateDimensionsData(assessment),
-          personalizedRecommendations: this.generateRecommendations(assessment),
-          healingSchedule: this.generateHealingSchedule(assessment)
-        })
-      } else {
-        throw new Error(result.error || '获取评测结果失败')
       }
+
+      // 如果没有获取到特定评测记录，回退到历史记录模式
+      if (!assessment) {
+        console.log('📡 请求用户评测历史, userId:', userInfo.id)
+        const result = await AssessmentAPI.getHistory(userInfo.id)
+        console.log('📡 评测历史API响应结果:', result)
+
+        if (result.success && result.data.length > 0) {
+          if (this.data.assessmentId) {
+            // 如果有指定ID，从历史记录中查找匹配的记录
+            assessment = result.data.find(item => item.id === this.data.assessmentId)
+            if (!assessment) {
+              console.warn('⚠️ 在历史记录中未找到指定ID的评测记录，使用最新记录')
+              assessment = result.data[0]
+            } else {
+              console.log('✅ 在历史记录中找到匹配的评测记录')
+            }
+          } else {
+            // 没有指定ID，使用最新的评测记录
+            assessment = result.data[0]
+            console.log('✅ 使用最新的评测记录')
+          }
+        } else {
+          throw new Error(result.error || '获取评测结果失败')
+        }
+      }
+
+      if (!assessment) {
+        throw new Error('未找到有效的评测记录')
+      }
+      
+      // 确保有max_score字段
+      if (!assessment.max_score) {
+        assessment.max_score = 100
+      }
+      
+      console.log('📋 最终使用的评测记录:', {
+        id: assessment.id,
+        scale_name: assessment.scale_name,
+        total_score: assessment.total_score,
+        completed_at: assessment.completed_at
+      })
+      
+      this.setData({ 
+        assessment,
+        assessmentDimensions: this.generateDimensionsData(assessment),
+        personalizedRecommendations: this.generateRecommendations(assessment),
+        healingSchedule: this.generateHealingSchedule(assessment)
+      })
 
     } catch (error) {
       console.error('❌ 加载评测结果失败:', error)
@@ -123,6 +174,10 @@ Page({
       return
     }
 
+    // 🔧 修复：跳转时保持场景上下文，确保生成的音乐能正确关联场景
+    // 如果在场景模式下，需要确保场景上下文传递给音乐生成页面（通过sceneContextManager）
+    console.log('🎵 跳转到60秒音乐生成，场景上下文:', this.data.sceneContext)
+    
     // 跳转到音乐生成页面，并预选当前评测记录
     wx.navigateTo({
       url: `/pages/music/generate/generate?assessmentId=${this.data.assessmentId}`
@@ -141,6 +196,10 @@ Page({
       return
     }
 
+    // 🔧 修复：跳转时保持场景上下文，确保生成的长序列能正确关联场景
+    // 如果在场景模式下，需要确保场景上下文传递给长序列生成页面（通过sceneContextManager）
+    console.log('🎶 跳转到长序列生成，场景上下文:', this.data.sceneContext)
+    
     // 跳转到长序列创建页面，并预选当前评测记录
     wx.navigateTo({
       url: `/pages/longSequence/create/create?assessmentId=${this.data.assessmentId}`
@@ -511,13 +570,37 @@ Page({
   },
 
   /**
+   * 🔧 新增：检查场景上下文
+   */
+  checkSceneContext() {
+    const context = sceneContextManager.getCurrentContext()
+    if (context && context.active) {
+      this.setData({
+        sceneContext: context,
+        isInSceneMode: true
+      })
+      console.log('🎯 评测结果页面检测到场景上下文:', context)
+    } else {
+      this.setData({
+        sceneContext: null,
+        isInSceneMode: false
+      })
+      console.log('🔄 评测结果页面无场景上下文')
+    }
+  },
+
+  /**
    * 页面卸载时清理资源
    */
   onUnload() {
-    // 清理主题监听器
-    if (wx.$emitter && this.themeChangeHandler) {
-      wx.$emitter.off('themeChanged', this.themeChangeHandler);
-      console.log('🧹 评测结果页面主题监听器已清理');
+    // 清理主题监听器 - 增加安全检查
+    if (wx.$emitter && typeof wx.$emitter.off === 'function' && this.themeChangeHandler) {
+      try {
+        wx.$emitter.off('themeChanged', this.themeChangeHandler);
+        console.log('🧹 评测结果页面主题监听器已清理');
+      } catch (error) {
+        console.error('清理主题监听器失败:', error);
+      }
     }
   }
 })

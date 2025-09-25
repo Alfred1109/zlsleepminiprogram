@@ -71,6 +71,7 @@
       "desc": "用于连接蓝牙音频设备，提供个性化音乐疗愈体验"
     }
   },
+  "lazyCodeLoading": "requiredComponents",
   "requiredBackgroundModes": [
     "audio"
   ],

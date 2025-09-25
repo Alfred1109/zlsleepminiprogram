@@ -1,11 +1,10 @@
 <!-- pages/scene/list/list.wxml -->
-<!-- 主题切换器 -->
-<theme-switcher 
-  show-theme-switcher="{{true}}" 
-  page-type="default"
-  bind:themechange="onThemeChange"
-/>
-<view class="container {{themeClass}}">
+<view class="container">
+  <!-- 调试信息 -->
+  <view style="padding: 20rpx; background: yellow; margin: 20rpx; border-radius: 10rpx;">
+    <text>🧪 调试信息：scenes数量 = {{scenes.length}}</text>
+  </view>
+  
   <!-- 页面头部 -->
   <view class="page-header">
     <view class="header-content">
@@ -16,6 +15,12 @@
 
   <!-- 场景列表 -->
   <view class="scene-list">
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <text class="loading-text">正在加载场景数据...</text>
+    </view>
+    
+    <!-- 场景列表 -->
     <view class="scene-item" 
           wx:for="{{scenes}}" 
           wx:key="id"
@@ -38,6 +43,12 @@
       <view class="scene-arrow">
         <text class="arrow-icon">→</text>
       </view>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && scenes.length === 0}}">
+      <text class="empty-text">暂无场景数据</text>
+      <text class="empty-hint">请检查网络连接或稍后重试</text>
     </view>
   </view>
 

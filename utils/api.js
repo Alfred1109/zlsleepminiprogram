@@ -193,7 +193,7 @@ function request(options) {
                 })
               }).then(retryResponse => {
                 console.log('✅ 401错误处理：token刷新后重试成功')
-                if (showLoading) wx.hideLoading()
+                // 注意：这里不调用hideLoading，因为会在外层统一处理
                 
                 if (retryResponse.statusCode >= 200 && retryResponse.statusCode < 300) {
                   const standardResponse = responseInterceptor(retryResponse.data, { 

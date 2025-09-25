@@ -377,10 +377,14 @@ Page({
    * 页面卸载时的处理
    */
   onUnload() {
-    // 清理主题监听器
-    if (wx.$emitter && this.themeChangeHandler) {
-      wx.$emitter.off('themeChanged', this.themeChangeHandler);
-      console.log('🧹 评测答题页面主题监听器已清理');
+    // 清理主题监听器 - 增加安全检查
+    if (wx.$emitter && typeof wx.$emitter.off === 'function' && this.themeChangeHandler) {
+      try {
+        wx.$emitter.off('themeChanged', this.themeChangeHandler);
+        console.log('🧹 评测答题页面主题监听器已清理');
+      } catch (error) {
+        console.error('清理主题监听器失败:', error);
+      }
     }
     
     // 如果评测未完成，可以在这里保存进度到本地

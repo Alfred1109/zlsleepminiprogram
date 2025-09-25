@@ -156,6 +156,21 @@ Page({
 
         console.log(`🔍 评测ID有效性验证完成，有效记录数: ${completedAssessments.length}`)
 
+        // 🔧 新增：每个量表只保留最新的一条评测记录
+        const originalCount = completedAssessments.length
+        completedAssessments = this.getLatestAssessmentsByScale(completedAssessments)
+        console.log(`🔧 量表去重: ${originalCount} -> ${completedAssessments.length}`)
+        
+        // 🛡️ 安全检查：如果去重后没有记录，但原来有记录，说明去重逻辑有问题
+        if (originalCount > 0 && completedAssessments.length === 0) {
+          console.error('❌ 严重错误：去重后所有记录都被过滤掉了，回退到原始数据')
+          completedAssessments = result.data || []
+          completedAssessments = completedAssessments.filter(item => {
+            const isValid = item && item.id && typeof item.id === 'number' && item.id > 0
+            return isValid
+          })
+        }
+
         // 使用场景映射服务过滤评测记录（与其他页面保持一致）
         const { sceneContext, isInSceneMode } = this.data
         if (isInSceneMode && sceneContext) {
@@ -417,14 +432,23 @@ Page({
       
       if (selectionMode === 'single') {
         // 单选模式：基于单个评测生成
-        console.log('🎵 单选模式生成长序列，评测ID:', selectedAssessment.scale_id)
+        console.log('🎵 单选模式生成长序列，评测ID:', selectedAssessment.id)
+        
+        // 🔧 修复：单选模式也需要传递场景上下文，确保生成的长序列能正确关联场景ID
+        const createOptions = {}
+        if (this.data.sceneContext) {
+          createOptions.sceneContext = this.data.sceneContext
+          console.log('🎯 传递场景上下文:', this.data.sceneContext)
+        }
+        
         result = await LongSequenceAPI.createLongSequence(
-          selectedAssessment.scale_id,
-          durationMinutes
+          selectedAssessment.id,
+          durationMinutes,
+          createOptions
         )
       } else {
         // 多选模式：基于多个评测综合生成
-        const assessmentIds = selectedAssessments.map(item => item.scale_id)
+        const assessmentIds = selectedAssessments.map(item => item.id)
         console.log('🎵 多选模式生成长序列，评测IDs:', assessmentIds)
         console.log('🎵 基于量表:', selectedAssessments.map(item => item.scale_name))
         
@@ -555,6 +579,74 @@ Page({
     wx.navigateTo({
       url: '/pages/assessment/scales/scales'
     })
+  },
+
+  /**
+   * 获取每个量表的最新评测记录
+   * @param {Array} assessments 评测记录数组
+   * @returns {Array} 去重后的评测记录数组
+   */
+  getLatestAssessmentsByScale(assessments) {
+    console.log('🔍 去重函数 - 输入数据样本:', assessments.length > 0 ? assessments[0] : '无数据')
+    
+    const latestAssessmentsByScale = {}
+    
+    assessments.forEach(item => {
+      // 确定性字段获取 - 优先顺序固定
+      const scaleName = item.scale_name || item.scaleName  // 使用量表名称作为唯一标识
+      const completedAt = item.completed_at || item.completedAt  // 优先使用 completed_at
+      
+      console.log('🔍 处理评测记录:', {
+        id: item.id,
+        scale_name: scaleName,
+        completed_at: completedAt
+      })
+      
+      if (!scaleName) {
+        console.warn('⚠️ 跳过无量表名称的记录:', item)
+        return
+      }
+      
+      if (!completedAt) {
+        console.warn('⚠️ 跳过无完成时间的记录:', item)
+        return
+      }
+      
+      // 使用量表名称作为分组key（确定性）
+      const groupKey = scaleName
+      const itemDate = new Date(completedAt)
+      const existing = latestAssessmentsByScale[groupKey]
+      
+      if (!existing) {
+        latestAssessmentsByScale[groupKey] = item
+        console.log('✅ 首次保留:', { 量表: groupKey, 时间: completedAt })
+      } else {
+        const existingDate = new Date(existing.completed_at || existing.completedAt)
+        
+        if (itemDate > existingDate) {
+          latestAssessmentsByScale[groupKey] = item
+          console.log('✅ 更新为最新:', { 
+            量表: groupKey, 
+            新时间: completedAt, 
+            旧时间: existing.completed_at || existing.completedAt
+          })
+        } else {
+          console.log('❌ 跳过旧记录:', { 
+            量表: groupKey, 
+            时间: completedAt
+          })
+        }
+      }
+    })
+    
+    const result = Object.values(latestAssessmentsByScale)
+    console.log('🔧 去重结果 - 每个量表的最新记录:', result.map(item => ({
+      id: item.id,
+      量表: item.scale_name || item.scaleName,
+      时间: item.completed_at || item.completedAt
+    })))
+    
+    return result
   },
 
   /**

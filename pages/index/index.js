@@ -221,9 +221,13 @@ Page({
         duration: 2000
       })
     }).catch((error) => {
-      console.error('❌ [首页] 获取场景数据失败:', error)
-      // 使用静态后备数据
-      this.useBackendConsistentScenes()
+      console.error('💥 [首页] 获取场景数据失败，场景功能将不可用:', error)
+      // 🔧 修复：移除静态后备数据，避免显示后端不存在的场景
+      this.setData({ scenes: [] })
+      wx.showToast({
+        title: '场景数据加载失败',
+        icon: 'error'
+      })
     })
   },
 
@@ -233,63 +237,41 @@ Page({
   async fetchScenesFromBackend() {
     try {
       const { get } = require('../../utils/api')
-      // 🔧 更新：添加新API支持的注释
-      // TODO: 后续可更新为 /api/scene/list 获取更完整的场景信息
-      const result = await get('/api/scene/mappings')
+      // 🔧 修复：使用正确的场景列表API接口
+      const result = await get('/api/scene/list')
       
-      if (result && result.success && result.meta && result.meta.scenes) {
-        const backendScenes = result.meta.scenes
-        const scalesMappings = result.data.sceneToScales || {}
+      if (result && result.success && result.data) {
+        const backendScenes = result.data
         
-        // 转换为前端需要的格式
-        const scenes = backendScenes.map(scene => {
-          // 获取该场景对应的评测量表
-          const sceneScales = scalesMappings[scene.id.toString()] || []
-          let scaleType = null
-          let sceneName = scene.name
-          
-          // 根据场景的评测量表设置scaleType和sceneName
-          if (sceneScales.length > 0) {
-            const primaryScale = sceneScales.find(s => s.is_primary) || sceneScales[0]
-            if (primaryScale) {
-              // 🔧 更新：使用统一的字段名称
-              const scaleName = primaryScale.scale_name || primaryScale.name
-              if (scaleName && scaleName.includes('匹兹堡睡眠')) {
-                scaleType = 'PSQI'
-                sceneName = '助眠疗愈'
-              } else if (scaleName && scaleName.includes('汉密尔顿抑郁')) {
-                scaleType = 'HAMD-17' 
-                sceneName = '抑郁疗愈'
-              } else if (scaleName && scaleName.includes('广泛性焦虑')) {
-                scaleType = 'GAD-7'
-                sceneName = '情绪疗愈'
-              }
-            }
-          }
-          
-          // 根据场景code设置sceneName
-          if (!scaleType) {
+        // 🔧 修复：简化场景数据处理，移除映射逻辑
+        const scenes = backendScenes
+          .filter(scene => scene.is_active) // 只显示激活的场景
+          .map(scene => {
+            // 根据场景code设置显示名称
+            let sceneName = scene.name
             switch(scene.code) {
               case 'sleep': sceneName = '助眠疗愈'; break
-              case 'focus': sceneName = '专注疗愈'; break
+              case 'focus': sceneName = '专注疗愈'; break  
               case 'emotion': sceneName = '情绪疗愈'; break
               case 'meditation': sceneName = '冥想疗愈'; break
               case 'relax': sceneName = '放松疗愈'; break
               default: sceneName = scene.name
             }
-          }
-          
-          return {
-            id: scene.id,
-            name: scene.name,
-            icon: scene.icon,
-            description: scene.description,
-            code: scene.code,
-            scaleType: scaleType,
-            sceneName: sceneName,
-            sortOrder: scene.sort_order
-          }
-        }).sort((a, b) => a.sortOrder - b.sortOrder) // 按后端的排序顺序排列
+            
+            return {
+              id: scene.id,
+              name: scene.name,
+              icon: scene.icon,
+              description: scene.description,
+              code: scene.code,
+              sceneName: sceneName,
+              sortOrder: scene.sort_order,
+              // 显示映射统计信息
+              scaleMappingsCount: scene.scale_mappings_count || 0,
+              musicMappingsCount: scene.music_mappings_count || 0
+            }
+          })
+          .sort((a, b) => a.sortOrder - b.sortOrder) // 按后端的排序顺序排列
         
         console.log('📡 [首页] 从后端获取场景数据成功:', scenes)
         return scenes
@@ -302,80 +284,6 @@ Page({
     }
   },
 
-  /**
-   * 使用与后端一致的静态场景数据（后备方案）
-   */
-  useBackendConsistentScenes() {
-    console.log('🔄 [首页] 使用与后端一致的静态场景数据')
-    
-    // 与后端API返回的数据保持完全一致
-    const scenes = [
-      { 
-        id: 1, 
-        name: '助眠场景', 
-        icon: '🌙',
-        description: '帮助用户放松身心，快速入眠的疗愈场景',
-        code: 'sleep',
-        scaleType: 'PSQI', // 根据后端sceneToScales映射
-        sceneName: '助眠疗愈',
-        sortOrder: 1
-      },
-      { 
-        id: 2, 
-        name: '专注场景', 
-        icon: '🎯',
-        description: '提升专注力，提高工作学习效率的疗愈场景',
-        code: 'focus',
-        scaleType: null, // 后端无对应评测量表
-        sceneName: '专注疗愈',
-        sortOrder: 2
-      },
-      { 
-        id: 3, 
-        name: '情绪调节场景', 
-        icon: '💚',
-        description: '调节情绪状态，缓解抑郁焦虑的疗愈场景',
-        code: 'emotion',
-        scaleType: 'GAD-7', // 根据后端sceneToScales映射
-        sceneName: '情绪疗愈',
-        sortOrder: 3
-      },
-      { 
-        id: 4, 
-        name: '冥想场景', 
-        icon: '🧘',
-        description: '深度冥想，实现身心平衡的疗愈场景',
-        code: 'meditation',
-        scaleType: null, // 后端无对应评测量表
-        sceneName: '冥想疗愈',
-        sortOrder: 4
-      },
-      { 
-        id: 5, 
-        name: '全面放松场景', 
-        icon: '🌿',
-        description: '全面身心放松，日常减压的疗愈场景',
-        code: 'relax',
-        scaleType: null, // 后端无对应评测量表
-        sceneName: '放松疗愈',
-        sortOrder: 5
-      }
-    ]
-    
-    this.setData({
-      categories: scenes,
-      isLoading: false
-    })
-    
-    console.log('✅ [首页] 静态场景数据设置完成:', scenes.map(c => `${c.name}(${c.code})`).join(', '))
-    
-    // 显示成功加载提示
-    wx.showToast({
-      title: `已加载${scenes.length}个疗愈场景`,
-      icon: 'success',
-      duration: 2000
-    })
-  },
 
   /**
    * 处理初始化失败的情况
@@ -1156,8 +1064,10 @@ Page({
           // 检查音频格式是否支持
           const isFormatSupported = await this.checkAudioFormat(url);
           
-          // 隐藏加载提示
-          wx.hideLoading();
+          // 隐藏加载提示（只有显示过才隐藏）
+          if (!isBackupUrl) {
+            wx.hideLoading();
+          }
           
           if (isFormatSupported) {
             // 音频格式支持，直接播放
@@ -1170,8 +1080,10 @@ Page({
               // 尝试使用备选URL
               console.log('尝试使用备选URL:', sound.backupPath);
 
-              // 确保隐藏之前的loading
-              wx.hideLoading();
+              // 确保隐藏之前的loading（只有显示过才隐藏）
+              if (!isBackupUrl) {
+                wx.hideLoading();
+              }
 
               wx.showToast({
                 title: '正在切换到备选音频...',
@@ -1197,8 +1109,10 @@ Page({
             }
           }
         } catch (err) {
-          // 隐藏加载提示
-          wx.hideLoading();
+          // 隐藏加载提示（只有显示过才隐藏）
+          if (!isBackupUrl) {
+            wx.hideLoading();
+          }
           
           console.error('音频格式检测失败:', err);
           
@@ -1247,8 +1161,10 @@ Page({
                 // 第二次重试：尝试使用备选URL
                 console.log('尝试使用备选URL:', sound.backupPath);
 
-                // 确保隐藏之前的loading
-                wx.hideLoading();
+                // 确保隐藏之前的loading（只有显示过才隐藏）
+                if (!isBackupUrl) {
+                  wx.hideLoading();
+                }
 
                 wx.showToast({
                   title: '正在切换到备选音频...',

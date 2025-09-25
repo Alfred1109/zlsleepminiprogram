@@ -27,24 +27,9 @@ class SceneMappingService {
 
       console.log('🔄 从后端获取场景映射关系...')
       
-      // 🔧 修复：直接使用专门的映射接口，这是正确的架构设计
-      let result
-      try {
-        // 优先使用专门的映射接口（这个接口就是为映射关系设计的）
-        result = await get('/api/scene/mappings')
-        console.log('✅ 使用专门的映射接口获取数据成功')
-      } catch (mappingApiError) {
-        console.log('🔄 映射接口失败，尝试兼容旧路径:', mappingApiError.message)
-        try {
-          // 兼容旧路径
-          result = await get('/scene/mappings')
-          console.log('✅ 使用兼容路径获取数据成功')
-        } catch (legacyApiError) {
-          console.log('🔄 所有映射接口都失败，尝试从场景列表重建映射:', legacyApiError.message)
-          // 最后的备选方案：从场景列表重建映射（需要调用详情接口）
-          result = await this.buildMappingsFromSceneList()
-        }
-      }
+      // 🔧 修复：使用正确的API架构，从场景详情重建映射关系
+      console.log('📡 从场景详情API重建映射关系...')
+      let result = await this.buildMappingsFromSceneList()
       
       if (result.success && result.data) {
         this.mappings = result.data
@@ -64,12 +49,12 @@ class SceneMappingService {
         
         return this.mappings
       } else {
-        console.warn('⚠️ 后端未返回映射关系，使用默认映射')
-        return this.getDefaultMappings()
+        console.error('❌ 后端未返回映射关系')
+        throw new Error('场景映射数据获取失败')
       }
     } catch (error) {
-      console.warn('⚠️ 获取场景映射关系失败，使用默认映射:', error)
-      return this.getDefaultMappings()
+      console.error('❌ 获取场景映射关系失败:', error)
+      throw error
     }
   }
 
@@ -80,11 +65,27 @@ class SceneMappingService {
    * @returns {Promise<Array>} 评测量表类型列表
    */
   async getScaleTypesByScene(sceneId, sceneName = null) {
+    console.log(`🔍 获取场景量表类型: sceneId=${sceneId}, sceneName=${sceneName}`)
     const mappings = await this.getMappings()
+    
+    console.log(`📊 当前映射数据状态:`, {
+      mappings存在: !!mappings,
+      sceneToScales存在: !!mappings?.sceneToScales,
+      sceneNameToScales存在: !!mappings?.sceneNameToScales,
+      sceneToScales的所有键: mappings?.sceneToScales ? Object.keys(mappings.sceneToScales) : null,
+      sceneNameToScales的所有键: mappings?.sceneNameToScales ? Object.keys(mappings.sceneNameToScales) : null
+    })
     
     // 尝试通过场景ID匹配
     if (sceneId && mappings.sceneToScales) {
       const scaleTypes = mappings.sceneToScales[sceneId] || mappings.sceneToScales[String(sceneId)]
+      console.log(`🔍 通过场景ID(${sceneId})查找:`, {
+        查找键: [sceneId, String(sceneId)],
+        找到的数据: scaleTypes,
+        数据类型: Array.isArray(scaleTypes) ? 'array' : typeof scaleTypes,
+        数据长度: scaleTypes?.length || 0
+      })
+      
       if (scaleTypes && scaleTypes.length > 0) {
         console.log(`🎯 场景${sceneId}映射到评测量表:`, scaleTypes)
         return scaleTypes
@@ -94,6 +95,12 @@ class SceneMappingService {
     // 尝试通过场景名称匹配
     if (sceneName && mappings.sceneNameToScales) {
       const scaleTypes = mappings.sceneNameToScales[sceneName]
+      console.log(`🔍 通过场景名称(${sceneName})查找:`, {
+        找到的数据: scaleTypes,
+        数据类型: Array.isArray(scaleTypes) ? 'array' : typeof scaleTypes,
+        数据长度: scaleTypes?.length || 0
+      })
+      
       if (scaleTypes && scaleTypes.length > 0) {
         console.log(`🎯 场景「${sceneName}」映射到评测量表:`, scaleTypes)
         return scaleTypes
@@ -160,10 +167,17 @@ class SceneMappingService {
       
       const scaleTypes = await this.getScaleTypesByScene(sceneId, sceneName)
       
-      // 如果映射关系存在但该场景没有对应的量表，则不显示任何量表
+      // 🔧 修复：如果场景没有对应的量表映射，显示所有量表而不是隐藏所有
       if (scaleTypes.length === 0) {
-        console.log(`🚫 场景${sceneId || sceneName}没有对应的评测量表，过滤所有量表`)
-        return false
+        console.log(`⚠️ 场景${sceneId || sceneName}没有量表映射配置，详细调试信息:`, {
+          sceneId,
+          sceneName,
+          映射数据: mappings,
+          场景到量表映射: mappings.sceneToScales,
+          场景名到量表映射: mappings.sceneNameToScales,
+          调试信息: this.getDebugInfo()
+        })
+        return true // 暂时显示所有量表，直到找到真正问题
       }
 
       // 🔧 修复：使用统一的字段名称
@@ -172,49 +186,78 @@ class SceneMappingService {
       
       // 🔧 修复：增加数据验证，确保提取到有效的量表信息
       if (!scaleName) {
-        console.warn('⚠️ 无法从量表对象中提取有效名称:', scale)
-        return false // 如果无法获取量表名称，不显示
+        console.warn('⚠️ 无法从量表对象中提取有效名称，显示该量表:', scale)
+        return true // 如果无法获取量表名称，仍然显示（更宽松的策略）
       }
       
       const matches = scaleTypes.some(mappedItem => {
-        // 处理后端返回的不同数据格式，提取原始名称（不转换）
+        // 🔧 修复：优先使用ID匹配，这是最可靠的方式
+        const mappedScaleId = mappedItem.scale_id
+        const frontendScaleId = scale.scale_id
+        
+        // 1. ID匹配（最优先，最可靠）
+        if (mappedScaleId && frontendScaleId) {
+          const isIdMatch = mappedScaleId === frontendScaleId || 
+                           mappedScaleId === parseInt(frontendScaleId) ||
+                           parseInt(mappedScaleId) === frontendScaleId
+          if (isIdMatch) {
+            console.log(`✅ ID精确匹配成功: 前端scale_id=${frontendScaleId} === 后端scale_id=${mappedScaleId}`)
+            return true
+          }
+        }
+        
+        // 2. 如果没有ID或ID不匹配，使用名称匹配作为备用
         const mappedName = mappedItem.name || mappedItem.scale_name || mappedItem
+        if (!mappedName) {
+          console.log(`❌ 后端映射项无有效名称: ${JSON.stringify(mappedItem)}`)
+          return false
+        }
         
-        if (!mappedName) return false
+        // 精确名称匹配
+        if (scaleName === mappedName) {
+          console.log(`✅ 名称精确匹配成功: ${scaleName} === ${mappedName}`)
+          return true
+        }
         
-        // 1. 精确名称匹配（最优先）
-        if (scaleName === mappedName) return true
-        
-        // 2. 如果有转换逻辑，尝试转换后匹配
+        // 3. 转换后匹配（处理中英文名称差异）
         const mappedTypeConverted = this.extractScaleType(mappedItem)
-        if (mappedTypeConverted) {
-          // 尝试将前端量表名称也转换后匹配
+        if (mappedTypeConverted && mappedTypeConverted !== 'international') {
           const scaleNameConverted = this.convertScaleNameToType(scaleName)
-          if (scaleNameConverted === mappedTypeConverted) return true
-          
-          // 也检查scale_type字段
-          if (scaleType === mappedTypeConverted) return true
+          if (scaleNameConverted === mappedTypeConverted) {
+            console.log(`✅ 转换后匹配成功: ${scaleName} -> ${scaleNameConverted} === ${mappedTypeConverted}`)
+            return true
+          }
         }
         
-        // 3. 模糊匹配（包含关系）
+        // 4. 模糊匹配（包含关系）
         if (scaleName && mappedName && typeof scaleName === 'string' && typeof mappedName === 'string') {
-          if (scaleName.includes(mappedName) || mappedName.includes(scaleName)) return true
+          if (scaleName.includes(mappedName) || mappedName.includes(scaleName)) {
+            console.log(`🔍 模糊匹配成功: ${scaleName} 包含 ${mappedName}`)
+            return true
+          }
         }
         
+        console.log(`❌ 不匹配: 前端[id=${frontendScaleId}, name=${scaleName}] vs 后端[id=${mappedScaleId}, name=${mappedName}]`)
         return false
       })
 
       // 🔧 修复：使用正确的变量 scaleName 而不是 scale.name，避免显示 undefined
       console.log(`🔍 量表「${scaleName}」在场景${sceneId || sceneName}中匹配结果:`, {
+        前端量表ID: scale.scale_id,
         前端量表名称: scaleName,
         前端量表类型: scaleType,
         前端原始对象: {
+          scale_id: scale.scale_id,
           scale_name: scale.scale_name,
           scale_type: scale.scale_type
         },
         后端映射量表: scaleTypes.map(item => {
           if (typeof item === 'object') {
-            return item.scale_name || item.name || item
+            return {
+              scale_id: item.scale_id,
+              scale_name: item.scale_name || item.name,
+              scale_type: item.scale_type
+            }
           }
           return item
         }),
@@ -224,7 +267,12 @@ class SceneMappingService {
       
     } catch (error) {
       console.error('❌ 场景量表匹配检查失败:', error)
-      return true // 出错时显示所有量表
+      // 🔧 修复：出错时根据是否有场景上下文决定
+      if (sceneId || sceneName) {
+        console.warn('场景匹配失败，但有场景上下文，不显示任何量表以避免误导')
+        return false // 有场景上下文时，严格模式
+      }
+      return true // 没有场景上下文时，显示所有
     }
   }
 
@@ -471,6 +519,14 @@ class SceneMappingService {
           // 使用真实的API数据
           const { assessment_scales = [], music_categories = [] } = detailResult.data
           
+          console.log(`🔍 场景 ${scene.name}(ID:${scene.id}) 数据解析:`, {
+            原始数据: detailResult.data,
+            提取的assessment_scales: assessment_scales,
+            提取的music_categories: music_categories,
+            assessment_scales类型: Array.isArray(assessment_scales) ? 'array' : typeof assessment_scales,
+            assessment_scales长度: assessment_scales.length
+          })
+          
           sceneToScales[sceneIdStr] = assessment_scales
           sceneToMusic[sceneIdStr] = music_categories
           sceneNameToScales[scene.name] = assessment_scales
@@ -478,19 +534,30 @@ class SceneMappingService {
           
           console.log(`✅ 场景 ${scene.name}(ID:${scene.id}) 真实映射:`, 
             `量表${assessment_scales.length}个, 音乐${music_categories.length}个`)
-        } else {
-          // 后备到默认映射
-          const defaultMappings = this.getDefaultMappings()
-          sceneToScales[sceneIdStr] = defaultMappings.sceneToScales[scene.id] || []
-          sceneToMusic[sceneIdStr] = defaultMappings.sceneToMusic[scene.id] || []
-          sceneNameToScales[scene.name] = defaultMappings.sceneNameToScales[scene.name] || []
-          sceneNameToMusic[scene.name] = defaultMappings.sceneNameToMusic[scene.name] || []
           
-          console.log(`⚠️ 场景 ${scene.name}(ID:${scene.id}) 使用默认映射`)
+          // 特别关注助眠场景
+          if (scene.code === 'sleep' || scene.id === 1) {
+            console.log(`🌙 助眠场景详细数据:`, {
+              sceneId: scene.id,
+              sceneName: scene.name,
+              sceneCode: scene.code,
+              映射量表: assessment_scales,
+              映射后的sceneToScales1: sceneToScales[sceneIdStr],
+              映射后的sceneNameToScales助眠: sceneNameToScales[scene.name]
+            })
+          }
+        } else {
+          // 🔧 修复：不使用默认映射，场景详情获取失败时设为空数组
+          sceneToScales[sceneIdStr] = []
+          sceneToMusic[sceneIdStr] = []
+          sceneNameToScales[scene.name] = []
+          sceneNameToMusic[scene.name] = []
+          
+          console.warn(`❌ 场景 ${scene.name}(ID:${scene.id}) 详情获取失败，无映射数据:`, detailResult)
         }
       })
       
-      return {
+      const mappingResult = {
         success: true,
         data: {
           sceneToScales,
@@ -506,18 +573,23 @@ class SceneMappingService {
         }
       }
       
+      console.log(`🎯 映射关系构建完成，最终结果:`, {
+        sceneToScales: sceneToScales,
+        助眠场景量表映射: sceneToScales["1"],
+        助眠场景名称映射: sceneNameToScales["助眠场景"],
+        所有场景的映射: Object.keys(sceneToScales).map(id => ({
+          场景ID: id,
+          量表数量: sceneToScales[id].length,
+          量表列表: sceneToScales[id].map(s => s.scale_name || s.name || s)
+        }))
+      })
+      
+      return mappingResult
+      
     } catch (error) {
       console.error('❌ 从场景列表重建映射失败:', error)
-      // 最终后备：使用默认映射
-      console.log('🔄 使用默认映射作为最终后备')
-      return {
-        success: true,
-        data: this.getDefaultMappings(),
-        meta: {
-          generated_at: new Date().toISOString(),
-          build_method: 'default_fallback'
-        }
-      }
+      // 🔧 修复：不使用默认映射，直接抛出错误
+      throw error
     }
   }
 
@@ -528,65 +600,31 @@ class SceneMappingService {
    */
   async getSceneDetail(sceneIdentifier) {
     try {
+      console.log(`🔍 正在调用场景详情API: /api/scene/${sceneIdentifier}`)
       // 使用新的统一接口
       const result = await get(`/api/scene/${sceneIdentifier}`)
+      
+      console.log(`📡 场景${sceneIdentifier}API响应:`, {
+        success: result.success,
+        dataExists: !!result.data,
+        dataKeys: result.data ? Object.keys(result.data) : null,
+        assessment_scales: result.data?.assessment_scales,
+        assessment_scales_length: result.data?.assessment_scales?.length || 0,
+        music_categories_length: result.data?.music_categories?.length || 0
+      })
       
       if (result.success && result.data) {
         return result
       } else {
-        throw new Error('场景不存在')
+        console.warn(`⚠️ 场景${sceneIdentifier}API返回无效数据:`, result)
+        throw new Error('场景不存在或返回数据无效')
       }
     } catch (error) {
-      console.error('获取场景详情失败:', error)
+      console.error(`❌ 获取场景${sceneIdentifier}详情失败:`, error)
       return { success: false, error: error.message }
     }
   }
 
-  /**
-   * 获取默认映射关系（后备方案）
-   * @returns {Object} 默认映射关系
-   */
-  getDefaultMappings() {
-    console.log('📋 使用默认场景映射关系')
-    
-    return {
-      // 场景ID到评测量表类型的映射
-      sceneToScales: {
-        1: ['HAMD', 'HAMD-17'], // 抑郁症状
-        2: ['HAMA', 'GAD-7'], // 焦虑症状
-        3: ['PSQI'], // 睡眠问题
-        4: ['PSS'], // 压力相关
-        5: ['WHOQOL'] // 生活质量
-      },
-      
-      // 场景名称到评测量表类型的映射
-      sceneNameToScales: {
-        '抑郁疗愈': ['HAMD', 'HAMD-17'],
-        '焦虑缓解': ['HAMA', 'GAD-7'],
-        '睡眠改善': ['PSQI'],
-        '压力释放': ['PSS'],
-        '情绪调节': ['HAMD', 'HAMA']
-      },
-      
-      // 场景ID到音乐类型的映射
-      sceneToMusic: {
-        1: ['HAMD', 'depression', 'mood_lifting'], // 抑郁疗愈
-        2: ['HAMA', 'anxiety', 'calming'], // 焦虑缓解
-        3: ['PSQI', 'sleep', 'relaxation'], // 睡眠改善
-        4: ['PSS', 'stress_relief', 'relaxation'], // 压力释放
-        5: ['mood_regulation', 'emotional_balance'] // 情绪调节
-      },
-      
-      // 场景名称到音乐类型的映射
-      sceneNameToMusic: {
-        '抑郁疗愈': ['HAMD', 'depression', 'mood_lifting'],
-        '焦虑缓解': ['HAMA', 'anxiety', 'calming'],
-        '睡眠改善': ['PSQI', 'sleep', 'relaxation'],
-        '压力释放': ['PSS', 'stress_relief', 'relaxation'],
-        '情绪调节': ['mood_regulation', 'emotional_balance']
-      }
-    }
-  }
 
   /**
    * 清除缓存（用于调试）

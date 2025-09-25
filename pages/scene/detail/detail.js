@@ -80,8 +80,20 @@ Page({
    */
   async checkLoginAndLoadData() {
     try {
+      console.log('🔍 [调试] 开始检查登录状态并加载数据，当前场景:', {
+        sceneId: this.data.sceneId,
+        sceneName: this.data.sceneName,
+        scaleType: this.data.scaleType
+      })
+      
       const userInfo = AuthService.getCurrentUser()
       const isLoggedIn = !!userInfo
+      
+      console.log('🔍 [调试] 登录状态检查结果:', {
+        userInfo: userInfo,
+        isLoggedIn: isLoggedIn,
+        userId: userInfo?.id || userInfo?.user_id
+      })
       
       this.setData({
         userInfo,
@@ -95,14 +107,15 @@ Page({
       this.checkSceneContext()
       
       if (isLoggedIn) {
-        console.log('✅ 用户已登录，加载场景数据')
+        console.log('✅ [调试] 用户已登录，开始并行加载场景数据...')
         // 并行加载评测历史和脑波历史
         await Promise.all([
           this.loadAssessmentHistory(),
           this.loadBrainwaveHistory()
         ])
+        console.log('✅ [调试] 场景数据加载任务完成')
       } else {
-        console.log('ℹ️ 用户未登录，显示登录引导')
+        console.log('ℹ️ [调试] 用户未登录，重置数据并显示登录引导')
         this.setData({
           assessmentHistory: [],
           brainwaveHistory: []
@@ -175,13 +188,26 @@ Page({
    * 加载评测历史（针对当前场景）
    */
   async loadAssessmentHistory() {
-    if (!this.data.userInfo) return
+    console.log('🔍 [调试] 开始加载评测历史，用户信息:', {
+      userInfo: this.data.userInfo,
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      isLoggedIn: this.data.isLoggedIn
+    })
+    
+    if (!this.data.userInfo) {
+      console.log('❌ [调试] 用户未登录，跳过评测历史加载')
+      return
+    }
     
     this.setData({ loadingAssessments: true })
     
     try {
       const userId = this.data.userInfo.id || this.data.userInfo.user_id
+      console.log('📡 [调试] 准备调用评测历史API，用户ID:', userId)
+      
       const result = await AssessmentAPI.getHistory(userId)
+      console.log('📡 [调试] 评测历史API返回结果:', result)
       
       if (result.success && result.data) {
         // 🔧 修复：过滤掉无效的评测ID（防止传递不存在的评测ID到后端）
@@ -198,7 +224,19 @@ Page({
         // 过滤与当前场景相关的评测记录
         let filteredAssessments = validAssessments.filter(item => item.status === 'completed')
         
-        // 🔧 修复：增强场景映射过滤的数据验证
+        console.log('🔍 开始场景评测过滤，当前场景:', {
+          sceneId: this.data.sceneId,
+          sceneName: this.data.sceneName,
+          完成的评测数量: filteredAssessments.length,
+          评测列表: filteredAssessments.map(item => ({
+            id: item.id,
+            scale_name: item.scale_name,
+            scale_type: item.scale_type,
+            status: item.status
+          }))
+        })
+        
+        // 🔧 修复：重新启用场景映射过滤（映射服务已修复）
         if (this.data.sceneId) {
           try {
             // 🔧 修复：添加数据验证，确保所有评测对象都有必要的字段
@@ -214,6 +252,8 @@ Page({
               return hasRequiredFields
             })
             
+            console.log(`📊 开始场景评测映射，有效评测数量: ${validAssessments.length}`)
+            
             const sceneFilterPromises = validAssessments.map(item => 
               sceneMappingService.isScaleMatchingScene(
                 item, 
@@ -225,7 +265,7 @@ Page({
             const matchResults = await Promise.all(sceneFilterPromises)
             filteredAssessments = validAssessments.filter((item, index) => matchResults[index])
             
-            console.log(`🎯 场景${this.data.sceneName}(ID:${this.data.sceneId})评测历史过滤:`, {
+            console.log(`🎯 场景${this.data.sceneName}(ID:${this.data.sceneId})评测历史过滤完成:`, {
               原始数量: result.data.length,
               完成的评测: result.data.filter(item => item.status === 'completed').length,
               验证后数量: validAssessments.length,
@@ -233,13 +273,14 @@ Page({
             })
             
           } catch (error) {
-            console.error('❌ 场景评测历史过滤失败，显示所有评测:', error)
-            // 过滤失败时保持原有的简单过滤逻辑
-            if (this.data.scaleType) {
-              filteredAssessments = filteredAssessments.filter(item => 
-                item.scale_type === this.data.scaleType
-              )
-            }
+            console.error('❌ 场景评测历史过滤失败:', error)
+            // 🔧 修复：映射服务失败时，显示所有已完成的评测
+            wx.showToast({
+              title: '场景数据获取失败，显示全部评测',
+              icon: 'none'
+            })
+            // 不进行场景过滤，显示所有已完成的评测
+            filteredAssessments = validAssessments.filter(item => item.status === 'completed')
           }
         }
         
@@ -252,7 +293,7 @@ Page({
           })
           .slice(0, 10) // 最多显示10条
           .map(item => ({
-            id: item.scale_id || item.assessment_id,
+            id: item.id || item.assessment_id,  // 🔧 修复：使用正确的评测记录ID
             date: this.formatDate(item.completed_at || item.created_at),
             result: this.getAssessmentResultText(item.result || item.score),
             scaleName: item.scale_name || '心理评测',
@@ -261,14 +302,24 @@ Page({
             rawData: item
           }))
         
+        console.log('🎯 [调试] 最终评测历史数据处理:', {
+          原始API数据数量: result.data.length,
+          原始API数据样本: result.data.slice(0, 2),
+          有效评测数量: validAssessments.length,
+          完成状态评测数量: filteredAssessments.length,
+          最终页面显示数量: sortedAssessments.length,
+          最终显示数据: sortedAssessments
+        })
+
         this.setData({
           assessmentHistory: sortedAssessments
         })
         
-        console.log(`📊 场景${this.data.sceneName}评测历史加载完成:`, {
+        console.log(`📊 [调试] 场景${this.data.sceneName}评测历史加载完成并设置到页面:`, {
           总数: result.data.length,
           场景相关: filteredAssessments.length,
-          显示: sortedAssessments.length
+          显示: sortedAssessments.length,
+          页面数据: this.data.assessmentHistory
         })
       } else {
         console.warn('评测历史加载失败:', result.error)
@@ -286,18 +337,34 @@ Page({
    * 加载脑波历史（针对当前场景）
    */
   async loadBrainwaveHistory() {
-    if (!this.data.userInfo) return
+    console.log('🔍 [调试] 开始加载脑波历史，用户信息:', {
+      userInfo: this.data.userInfo,
+      sceneId: this.data.sceneId,
+      sceneName: this.data.sceneName,
+      isLoggedIn: this.data.isLoggedIn
+    })
+    
+    if (!this.data.userInfo) {
+      console.log('❌ [调试] 用户未登录，跳过脑波历史加载')
+      return
+    }
     
     this.setData({ loadingBrainwaves: true })
     
     try {
       const userId = this.data.userInfo.id || this.data.userInfo.user_id
+      console.log('📡 [调试] 准备并行获取脑波数据，用户ID:', userId)
       
       // 并行获取60秒音频和长序列音频
       const [musicResult, longSequenceResult] = await Promise.allSettled([
         MusicAPI.getUserMusic(userId),
         LongSequenceAPI.getUserLongSequences(userId)
       ])
+      
+      console.log('📡 [调试] 脑波API调用结果:', {
+        musicResult: musicResult,
+        longSequenceResult: longSequenceResult
+      })
       
       let allBrainwaves = []
       
@@ -352,12 +419,26 @@ Page({
         return dateB - dateA
       })
       
-      // 🔧 修复：添加场景过滤逻辑
+      // 🔧 修复：重新启用场景过滤逻辑（映射服务已修复）
       let filteredBrainwaves = allBrainwaves
+      
+      console.log('🔍 脑波历史数据:', {
+        sceneId: this.data.sceneId,
+        sceneName: this.data.sceneName,
+        脑波总数: allBrainwaves.length,
+        脑波列表: allBrainwaves.map(item => ({
+          name: item.name,
+          type: item.type,
+          date: item.date
+        }))
+      })
+      
       if (this.data.sceneId && allBrainwaves.length > 0) {
         try {
           // 使用场景映射服务过滤脑波记录（与脑波库页面保持一致）
           // 🔧 修复：传递完整的brainwave对象，而不是rawData
+          console.log(`🎵 开始场景脑波映射，脑波数量: ${allBrainwaves.length}`)
+          
           const brainwaveFilterPromises = allBrainwaves.map(brainwave => 
             sceneMappingService.isMusicMatchingScene(
               brainwave,
@@ -369,11 +450,10 @@ Page({
           const matchResults = await Promise.all(brainwaveFilterPromises)
           filteredBrainwaves = allBrainwaves.filter((brainwave, index) => matchResults[index])
           
-          console.log(`🎯 场景「${this.data.sceneName}」(ID:${this.data.sceneId})脑波历史过滤:`, {
+          console.log(`🎯 场景「${this.data.sceneName}」(ID:${this.data.sceneId})脑波历史过滤完成:`, {
             原始数量: allBrainwaves.length,
             场景相关: filteredBrainwaves.length,
-            过滤结果: filteredBrainwaves.map(item => item.name),
-            映射服务调试: sceneMappingService.getDebugInfo()
+            过滤结果: filteredBrainwaves.map(item => item.name)
           })
           
         } catch (error) {
@@ -382,11 +462,25 @@ Page({
         }
       }
       
-      this.setData({
-        brainwaveHistory: filteredBrainwaves.slice(0, 10) // 最多显示10条
+      const finalBrainwaves = filteredBrainwaves.slice(0, 10) // 最多显示10条
+      
+      console.log('🎯 [调试] 最终脑波历史数据处理:', {
+        原始60秒音频数量: musicResult.status === 'fulfilled' && musicResult.value.success ? musicResult.value.data.length : 0,
+        原始长序列数量: longSequenceResult.status === 'fulfilled' && longSequenceResult.value.success ? longSequenceResult.value.data.length : 0,
+        合并后脑波总数: allBrainwaves.length,
+        场景过滤后数量: filteredBrainwaves.length,
+        最终页面显示数量: finalBrainwaves.length,
+        最终显示数据: finalBrainwaves
       })
       
-      console.log(`🧠 场景${this.data.sceneName}脑波历史加载完成:`, filteredBrainwaves.length)
+      this.setData({
+        brainwaveHistory: finalBrainwaves
+      })
+      
+      console.log(`🧠 [调试] 场景${this.data.sceneName}脑波历史加载完成并设置到页面:`, {
+        脑波数量: finalBrainwaves.length,
+        页面数据: this.data.brainwaveHistory
+      })
     } catch (error) {
       console.error('加载脑波历史异常:', error)
       this.setData({ brainwaveHistory: [] })

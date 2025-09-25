@@ -131,9 +131,14 @@ class SettingsManager {
       let actualTheme = theme
       
       if (theme === 'auto') {
-        // 获取系统主题
-        const systemInfo = wx.getSystemInfoSync()
-        actualTheme = systemInfo.theme || 'light'
+        // 获取系统主题 - 使用新的API
+        try {
+          const systemInfo = wx.getSystemSetting()
+          actualTheme = systemInfo.theme || 'light'
+        } catch (error) {
+          console.warn('获取系统主题失败，使用默认主题:', error)
+          actualTheme = 'light'
+        }
       }
 
       // 更新页面主题类名

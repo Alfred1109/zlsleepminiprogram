@@ -32,7 +32,10 @@ const PUBLIC_APIS = [
   
   // 场景相关（公开）
   '/api/scene/mappings',
+  '/api/scene/list',
+  '/api/scene/detail',
   '/scene/mappings',  // 兼容旧路径
+  '/scene/list',      // 兼容旧路径
   
   // 其他公开API
   '/api/music/random', // 随机音乐可以是公开的

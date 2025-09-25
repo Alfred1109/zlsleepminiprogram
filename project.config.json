@@ -23,7 +23,7 @@
     "uglifyFileName": false,
     "uploadWithSourceMap": true,
     "packNpmManually": false,
-    "minifyWXSS": false,
+    "minifyWXSS": true,
     "minifyWXML": false,
     "localPlugins": false,
     "condition": false,

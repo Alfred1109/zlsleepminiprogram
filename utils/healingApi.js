@@ -187,6 +187,27 @@ const MusicAPI = {
 
     const requestData = { assessment_id: assessmentId }
     
+    // 🔧 适配后端新接口：发送scene_id而不是scene_context对象
+    if (options.sceneContext && options.sceneContext.sceneId) {
+      requestData.scene_id = options.sceneContext.sceneId
+      console.log('🎯 音乐生成传递场景ID:', requestData.scene_id)
+    }
+    
+    // 添加默认时长参数（后端可能需要）
+    if (options.duration_seconds) {
+      requestData.duration_seconds = options.duration_seconds
+    } else {
+      requestData.duration_seconds = 60  // 默认60秒
+    }
+
+    console.log('🔍 音乐生成API - 发送数据:', requestData)
+    console.log('🔍 音乐生成API - 请求详情:', {
+      url: '/api/music/generate',
+      method: 'POST',
+      assessmentId: assessmentId,
+      options: options
+    })
+    
     // 如果有多选参数，添加综合生成相关字段
     if (options.additionalAssessments && options.additionalAssessments.length > 0) {
       // 🔧 修复：验证额外评测ID的有效性
@@ -208,9 +229,7 @@ const MusicAPI = {
       requestData.assessment_ids = [assessmentId, ...validAdditionalAssessments]
       requestData.generation_mode = options.mode || 'comprehensive'
       
-      if (options.sceneContext) {
-        requestData.scene_context = options.sceneContext
-      }
+      // 场景上下文在上面统一处理了，这里不需要重复添加
       
       console.log('🎵 发送综合音乐生成请求:', {
         主评测ID: assessmentId,
@@ -221,6 +240,8 @@ const MusicAPI = {
     } else {
       console.log('🎵 发送单一音乐生成请求:', assessmentId)
     }
+
+    console.log('🔍 最终发送数据:', requestData)
     
     return post('/api/music/generate', requestData, {
       loadingText: options.mode === 'comprehensive' ? '正在综合分析生成音乐...' : '正在生成音乐...',
@@ -456,6 +477,12 @@ const LongSequenceAPI = {
       duration_minutes: durationMinutes
     }
     
+    // 🔧 适配后端新接口：发送scene_id而不是scene_context对象
+    if (options.sceneContext && options.sceneContext.sceneId) {
+      requestData.scene_id = options.sceneContext.sceneId
+      console.log('🎯 长序列生成传递场景ID:', requestData.scene_id)
+    }
+    
     // 如果有多选参数，添加综合生成相关字段
     if (options.additionalAssessments && options.additionalAssessments.length > 0) {
       // 🔧 修复：验证额外评测ID的有效性
@@ -477,9 +504,7 @@ const LongSequenceAPI = {
       requestData.assessment_ids = [assessmentId, ...validAdditionalAssessments]
       requestData.generation_mode = options.mode || 'comprehensive'
       
-      if (options.sceneContext) {
-        requestData.scene_context = options.sceneContext
-      }
+      // 场景上下文在上面统一处理了，这里不需要重复添加
       
       console.log('🎶 发送综合长序列创建请求:', {
         主评测ID: assessmentId,

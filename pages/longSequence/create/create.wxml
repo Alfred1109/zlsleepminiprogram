@@ -68,7 +68,7 @@
       <view wx:else class="assessment-list">
         <view 
           wx:for="{{recentAssessments}}" 
-          wx:key="scale_id"
+          wx:key="id"
           class="assessment-item {{item.isSelected ? (selectionMode === 'single' ? 'selected' : 'selected-multiple') : ''}}"
           data-assessment="{{item}}"
           bindtap="onSelectAssessment"
