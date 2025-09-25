@@ -1,0 +1,121 @@
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-wrapper">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 地址列表内容 -->
+  <view wx:else class="address-content">
+    <!-- 顶部操作栏 -->
+    <view wx:if="{{addressList.length > 0}}" class="top-actions">
+      <button 
+        class="manage-btn {{isManageMode ? 'active' : ''}}" 
+        bindtap="toggleManageMode"
+      >
+        {{isManageMode ? '取消' : '管理'}}
+      </button>
+      
+      <view wx:if="{{isManageMode}}" class="batch-actions">
+        <button 
+          class="select-all-btn {{selectedAddresses.length === addressList.length ? 'active' : ''}}"
+          bindtap="toggleSelectAll"
+        >
+          {{selectedAddresses.length === addressList.length ? '取消全选' : '全选'}}
+        </button>
+        <button 
+          class="batch-delete-btn {{selectedAddresses.length > 0 ? 'active' : ''}}"
+          bindtap="batchDeleteAddresses"
+          disabled="{{selectedAddresses.length === 0}}"
+        >
+          删除选中 ({{selectedAddresses.length}})
+        </button>
+      </view>
+    </view>
+
+    <!-- 地址列表 -->
+    <view class="address-list">
+      <view 
+        class="address-item {{isManageMode ? 'manage-mode' : ''}} {{isManageMode && selectedAddresses.includes(item.id) ? 'selected' : ''}}"
+        wx:for="{{addressList}}" 
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onAddressItemTap"
+      >
+        <!-- 选择框（管理模式） -->
+        <view wx:if="{{isManageMode}}" class="address-checkbox">
+          <view class="checkbox {{selectedAddresses.includes(item.id) ? 'checked' : ''}}">
+            <text wx:if="{{selectedAddresses.includes(item.id)}}" class="iconfont icon-check"></text>
+          </view>
+        </view>
+
+        <!-- 地址信息 -->
+        <view class="address-info">
+          <view class="address-header">
+            <view class="user-info">
+              <text class="user-name">{{item.name}}</text>
+              <text class="user-phone">{{item.phone}}</text>
+            </view>
+            <view class="address-tags">
+              <text wx:if="{{item.isDefault}}" class="default-tag">默认</text>
+              <text wx:if="{{item.tag}}" class="address-tag">{{item.tag}}</text>
+            </view>
+          </view>
+          
+          <view class="address-detail">
+            {{item.province}} {{item.city}} {{item.district}} {{item.detail}}
+          </view>
+          
+          <!-- 操作按钮（非管理模式） -->
+          <view wx:if="{{!isManageMode}}" class="address-actions">
+            <button 
+              class="action-btn default-btn {{item.isDefault ? 'disabled' : ''}}"
+              data-id="{{item.id}}"
+              bindtap="setDefaultAddress"
+              disabled="{{item.isDefault}}"
+              catchtap=""
+            >
+              {{item.isDefault ? '默认地址' : '设为默认'}}
+            </button>
+            <button 
+              class="action-btn edit-btn"
+              data-id="{{item.id}}"
+              bindtap="editAddress"
+              catchtap=""
+            >
+              编辑
+            </button>
+            <button 
+              class="action-btn delete-btn"
+              data-id="{{item.id}}"
+              bindtap="deleteAddress"
+              catchtap=""
+            >
+              删除
+            </button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{!loading && addressList.length === 0}}" class="empty-state">
+      <image class="empty-image" src="/images/empty-address.svg" />
+      <text class="empty-text">暂无收货地址</text>
+      <button class="btn btn-primary empty-action" bindtap="addNewAddress">
+        添加地址
+      </button>
+    </view>
+  </view>
+
+  <!-- 底部占位 -->
+  <view class="bottom-placeholder"></view>
+</view>
+
+<!-- 底部添加按钮 -->
+<view wx:if="{{!isManageMode}}" class="bottom-add-btn">
+  <button class="add-btn" bindtap="addNewAddress">
+    <text class="iconfont icon-plus"></text>
+    <text>添加新地址</text>
+  </button>
+</view>

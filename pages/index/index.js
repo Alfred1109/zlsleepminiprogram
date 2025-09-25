@@ -642,6 +642,25 @@ Page({
       url: '/pages/scene/list/list'
     });
   },
+
+  /**
+   * 跳转到商品列表
+   */
+  goToProductList: function() {
+    wx.navigateTo({
+      url: '/pages/product/list/list'
+    });
+  },
+
+  /**
+   * 跳转到设备购买页面
+   */
+  goToPurchaseDevice: function() {
+    // 跳转到商品列表，筛选设备类商品
+    wx.navigateTo({
+      url: '/pages/product/list/list?category=device&source=homepage_device_card'
+    });
+  },
   
   
   /**

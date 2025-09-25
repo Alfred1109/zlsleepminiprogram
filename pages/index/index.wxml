@@ -63,14 +63,35 @@
             <view wx:if="{{loadingDeviceStatus}}" class="device-loading">
               <text class="loading-text">检查设备状态...</text>
             </view>
-            <view wx:elif="{{hasBindedDevice}}" class="device-info bound">
-              <image class="device-icon" src="/images/check.svg" mode="aspectFit" />
-              <text class="device-text">已绑定 {{bindedDeviceCount}} 台设备</text>
+            <view wx:elif="{{hasBindedDevice}}" class="device-bound-container">
+              <view class="device-info bound">
+                <image class="device-icon" src="/images/check.svg" mode="aspectFit" />
+                <text class="device-text">已绑定 {{bindedDeviceCount}} 台设备</text>
+              </view>
+              <view class="device-actions">
+                <view class="device-action-btn" bindtap="goToDeviceBinding">
+                  <text class="action-text">管理设备</text>
+                </view>
+                <view class="device-action-btn purchase" bindtap="goToPurchaseDevice">
+                  <text class="action-text">购买设备</text>
+                </view>
+              </view>
             </view>
-            <view wx:else class="device-info unbound" bindtap="goToDeviceBinding">
-              <image class="device-icon" src="/images/phone-icon.svg" mode="aspectFit" />
-              <text class="device-text">未绑定设备</text>
-              <text class="device-action">绑定设备 →</text>
+            <view wx:else class="device-unbound-container">
+              <view class="device-info unbound" bindtap="goToDeviceBinding">
+                <image class="device-icon" src="/images/phone-icon.svg" mode="aspectFit" />
+                <text class="device-text">未绑定设备</text>
+                <text class="device-action">绑定设备 →</text>
+              </view>
+              <view class="device-purchase-prompt">
+                <view class="purchase-hint">
+                  <text class="hint-text">还没有疗愈设备？</text>
+                  <view class="purchase-btn" bindtap="goToPurchaseDevice">
+                    <image class="purchase-icon" src="/images/product-icon.svg" mode="aspectFit" />
+                    <text class="purchase-text">购买设备</text>
+                  </view>
+                </view>
+              </view>
             </view>
           </view>
         </view>
@@ -115,6 +136,28 @@
   </view>
 
 
+
+  <!-- 精选商品推荐 -->
+  <view class="section-header">
+    <text class="section-title">精选商品</text>
+    <view class="section-actions">
+      <view class="section-more" bindtap="goToProductList">查看全部</view>
+    </view>
+  </view>
+  
+  <!-- 商品卡片 -->
+  <view class="product-showcase">
+    <view class="product-card" bindtap="goToProductList">
+      <view class="product-icon">
+        <text class="product-emoji">🛍️</text>
+      </view>
+      <view class="product-info">
+        <text class="product-title">疗愈产品</text>
+        <text class="product-desc">精选实物商品，提升疗愈体验</text>
+      </view>
+      <view class="product-arrow">→</view>
+    </view>
+  </view>
 
   <!-- 场景使用提示 -->
   <view class="usage-tip">

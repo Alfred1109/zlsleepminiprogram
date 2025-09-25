@@ -25,7 +25,12 @@
     "pages/device/control/control",
     "pages/scene/detail/detail",
     "pages/scene/list/list",
-    "pages/scene-mapping-test/scene-mapping-test"
+    "pages/scene-mapping-test/scene-mapping-test",
+    "pages/product/list/list",
+    "pages/product/detail/detail",
+    "pages/order/create/create",
+    "pages/address/list/list",
+    "pages/address/edit/edit"
   ],
   "window": {
     "backgroundTextStyle": "light",

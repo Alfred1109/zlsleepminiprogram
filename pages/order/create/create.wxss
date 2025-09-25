@@ -1,0 +1,594 @@
+/* 订单创建页面样式 */
+
+.container {
+  min-height: 100vh;
+  background-color: #F4F2F3;
+  padding-bottom: 140rpx; /* 为底部提交栏留空间 */
+}
+
+/* 加载状态 */
+.loading-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #FF6B35;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 通用区块样式 */
+.section {
+  background: white;
+  margin-bottom: 20rpx;
+  padding: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 收货地址部分 */
+.address-section {
+  padding: 0;
+}
+
+.section-header {
+  padding: 30rpx;
+}
+
+.address-info {
+  flex: 1;
+}
+
+.address-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.address-user {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.user-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.user-phone {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.default-tag {
+  background: #FF6B35;
+  color: white;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  font-size: 20rpx;
+}
+
+.address-detail {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.4;
+}
+
+.no-address {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.no-address .iconfont {
+  font-size: 32rpx;
+}
+
+/* 配送方式 */
+.delivery-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.delivery-method {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #F8F6F7;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.2s ease;
+}
+
+.delivery-method.selected {
+  background: rgba(255, 107, 53, 0.05);
+  border-color: #FF6B35;
+}
+
+.method-info {
+  flex: 1;
+}
+
+.method-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.method-description {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.method-fee {
+  font-size: 28rpx;
+  color: #FF6B35;
+  font-weight: 600;
+  margin-right: 20rpx;
+}
+
+.method-radio, .coupon-radio, .address-radio {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radio {
+  width: 24rpx;
+  height: 24rpx;
+  border: 2rpx solid #ddd;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.radio.checked {
+  border-color: #FF6B35;
+}
+
+.radio.checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12rpx;
+  height: 12rpx;
+  background: #FF6B35;
+  border-radius: 50%;
+}
+
+/* 商品信息 */
+.product-item {
+  display: flex;
+  gap: 20rpx;
+}
+
+.product-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  object-fit: cover;
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.product-specs {
+  font-size: 24rpx;
+  color: #999;
+  margin: 8rpx 0;
+}
+
+.product-specs text {
+  margin-right: 12rpx;
+}
+
+.product-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.product-price {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #FF6B35;
+}
+
+.product-quantity {
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 优惠券部分 */
+.coupon-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.coupon-info .iconfont {
+  font-size: 32rpx;
+  color: #FF6B35;
+}
+
+.coupon-selected {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.coupon-placeholder {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.coupon-action {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.available-count {
+  font-size: 24rpx;
+  color: #FF6B35;
+}
+
+/* 支付方式 */
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.payment-method:last-child {
+  border-bottom: none;
+}
+
+.method-icon {
+  width: 60rpx;
+  height: 60rpx;
+  margin-right: 20rpx;
+}
+
+.payment-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.method-name {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333;
+}
+
+/* 订单备注 */
+.note-input {
+  width: 100%;
+  min-height: 120rpx;
+  padding: 20rpx;
+  background: #F8F6F7;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333;
+  border: none;
+  outline: none;
+}
+
+/* 价格明细 */
+.price-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.price-item:last-child {
+  border-bottom: none;
+}
+
+.price-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.price-value {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.price-item.discount .price-value {
+  color: #FF6B35;
+}
+
+.price-item.total {
+  padding-top: 24rpx;
+  border-top: 1rpx solid #e0e0e0;
+  margin-top: 12rpx;
+}
+
+.price-item.total .price-label,
+.price-item.total .price-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.price-item.total .price-value {
+  color: #FF6B35;
+}
+
+/* 底部占位 */
+.bottom-placeholder {
+  height: 20rpx;
+}
+
+/* 底部提交栏 */
+.bottom-submit {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 20rpx 30rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  z-index: 100;
+}
+
+.submit-info {
+  flex: 1;
+}
+
+.total-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.total-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.total-price {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #FF6B35;
+}
+
+.submit-btn {
+  background: #FF6B35;
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 24rpx 48rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+.submit-btn.loading {
+  opacity: 0.7;
+}
+
+.submit-btn[disabled] {
+  background: #ccc;
+  color: #999;
+}
+
+/* 地址选择弹窗 */
+.address-modal, .coupon-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.address-modal.show, .coupon-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.address-panel, .coupon-panel {
+  width: 100%;
+  background: white;
+  border-radius: 20rpx 20rpx 0 0;
+  max-height: 80vh;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.address-modal.show .address-panel,
+.coupon-modal.show .coupon-panel {
+  transform: translateY(0);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx 40rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-close {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.address-list, .coupon-list {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 20rpx 40rpx 40rpx;
+}
+
+.address-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f8f8f8;
+}
+
+.address-item:last-child {
+  border-bottom: none;
+}
+
+.address-main {
+  flex: 1;
+}
+
+.add-address-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 40rpx 0;
+  font-size: 28rpx;
+  color: #FF6B35;
+}
+
+.add-address-btn .iconfont {
+  font-size: 32rpx;
+}
+
+/* 优惠券列表 */
+.coupon-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF8B5A);
+  border-radius: 12rpx;
+  color: white;
+}
+
+.coupon-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+  margin-right: 20rpx;
+}
+
+.amount-symbol {
+  font-size: 24rpx;
+}
+
+.amount-value {
+  font-size: 48rpx;
+  font-weight: 600;
+}
+
+.coupon-info {
+  flex: 1;
+}
+
+.coupon-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+
+.coupon-condition {
+  font-size: 22rpx;
+  opacity: 0.8;
+}
+
+.no-coupon-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  border-top: 1rpx solid #f0f0f0;
+  margin-top: 20rpx;
+}
+
+/* 动画 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

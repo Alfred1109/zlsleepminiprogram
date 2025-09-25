@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "精选商品",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "backgroundTextStyle": "dark"
+}

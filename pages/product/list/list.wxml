@@ -1,0 +1,184 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrapper">
+      <input 
+        class="search-input" 
+        placeholder="搜索商品..." 
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm"
+      />
+      <view class="search-icon" bindtap="onSearchConfirm">
+        <text class="iconfont icon-search"></text>
+      </view>
+      <view wx:if="{{searchKeyword}}" class="clear-icon" bindtap="onSearchClear">
+        <text class="iconfont icon-close"></text>
+      </view>
+    </view>
+    <view class="filter-btn" bindtap="toggleFilter">
+      <text class="iconfont icon-filter"></text>
+      <text>筛选</text>
+    </view>
+  </view>
+
+  <!-- 分类标签 -->
+  <scroll-view class="category-tabs" scroll-x enable-flex>
+    <view 
+      class="category-tab {{selectedCategory === item.id ? 'active' : ''}}"
+      wx:for="{{categories}}" 
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onCategoryChange"
+    >
+      {{item.name}}
+    </view>
+  </scroll-view>
+
+  <!-- 排序栏 -->
+  <view class="sort-bar">
+    <view 
+      class="sort-item {{sortType === 'default' ? 'active' : ''}}" 
+      data-type="default" 
+      bindtap="onSortChange"
+    >
+      综合
+    </view>
+    <view 
+      class="sort-item {{sortType === 'sales' ? 'active' : ''}}" 
+      data-type="sales" 
+      bindtap="onSortChange"
+    >
+      销量
+    </view>
+    <view 
+      class="sort-item {{sortType === 'price_asc' ? 'active' : ''}}" 
+      data-type="price_asc" 
+      bindtap="onSortChange"
+    >
+      价格 ↑
+    </view>
+    <view 
+      class="sort-item {{sortType === 'price_desc' ? 'active' : ''}}" 
+      data-type="price_desc" 
+      bindtap="onSortChange"
+    >
+      价格 ↓
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="product-list">
+    <view 
+      class="product-item" 
+      wx:for="{{productList}}" 
+      wx:key="id"
+      data-id="{{item.id}}"
+      data-index="{{index}}"
+      bindtap="goToProductDetail"
+    >
+      <view class="product-image-wrapper">
+        <image 
+          class="product-image" 
+          src="{{item.images && item.images.length ? item.images[0] : '/images/default-image.png'}}" 
+          mode="aspectFill"
+          lazy-load
+        />
+        <view wx:if="{{item.tags && item.tags.length}}" class="product-tags">
+          <text class="product-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+        </view>
+      </view>
+      
+      <view class="product-info">
+        <view class="product-title">{{item.name}}</view>
+        <view class="product-description">{{item.description}}</view>
+        
+        <view class="product-bottom">
+          <view class="product-price-wrapper">
+            <text class="product-price">¥{{item.price}}</text>
+            <text wx:if="{{item.originalPrice && item.originalPrice > item.price}}" class="original-price">¥{{item.originalPrice}}</text>
+          </view>
+          
+          <view class="product-actions">
+            <view 
+              class="add-cart-btn" 
+              data-id="{{item.id}}"
+              catchtap="addToCart"
+            >
+              <text class="iconfont icon-cart-plus"></text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="product-meta">
+          <text class="sales-count">已售 {{item.salesCount || 0}}</text>
+          <text class="stock-count">库存 {{item.stock || 0}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-wrapper">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 加载更多 -->
+  <view wx:if="{{loadingMore}}" class="loading-more">
+    <view class="loading-spinner small"></view>
+    <text>加载更多...</text>
+  </view>
+
+  <!-- 无更多数据 -->
+  <view wx:if="{{!hasMore && productList.length > 0}}" class="no-more">
+    <text>没有更多商品了</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && productList.length === 0}}" class="empty-state">
+    <image class="empty-image" src="/images/empty-product.svg" />
+    <text class="empty-text">暂无商品</text>
+    <view class="empty-actions">
+      <button class="btn btn-primary" bindtap="resetFilter">重置筛选</button>
+    </view>
+  </view>
+</view>
+
+<!-- 筛选面板 -->
+<view class="filter-overlay {{showFilter ? 'show' : ''}}" bindtap="toggleFilter">
+  <view class="filter-panel" catchtap="">
+    <view class="filter-header">
+      <text class="filter-title">筛选</text>
+      <view class="filter-close" bindtap="toggleFilter">
+        <text class="iconfont icon-close"></text>
+      </view>
+    </view>
+    
+    <view class="filter-content">
+      <!-- 价格区间 -->
+      <view class="filter-section">
+        <text class="filter-section-title">价格区间</text>
+        <view class="price-range">
+          <slider 
+            class="price-slider" 
+            min="0" 
+            max="10000" 
+            step="100"
+            value="{{priceRange[1]}}" 
+            bindchange="onPriceRangeChange"
+            activeColor="#FF6B35"
+          />
+          <view class="price-range-display">
+            <text>¥{{priceRange[0]}} - ¥{{priceRange[1]}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="filter-actions">
+      <button class="btn btn-secondary" bindtap="resetFilter">重置</button>
+      <button class="btn btn-primary" bindtap="applyFilter">应用</button>
+    </view>
+  </view>
+</view>

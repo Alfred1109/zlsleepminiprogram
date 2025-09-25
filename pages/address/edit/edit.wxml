@@ -1,0 +1,221 @@
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-wrapper">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 地址编辑表单 -->
+  <view wx:else class="address-form">
+    <!-- 收货人信息 -->
+    <view class="form-section">
+      <view class="section-title">收货人信息</view>
+      
+      <view class="form-item">
+        <view class="form-label">收货人姓名</view>
+        <input 
+          class="form-input"
+          placeholder="请输入收货人姓名"
+          value="{{formData.name}}"
+          bindinput="onNameInput"
+          maxlength="20"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">手机号码</view>
+        <input 
+          class="form-input"
+          placeholder="请输入手机号码"
+          value="{{formData.phone}}"
+          bindinput="onPhoneInput"
+          type="number"
+          maxlength="11"
+        />
+      </view>
+    </view>
+
+    <!-- 收货地址 -->
+    <view class="form-section">
+      <view class="section-title">收货地址</view>
+      
+      <view class="form-item clickable" bindtap="showRegionPicker">
+        <view class="form-label">所在地区</view>
+        <view class="form-value {{!formData.province ? 'placeholder' : ''}}">
+          {{formData.province && formData.city && formData.district ? 
+            formData.province + ' ' + formData.city + ' ' + formData.district : 
+            '请选择省市区'}}
+        </view>
+        <text class="iconfont icon-arrow-right"></text>
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">详细地址</view>
+        <textarea 
+          class="form-textarea"
+          placeholder="街道、门牌号等详细信息"
+          value="{{formData.detail}}"
+          bindinput="onDetailInput"
+          maxlength="100"
+          auto-height
+        />
+      </view>
+      
+      <!-- 获取当前位置 -->
+      <view class="location-btn" bindtap="getCurrentLocation">
+        <text class="iconfont icon-location"></text>
+        <text>使用当前位置</text>
+      </view>
+    </view>
+
+    <!-- 地址标签 -->
+    <view class="form-section">
+      <view class="section-title">地址标签</view>
+      
+      <view class="form-item clickable" bindtap="showTagPicker">
+        <view class="form-label">地址标签</view>
+        <view class="form-value {{!formData.tag ? 'placeholder' : ''}}">
+          {{formData.tag || '选择地址标签（可选）'}}
+        </view>
+        <text class="iconfont icon-arrow-right"></text>
+      </view>
+    </view>
+
+    <!-- 默认地址设置 -->
+    <view class="form-section">
+      <view class="form-item clickable" bindtap="toggleDefault">
+        <view class="form-label">设为默认地址</view>
+        <view class="form-switch">
+          <switch 
+            checked="{{formData.isDefault}}" 
+            bindchange="toggleDefault"
+            color="#FF6B35"
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部占位 -->
+    <view class="bottom-placeholder"></view>
+  </view>
+</view>
+
+<!-- 底部保存按钮 -->
+<view class="bottom-actions">
+  <button 
+    class="save-btn {{isSubmitting ? 'loading' : ''}}"
+    bindtap="saveAddress"
+    disabled="{{isSubmitting}}"
+  >
+    {{isSubmitting ? '保存中...' : (mode === 'create' ? '保存地址' : '保存修改')}}
+  </button>
+</view>
+
+<!-- 区域选择器 -->
+<picker-view 
+  wx:if="{{showRegionPicker}}"
+  class="region-picker"
+  indicator-style="height: 50px;"
+  value="{{regionIndex}}"
+  bindchange="onRegionColumnChange"
+>
+  <picker-view-column>
+    <view 
+      class="picker-item" 
+      wx:for="{{regionArray[0]}}" 
+      wx:key="*this"
+    >
+      {{item}}
+    </view>
+  </picker-view-column>
+  <picker-view-column>
+    <view 
+      class="picker-item" 
+      wx:for="{{regionArray[1]}}" 
+      wx:key="*this"
+    >
+      {{item}}
+    </view>
+  </picker-view-column>
+  <picker-view-column>
+    <view 
+      class="picker-item" 
+      wx:for="{{regionArray[2]}}" 
+      wx:key="*this"
+    >
+      {{item}}
+    </view>
+  </picker-view-column>
+</picker-view>
+
+<!-- 区域选择遮罩 -->
+<view class="picker-overlay {{showRegionPicker ? 'show' : ''}}" bindtap="hideRegionPicker">
+  <view class="picker-panel" catchtap="">
+    <view class="picker-header">
+      <view class="picker-cancel" bindtap="hideRegionPicker">取消</view>
+      <view class="picker-title">选择地区</view>
+      <view class="picker-confirm" bindtap="onRegionConfirm">确定</view>
+    </view>
+    <picker-view 
+      class="picker-content"
+      indicator-style="height: 50px;"
+      value="{{regionIndex}}"
+      bindchange="onRegionColumnChange"
+    >
+      <picker-view-column>
+        <view 
+          class="picker-item" 
+          wx:for="{{regionArray[0]}}" 
+          wx:key="*this"
+        >
+          {{item}}
+        </view>
+      </picker-view-column>
+      <picker-view-column>
+        <view 
+          class="picker-item" 
+          wx:for="{{regionArray[1]}}" 
+          wx:key="*this"
+        >
+          {{item}}
+        </view>
+      </picker-view-column>
+      <picker-view-column>
+        <view 
+          class="picker-item" 
+          wx:for="{{regionArray[2]}}" 
+          wx:key="*this"
+        >
+          {{item}}
+        </view>
+      </picker-view-column>
+    </picker-view>
+  </view>
+</view>
+
+<!-- 标签选择弹窗 -->
+<view class="tag-overlay {{showTagPicker ? 'show' : ''}}" bindtap="hideTagPicker">
+  <view class="tag-panel" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">选择地址标签</text>
+      <view class="modal-close" bindtap="hideTagPicker">
+        <text class="iconfont icon-close"></text>
+      </view>
+    </view>
+    
+    <view class="tag-list">
+      <view 
+        class="tag-option {{formData.tag === item.value ? 'selected' : ''}}"
+        wx:for="{{tagOptions}}" 
+        wx:key="value"
+        data-value="{{item.value}}"
+        bindtap="onTagSelect"
+      >
+        <text class="tag-label">{{item.label}}</text>
+        <view class="tag-radio">
+          <view class="radio {{formData.tag === item.value ? 'checked' : ''}}"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -285,6 +285,108 @@
   margin-left: 8rpx;
 }
 
+/* 设备状态容器样式 */
+.device-bound-container,
+.device-unbound-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  width: 100%;
+}
+
+/* 设备操作按钮组 */
+.device-actions {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.device-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 16rpx;
+  border-radius: 20rpx;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1rpx solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.device-action-btn:active {
+  transform: scale(0.95);
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.device-action-btn.purchase {
+  background: rgba(255, 107, 53, 0.1);
+  border: 1rpx solid rgba(255, 107, 53, 0.2);
+}
+
+.device-action-btn.purchase:active {
+  background: rgba(255, 107, 53, 0.15);
+}
+
+.device-action-btn .action-text {
+  font-size: 22rpx;
+  font-weight: 500;
+  color: #3B82F6;
+}
+
+.device-action-btn.purchase .action-text {
+  color: #FF6B35;
+}
+
+/* 购买设备提示区域 */
+.device-purchase-prompt {
+  margin-top: 8rpx;
+  padding: 16rpx;
+  background: rgba(255, 107, 53, 0.05);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255, 107, 53, 0.1);
+}
+
+.purchase-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.hint-text {
+  font-size: 22rpx;
+  color: #666;
+  flex: 1;
+}
+
+.purchase-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 16rpx;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8B5A 100%);
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.2);
+  transition: all 0.3s ease;
+}
+
+.purchase-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 1rpx 4rpx rgba(255, 107, 53, 0.3);
+}
+
+.purchase-icon {
+  width: 20rpx;
+  height: 20rpx;
+  flex-shrink: 0;
+}
+
+.purchase-text {
+  font-size: 22rpx;
+  color: white;
+  font-weight: 500;
+}
+
 .user-action {
   display: flex;
   align-items: center;
@@ -979,6 +1081,79 @@
 }
 
 /* 使用提示 */
+/* 商品展示区域 */
+.product-showcase {
+  margin-bottom: 32rpx;
+}
+
+.product-card {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06), 0 1rpx 2rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: pointer;
+}
+
+.product-card:active {
+  transform: scale(0.98) translateY(-2rpx);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.1), 0 2rpx 4rpx rgba(0, 0, 0, 0.08);
+}
+
+.product-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8B5A 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.2);
+}
+
+.product-emoji {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.product-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2D3A36;
+  text-shadow: none;
+}
+
+.product-desc {
+  font-size: 24rpx;
+  color: #5A6B5F;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.product-arrow {
+  font-size: 28rpx;
+  color: #94A7AE;
+  font-weight: bold;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
 .usage-tip {
   display: flex;
   align-items: center;
