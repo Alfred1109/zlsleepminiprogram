@@ -87,13 +87,27 @@ Page({
       this.setData({ loading: true });
       const result = await AuthService.wechatLogin();
 
-      if (result && result.success) {
+      console.log('🔍 微信登录结果详情:', result);
+      console.log('🔍 登录成功判断:', result && result.success);
+
+      // 检查登录是否真的成功（通过AuthService状态确认）
+      const isLoggedIn = AuthService.isLoggedIn();
+      const currentUser = AuthService.getCurrentUser();
+      console.log('🔍 AuthService状态检查:', { isLoggedIn, hasUser: !!currentUser });
+
+      if ((result && result.success) || (isLoggedIn && currentUser)) {
+        console.log('✅ 登录成功，准备跳转...');
         wx.showToast({ title: '登录成功', icon: 'success' });
-        setTimeout(() => { this.redirectAfterLogin(); }, 800);
+        setTimeout(() => { 
+          console.log('🚀 执行页面跳转...');
+          this.redirectAfterLogin(); 
+        }, 800);
       } else {
+        console.log('❌ 登录失败，result:', result);
         throw new Error(result?.error || '微信登录失败');
       }
     } catch (err) {
+      console.error('❌ 微信登录错误:', err);
       wx.showToast({ title: err.message || '微信登录失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
@@ -127,13 +141,27 @@ Page({
       // 使用真正的账号密码登录
       const result = await AuthService.accountLogin(username, password);
       
-      if (result && result.success) {
+      console.log('🔍 账号登录结果详情:', result);
+      console.log('🔍 登录成功判断:', result && result.success);
+      
+      // 检查登录是否真的成功（通过AuthService状态确认）
+      const isLoggedIn = AuthService.isLoggedIn();
+      const currentUser = AuthService.getCurrentUser();
+      console.log('🔍 AuthService状态检查:', { isLoggedIn, hasUser: !!currentUser });
+      
+      if ((result && result.success) || (isLoggedIn && currentUser)) {
+        console.log('✅ 登录成功，准备跳转...');
         wx.showToast({ title: '登录成功', icon: 'success' });
-        setTimeout(() => { this.redirectAfterLogin(); }, 800);
+        setTimeout(() => { 
+          console.log('🚀 执行页面跳转...');
+          this.redirectAfterLogin(); 
+        }, 800);
       } else {
+        console.log('❌ 登录失败，result:', result);
         throw new Error(result?.error || '账号登录失败');
       }
     } catch (err) {
+      console.error('❌ 账号登录错误:', err);
       wx.showToast({ title: err.message || '账号登录失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })
@@ -144,18 +172,7 @@ Page({
 
   redirectAfterLogin() {
     const redirectUrl = this.redirectUrl || '/pages/index/index';
-    const tabBarPages = [
-      '/pages/index/index',
-      '/pages/assessment/scales/scales',
-      '/pages/music/library/library',
-      '/pages/profile/profile'
-    ];
-
-    if (tabBarPages.includes(redirectUrl)) {
-      wx.switchTab({ url: redirectUrl });
-    } else {
-      wx.reLaunch({ url: redirectUrl });
-    }
+    wx.reLaunch({ url: redirectUrl });
   },
 
   onUsernameInput(e) { this.setData({ username: e.detail.value }) },

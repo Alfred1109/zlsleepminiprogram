@@ -239,7 +239,7 @@ async function startFreeTrial() {
         confirmText: '去登录',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/login/login' })
+            wx.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent(getCurrentPages()[getCurrentPages().length - 1].route) })
           }
         }
       })

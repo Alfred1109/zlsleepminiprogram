@@ -656,7 +656,7 @@ Page({
           content: '无法获取用户信息，请重新登录后再试',
           showCancel: false,
           success: () => {
-            wx.navigateTo({ url: '/pages/login/login' })
+            wx.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/subscription/subscription') })
           }
         })
         return
@@ -1031,7 +1031,7 @@ Page({
    */
   onGoToLogin() {
     wx.navigateTo({
-      url: '/pages/login/login',
+      url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/subscription/subscription'),
       fail: () => {
         // 如果登录页面不存在，可以尝试其他页面或显示提示
         wx.showModal({

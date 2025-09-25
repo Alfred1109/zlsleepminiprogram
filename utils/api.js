@@ -35,7 +35,9 @@ function showLoginModalThrottled() {
     confirmText: '去登录',
     success: (modalRes) => {
       if (modalRes.confirm) {
-        wx.navigateTo({ url: '/pages/login/login' })
+        const currentPage = getCurrentPages()[getCurrentPages().length - 1];
+        const currentRoute = currentPage ? currentPage.route : '';
+        wx.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent('/' + currentRoute) })
       }
     },
     complete: () => {

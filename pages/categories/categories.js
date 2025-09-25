@@ -313,7 +313,7 @@ Page({
         confirmText: '去登录',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/login/login' })
+            wx.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/categories/categories') })
           }
         }
       })
@@ -389,7 +389,7 @@ Page({
         confirmText: '去登录',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/login/login' })
+            wx.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/categories/categories') })
           }
         }
       })
@@ -413,7 +413,7 @@ Page({
         confirmText: '去登录',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/login/login' })
+            wx.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/categories/categories') })
           }
         }
       })

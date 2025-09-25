@@ -369,7 +369,10 @@ App({
   forceLogin(redirectUrl) {
     const AuthService = require('./services/AuthService')
     AuthService.logout().then(() => {
-      wx.reLaunch({ url: '/pages/login/login' })
+      const loginUrl = redirectUrl ? 
+        `/pages/login/login?redirect=${encodeURIComponent(redirectUrl)}` : 
+        '/pages/login/login'
+      wx.reLaunch({ url: loginUrl })
     })
   },
 

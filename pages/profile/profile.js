@@ -213,7 +213,7 @@ Page({
    */
   onLogin() {
     wx.navigateTo({
-      url: '/pages/login/login'
+      url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/profile/profile')
     })
   },
 
@@ -802,12 +802,19 @@ Page({
       
       const res = await UserAPI.updateUserInfo({
         user_id: user.id,
-        nickname: nickname
+        nickname: nickname,
+        sync_username: true  // 启用自动同步用户名
       })
       
       console.log('📡 昵称保存API响应:', res)
 
       if (res && res.success) {
+        // 处理警告信息（如用户名冲突等）
+        if (res.warnings && res.warnings.length > 0) {
+          console.warn('⚠️ 更新昵称时收到警告:', res.warnings)
+          this.showWarningMessage(res.warnings)
+        }
+        
         // 同步成功后，从数据库获取最新信息
         console.log('✅ 昵称保存成功，从数据库获取最新用户信息...')
         const completeUserInfo = await AuthService.refreshUserInfo()
@@ -820,7 +827,21 @@ Page({
             tempNickname: ''
           })
           console.log('✅ 昵称已从数据库更新到页面')
-          wx.showToast({ title: '昵称已保存', icon: 'success', duration: 1000 })
+          
+          // 如果有警告，显示带警告的成功消息
+          if (res.warnings && res.warnings.length > 0) {
+            wx.showToast({ 
+              title: '昵称已保存，用户名已同步', 
+              icon: 'success', 
+              duration: 2000 
+            })
+          } else {
+            wx.showToast({ 
+              title: '昵称已保存', 
+              icon: 'success', 
+              duration: 1000 
+            })
+          }
         } else {
           throw new Error('从数据库获取用户信息失败')
         }
@@ -836,6 +857,39 @@ Page({
     } finally {
       wx.hideLoading()
     }
+  },
+
+  /**
+   * 显示警告信息
+   * @param {Array} warnings - 警告信息数组
+   */
+  showWarningMessage(warnings) {
+    if (!warnings || warnings.length === 0) return
+    
+    // 如果只有一个警告，直接显示
+    if (warnings.length === 1) {
+      wx.showModal({
+        title: '温馨提示',
+        content: warnings[0],
+        showCancel: false,
+        confirmText: '我知道了',
+        confirmColor: '#ff6b35'
+      })
+      return
+    }
+    
+    // 如果有多个警告，显示列表
+    const warningText = warnings.map((warning, index) => 
+      `${index + 1}. ${warning}`
+    ).join('\n')
+    
+    wx.showModal({
+      title: '温馨提示',
+      content: warningText,
+      showCancel: false,
+      confirmText: '我知道了',
+      confirmColor: '#ff6b35'
+    })
   },
 
   // 保存资料
@@ -864,6 +918,7 @@ Page({
       // 添加昵称信息
       if (this.data.tempNickname) {
         updateData.nickname = this.data.tempNickname
+        updateData.sync_username = true  // 如果修改了昵称，启用用户名同步
       }
       
       console.log('保存用户资料:', updateData)
@@ -871,6 +926,12 @@ Page({
       const res = await UserAPI.updateUserInfo(updateData)
       
       if (res && res.success) {
+        // 处理警告信息（如用户名冲突等）
+        if (res.warnings && res.warnings.length > 0) {
+          console.warn('⚠️ 保存资料时收到警告:', res.warnings)
+          this.showWarningMessage(res.warnings)
+        }
+        
         // 完成进度条到100%
         if (this.progressInterval) {
           clearInterval(this.progressInterval)
@@ -879,18 +940,45 @@ Page({
         
         // 稍微延迟显示完成效果
         setTimeout(() => {
-          // 使用AuthService统一保存，确保数据一致性
-          const updatedUserInfo = { ...user, ...res.data }
-          AuthService.setCurrentUser(updatedUserInfo)
-          
-          this.setData({ 
-            userInfo: updatedUserInfo,
-            hasChanges: false,
-            tempAvatar: '',
-            tempNickname: ''
+          // 刷新完整的用户信息
+          AuthService.refreshUserInfo().then(completeUserInfo => {
+            if (completeUserInfo) {
+              this.setData({ 
+                userInfo: completeUserInfo,
+                hasChanges: false,
+                tempAvatar: '',
+                tempNickname: ''
+              })
+            } else {
+              // 回退到原有逻辑
+              const updatedUserInfo = { ...user, ...res.data }
+              AuthService.setCurrentUser(updatedUserInfo)
+              this.setData({ 
+                userInfo: updatedUserInfo,
+                hasChanges: false,
+                tempAvatar: '',
+                tempNickname: ''
+              })
+            }
+            
+            // 显示成功消息，考虑是否有警告
+            const successMessage = res.warnings && res.warnings.length > 0 
+              ? '资料保存成功，用户名已同步' 
+              : '资料保存成功'
+            wx.showToast({ title: successMessage, icon: 'success' })
+          }).catch(error => {
+            console.error('刷新用户信息失败:', error)
+            // 回退到原有逻辑
+            const updatedUserInfo = { ...user, ...res.data }
+            AuthService.setCurrentUser(updatedUserInfo)
+            this.setData({ 
+              userInfo: updatedUserInfo,
+              hasChanges: false,
+              tempAvatar: '',
+              tempNickname: ''
+            })
+            wx.showToast({ title: '资料保存成功', icon: 'success' })
           })
-          
-          wx.showToast({ title: '资料保存成功', icon: 'success' })
         }, 300)
       } else {
         throw new Error(res?.message || '保存失败')

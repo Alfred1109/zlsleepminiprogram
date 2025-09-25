@@ -305,7 +305,7 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.navigateTo({
-            url: '/pages/login/login'
+            url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/assessment/history/history')
           })
         }
       }

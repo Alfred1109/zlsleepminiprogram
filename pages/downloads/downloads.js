@@ -129,7 +129,7 @@ Page({
           success: (res) => {
             if (res.confirm) {
               wx.navigateBack()
-              wx.navigateTo({ url: '/pages/login/login' })
+              wx.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/downloads/downloads') })
             } else {
               wx.navigateBack()
             }

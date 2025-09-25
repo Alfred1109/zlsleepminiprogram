@@ -122,7 +122,7 @@ Page({
           success: (res) => {
             if (res.confirm) {
               wx.navigateBack()
-              wx.navigateTo({ url: '/pages/login/login' })
+              wx.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/favorites/favorites') })
             } else {
               wx.navigateBack()
             }

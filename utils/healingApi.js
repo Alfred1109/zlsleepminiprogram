@@ -802,16 +802,34 @@ const UserAPI = {
 
   /**
    * 更新用户信息
+   * @param {Object} data - 更新数据
+   * @param {string} data.user_id - 用户ID
+   * @param {string} [data.nickname] - 用户昵称
+   * @param {boolean} [data.sync_username] - 是否启用自动同步用户名
+   * @param {string} [data.avatar_url] - 用户头像URL
+   * @returns {Promise<Object>} - 包含success、data和可能的warnings字段
    */
   async updateUserInfo(data) {
     try {
+      console.log('🔄 UserAPI.updateUserInfo 请求参数:', data)
+      
       const response = await request({
-      url: '/api/auth/user/update',
+        url: '/api/auth/user/update',
         method: 'PUT',
         data: data
       })
+      
+      console.log('📡 UserAPI.updateUserInfo 响应:', response)
+      
+      // 处理警告信息
+      if (response && response.success && response.warnings) {
+        console.warn('⚠️ 用户信息更新警告:', response.warnings)
+        // 可以在这里添加警告处理逻辑
+      }
+      
       return response
     } catch (error) {
+      console.error('❌ 更新用户信息失败:', error)
       throw new Error(error.message || '更新用户信息失败')
     }
   },
