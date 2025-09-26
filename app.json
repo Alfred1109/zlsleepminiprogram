@@ -30,7 +30,10 @@
     "pages/product/detail/detail",
     "pages/order/create/create",
     "pages/address/list/list",
-    "pages/address/edit/edit"
+    "pages/address/edit/edit",
+    "pages/api-test/api-test",
+    "pages/product-test/product-test",
+    "pages/debug-products/debug-products"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -43,6 +46,9 @@
   "permission": {
     "scope.bluetooth": {
       "desc": "用于连接蓝牙音频设备，提供个性化音乐疗愈体验"
+    },
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
     }
   },
   "lazyCodeLoading": "requiredComponents",
@@ -56,5 +62,10 @@
     "connectSocket": 30000,
     "uploadFile": 30000
   },
-  "debug": false
+  "debug": false,
+  "request": {
+    "domain": [
+      "https://medsleep.cn"
+    ]
+  }
 }

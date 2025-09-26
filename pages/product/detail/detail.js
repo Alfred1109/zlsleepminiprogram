@@ -29,15 +29,25 @@ Page({
     
     // 其他
     showDescription: false,
-    favorited: false
+    favorited: false,
+    
+    // 二维码相关
+    isFromQR: false,
+    seller: null
   },
 
   onLoad(options) {
     console.log('商品详情页面加载参数:', options)
     
-    const { id, source, referrer, list_position } = options
+    const { id, source, referrer, list_position, from } = options
+    const productId = options.id;
+    const fromQR = options.from === 'qr';
+    
+    console.log('解析的商品ID:', productId)
+    console.log('商品ID类型:', typeof productId)
     
     if (!id) {
+      console.error('商品ID为空:', { id, productId, options })
       wx.showToast({
         title: '商品不存在',
         icon: 'error',
@@ -50,11 +60,28 @@ Page({
     }
     
     this.setData({
-      productId: id,
+      productId: productId,
       sourceCode: source || '',
       referrer: referrer || '',
-      listPosition: list_position || ''
+      listPosition: list_position || '',
+      isFromQR: fromQR
     })
+    
+    // 如果是从二维码来的，显示销售员信息
+    if (fromQR) {
+      const sellerInfo = wx.getStorageSync('seller_info');
+      if (sellerInfo) {
+        this.setData({ seller: sellerInfo });
+        console.log('🛍️ 专属销售员:', sellerInfo.name);
+        
+        // 显示专属销售员提示
+        wx.showToast({
+          title: `专属销售：${sellerInfo.name}`,
+          icon: 'none',
+          duration: 3000
+        });
+      }
+    }
     
     this.loadProductDetail()
   },
@@ -69,26 +96,41 @@ Page({
     this.setData({ loading: true })
     
     try {
+      console.log('准备调用商品详情API，商品ID:', this.data.productId)
       const response = await productApi.getProductDetail(this.data.productId)
       
       if (response.success) {
         const productDetail = response.data
         
+        // 格式化价格显示
+        const formattedProductDetail = {
+          ...productDetail,
+          displayPrice: (productDetail.price / 100).toFixed(2),
+          displayOriginalPrice: productDetail.original_price ? (productDetail.original_price / 100).toFixed(2) : null,
+          displayShippingFee: productDetail.shipping_fee ? (productDetail.shipping_fee / 100).toFixed(2) : null
+        }
+        
         // 初始化规格选择
         const selectedSpecs = {}
-        if (productDetail.specs && productDetail.specs.length > 0) {
-          productDetail.specs.forEach(spec => {
+        if (formattedProductDetail.specs && formattedProductDetail.specs.length > 0) {
+          formattedProductDetail.specs.forEach(spec => {
             if (spec.options && spec.options.length > 0) {
               selectedSpecs[spec.name] = spec.options[0].value
             }
           })
         }
         
-        // 查找对应的SKU
-        const selectedSku = this.findMatchingSku(productDetail.skus, selectedSpecs)
+        // 查找对应的SKU并格式化SKU价格
+        let selectedSku = this.findMatchingSku(formattedProductDetail.skus, selectedSpecs)
+        if (selectedSku) {
+          selectedSku = {
+            ...selectedSku,
+            displayPrice: (selectedSku.price / 100).toFixed(2)
+          }
+        }
         
         this.setData({
-          productDetail,
+          productDetail: formattedProductDetail,
           selectedSpecs,
           selectedSku,
           loading: false
@@ -102,9 +144,39 @@ Page({
     } catch (error) {
       console.error('加载商品详情失败:', error)
       this.setData({ loading: false })
-      wx.showToast({
-        title: error.message || '加载失败',
-        icon: 'error'
+      
+      // 根据错误类型给出不同的提示
+      let errorMessage = '加载失败'
+      if (error.statusCode === 404) {
+        errorMessage = '商品不存在或已下架'
+      } else if (error.code === 'NETWORK_ERROR') {
+        errorMessage = '网络连接失败，请检查网络'
+      } else {
+        errorMessage = error.message || '加载失败，请重试'
+      }
+      
+      wx.showModal({
+        title: '加载商品失败',
+        content: errorMessage,
+        showCancel: true,
+        cancelText: '返回',
+        confirmText: '重试',
+        success: (res) => {
+          if (res.confirm) {
+            // 重试加载
+            this.loadProductDetail()
+          } else {
+            // 返回上一页
+            wx.navigateBack({
+              fail: () => {
+                // 如果无法返回，跳转到商品列表
+                wx.redirectTo({
+                  url: '/pages/product/list/list'
+                })
+              }
+            })
+          }
+        }
       })
     }
   },
@@ -150,8 +222,14 @@ Page({
     const selectedSpecs = { ...this.data.selectedSpecs }
     selectedSpecs[spec] = option
     
-    // 查找匹配的SKU
-    const selectedSku = this.findMatchingSku(this.data.productDetail.skus, selectedSpecs)
+    // 查找匹配的SKU并格式化价格
+    let selectedSku = this.findMatchingSku(this.data.productDetail.skus, selectedSpecs)
+    if (selectedSku) {
+      selectedSku = {
+        ...selectedSku,
+        displayPrice: (selectedSku.price / 100).toFixed(2)
+      }
+    }
     
     this.setData({
       selectedSpecs,

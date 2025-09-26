@@ -40,6 +40,18 @@ const PUBLIC_APIS = [
   // 其他公开API
   '/api/music/random', // 随机音乐可以是公开的
   '/music/random',  // 兼容旧路径
+  
+  // 实物商品相关（公开）
+  '/api/physical-products/list',
+  '/api/physical-products/categories',
+  '/api/physical-products/search',
+  '/api/physical-products/delivery-methods',
+  '/api/physical-products/',  // 商品详情 (GET /api/physical-products/{id}/detail)
+  '/physical-products/list',  // 兼容旧路径
+  '/physical-products/categories',  // 兼容旧路径
+  '/physical-products/search',  // 兼容旧路径
+  '/physical-products/delivery-methods',  // 兼容旧路径
+  '/physical-products/',  // 商品详情兼容旧路径
 ]
 
 // 需要认证的API列表
@@ -72,9 +84,22 @@ const PRIVATE_APIS = [
   '/devices/unbind',
   '/devices/my-devices',
   
+  // 实物商品相关（需要认证的）
+  '/api/physical-products/addresses',
+  '/api/physical-products/create-order',
+  '/api/physical-products/orders',
+  '/api/physical-products/calculate-delivery',
+  '/physical-products/addresses',  // 兼容旧路径
+  '/physical-products/create-order',  // 兼容旧路径
+  '/physical-products/orders',  // 兼容旧路径
+  '/physical-products/calculate-delivery',  // 兼容旧路径
+  
   // 评测历史（用户特定）
   '/api/assessment/history',
   '/api/assessment/submit',
+  
+  // 次数套餐和优惠券（需要认证）
+  '/api/count-package/',
   
   // 企业功能
   '/enterprise/',
@@ -94,19 +119,19 @@ function requiresAuth(url) {
   
   console.log(`🔍 API分类检查: ${url} -> ${cleanUrl}`)
   
-  // 检查是否为公开API
-  for (const publicPath of PUBLIC_APIS) {
-    if (cleanUrl.includes(publicPath)) {
-      console.log(`✅ 匹配到公开API: ${publicPath}`)
-      return false
-    }
-  }
-  
-  // 检查是否为需要认证的API
+  // 先检查是否为需要认证的API（私有API优先，避免被宽泛的公开API规则误判）
   for (const privatePath of PRIVATE_APIS) {
     if (cleanUrl.includes(privatePath)) {
       console.log(`✅ 匹配到私有API: ${privatePath}`)
       return true
+    }
+  }
+  
+  // 再检查是否为公开API
+  for (const publicPath of PUBLIC_APIS) {
+    if (cleanUrl.includes(publicPath)) {
+      console.log(`✅ 匹配到公开API: ${publicPath}`)
+      return false
     }
   }
   

@@ -71,7 +71,7 @@
             </text>
           </view>
           <view class="product-bottom">
-            <view class="product-price">¥{{productInfo.price}}</view>
+            <view class="product-price">¥{{productInfo.displayPrice}}</view>
             <view class="product-quantity">x{{productInfo.quantity}}</view>
           </view>
         </view>
@@ -135,19 +135,19 @@
     <view class="section price-section">
       <view class="price-item">
         <text class="price-label">商品总价</text>
-        <text class="price-value">¥{{productTotal}}</text>
+        <text class="price-value">¥{{displayProductTotal}}</text>
       </view>
       <view class="price-item">
         <text class="price-label">配送费</text>
-        <text class="price-value">{{deliveryTotal > 0 ? '¥' + deliveryTotal : '免费'}}</text>
+        <text class="price-value">{{deliveryTotal > 0 ? '¥' + displayDeliveryTotal : '免费'}}</text>
       </view>
       <view wx:if="{{discountTotal > 0}}" class="price-item discount">
         <text class="price-label">优惠金额</text>
-        <text class="price-value">-¥{{discountTotal}}</text>
+        <text class="price-value">-¥{{displayDiscountTotal}}</text>
       </view>
       <view class="price-item total">
         <text class="price-label">应付金额</text>
-        <text class="price-value">¥{{finalTotal}}</text>
+        <text class="price-value">¥{{displayFinalTotal}}</text>
       </view>
     </view>
 
@@ -161,7 +161,7 @@
   <view class="submit-info">
     <view class="total-amount">
       <text class="total-label">合计：</text>
-      <text class="total-price">¥{{finalTotal}}</text>
+      <text class="total-price">¥{{displayFinalTotal}}</text>
     </view>
   </view>
   <button 
@@ -234,12 +234,15 @@
         bindtap="selectCoupon"
       >
         <view class="coupon-amount">
-          <text class="amount-symbol">¥</text>
-          <text class="amount-value">{{item.discount}}</text>
+          <text class="amount-value">{{item.displayDiscount}}</text>
         </view>
         <view class="coupon-info">
           <view class="coupon-name">{{item.name}}</view>
-          <view class="coupon-condition">满{{item.minAmount}}元可用</view>
+          <view class="coupon-condition">
+            <text wx:if="{{item.minAmount > 0}}">满{{item.minAmount}}元可用</text>
+            <text wx:else>无门槛</text>
+          </view>
+          <view wx:if="{{item.description}}" class="coupon-description">{{item.description}}</view>
         </view>
         <view class="coupon-radio">
           <view class="radio {{selectedCoupon && selectedCoupon.id === item.id ? 'checked' : ''}}"></view>

@@ -127,6 +127,26 @@ function getLogisticsInfo(orderId) {
   return get(`/api/physical-products/orders/${orderId}/logistics`)
 }
 
+/**
+ * 优惠券相关API
+ */
+
+// 获取用户可用优惠券
+function getAvailableCoupons(orderAmount = 0) {
+  const params = orderAmount > 0 ? { amount: orderAmount } : {}
+  return get('/api/count-package/coupon/available', params)
+}
+
+// 验证优惠券
+function validateCoupon(couponCode) {
+  return post('/api/count-package/coupon/validate', { code: couponCode })
+}
+
+// 兑换优惠券（用于订阅页面）
+function redeemCoupon(couponCode) {
+  return post('/api/count-package/coupon/redeem', { code: couponCode })
+}
+
 module.exports = {
   // 商品相关
   getProductList,
@@ -156,5 +176,10 @@ module.exports = {
   // 配送相关
   getDeliveryMethods,
   calculateDeliveryFee,
-  getLogisticsInfo
+  getLogisticsInfo,
+  
+  // 优惠券相关
+  getAvailableCoupons,
+  validateCoupon,
+  redeemCoupon
 }

@@ -8,7 +8,14 @@ const AuthService = require('./services/AuthService');
 const bus = require('./utils/eventEmitter');
 
 App({
-  onLaunch: async function () {
+  onLaunch: async function (options) {
+    console.log('小程序启动参数:', options)
+    
+    // 处理二维码跳转场景
+    if (options.query && options.query.scene) {
+      this.handleProductQR(options.query.scene);
+    }
+    this.handleSceneNavigation(options)
 
     // 注入全局拦截：定位/屏蔽包含 total_fee/totol_fee/支付JSAPI/缺少参数 的用户可见提示
     try {
@@ -138,6 +145,219 @@ App({
     this.initGlobalMusicPlayer();
 
     // 网络诊断功能已移除，应用启动更快更简洁
+  },
+
+  /**
+   * 小程序从后台进入前台时触发
+   */
+  onShow: function (options) {
+    console.log('小程序前台显示参数:', options)
+    
+    // 处理二维码跳转场景（从后台重新打开时）
+    if (options.scene === 1047 && options.query && options.query.scene) {
+      this.handleProductQR(options.query.scene);
+    }
+    this.handleSceneNavigation(options)
+  },
+
+  /**
+   * 处理商品二维码场景
+   */
+  handleProductQR: function(scene) {
+    console.log('🛍️ 处理商品二维码:', scene);
+
+    wx.request({
+      url: 'https://medsleep.cn/api/qr/resolve',
+      method: 'POST',
+      data: { scene: scene },
+      header: { 'Content-Type': 'application/json' },
+      success: (res) => {
+        if (res.data.success) {
+          const data = res.data.data;
+          
+          // 保存销售员信息
+          wx.setStorageSync('seller_info', data.seller);
+          
+          // 直接跳转到商品详情页
+          wx.navigateTo({
+            url: `/pages/product/detail/detail?id=${data.productId}&from=qr&seller=${data.seller.id}`
+          });
+        } else {
+          console.error('解析失败:', res.data.error);
+          wx.switchTab({ url: '/pages/index/index' });
+        }
+      }
+    });
+  },
+
+  /**
+   * 处理二维码扫描跳转场景
+   */
+  handleSceneNavigation: function (options) {
+    console.log('处理场景导航:', options)
+    
+    // 检查是否有场景值（二维码扫描进入）
+    if (options && options.scene) {
+      console.log('检测到二维码场景值:', options.scene)
+      
+      // 延迟处理，确保小程序完全启动
+      setTimeout(() => {
+        this.processQRCodeScene(options.scene, options.query || {})
+      }, 1000)
+    }
+    
+    // 检查是否有query参数（其他方式进入）
+    if (options && options.query) {
+      console.log('检测到query参数:', options.query)
+      
+      // 如果query中直接包含productId，立即跳转
+      if (options.query.productId) {
+        setTimeout(() => {
+          this.navigateToProduct(options.query.productId, options.query)
+        }, 1000)
+      }
+    }
+  },
+
+  /**
+   * 处理二维码场景值
+   */
+  processQRCodeScene: function (scene, query) {
+    console.log('解析二维码场景值:', scene, query)
+    
+    try {
+      // 如果scene是数字，不应该直接当作商品ID，因为API的商品ID是PHYSICAL_XXX格式
+      if (/^\d+$/.test(scene)) {
+        console.log('场景值为纯数字，但API商品ID不是数字格式，跳过直接处理:', scene)
+        // 不直接处理，继续后续的解析逻辑
+      }
+      
+      // 如果scene包含特定格式，解析商品ID
+      // 例如：QR20250926145233C4CA423866FE2B75 这种格式
+      if (scene && scene.length > 0) {
+        // 尝试从scene中提取商品ID
+        // 这里需要根据您后端生成二维码的规则来解析
+        
+        // 方案1: 尝试匹配PHYSICAL_XXX格式的商品ID
+        const physicalMatches = scene.match(/(PHYSICAL_\d+)/i)
+        if (physicalMatches && physicalMatches[1]) {
+          console.log('从场景值中提取到商品ID:', physicalMatches[1])
+          this.navigateToProduct(physicalMatches[1], query)
+          return
+        }
+        
+        // 方案2: 如果scene末尾包含数字，尝试映射到PHYSICAL_XXX格式
+        const numberMatches = scene.match(/(\d+)$/)
+        if (numberMatches && numberMatches[1]) {
+          const numericId = numberMatches[1]
+          // 将数字ID映射到PHYSICAL格式 (例如: 001 -> PHYSICAL_001)
+          const mappedId = `PHYSICAL_${numericId.padStart(3, '0')}`
+          console.log('从场景值末尾提取到数字ID，映射为:', numericId, '->', mappedId)
+          this.navigateToProduct(mappedId, query)
+          return
+        }
+        
+        // 方案2: 如果需要调用后端API解析scene
+        this.resolveSceneFromServer(scene, query)
+      }
+    } catch (error) {
+      console.error('解析二维码场景值失败:', error)
+      // 解析失败时跳转到首页
+      wx.reLaunch({
+        url: '/pages/index/index'
+      })
+    }
+  },
+
+  /**
+   * 从服务器解析场景值
+   */
+  resolveSceneFromServer: function (scene, query) {
+    console.log('调用服务器解析场景值:', scene)
+    
+    // 调用后端API解析scene获取商品ID
+    wx.request({
+      url: `${this.globalData.apiBaseUrl}/api/qr/resolve`,
+      method: 'POST',
+      data: {
+        scene: scene
+      },
+      header: {
+        'Content-Type': 'application/json'
+      },
+      success: (res) => {
+        console.log('服务器解析场景值结果:', res.data)
+        
+        if (res.data && res.data.success && res.data.data) {
+          const { productId, type } = res.data.data
+          
+          if (type === 'product' && productId) {
+            this.navigateToProduct(productId, query)
+          } else {
+            // 其他类型的跳转处理
+            console.log('场景值解析为其他类型:', type)
+            wx.reLaunch({
+              url: '/pages/index/index'
+            })
+          }
+        } else {
+          console.warn('服务器解析场景值失败:', res.data)
+          wx.reLaunch({
+            url: '/pages/index/index'
+          })
+        }
+      },
+      fail: (error) => {
+        console.error('调用服务器解析场景值失败:', error)
+        wx.reLaunch({
+          url: '/pages/index/index'
+        })
+      }
+    })
+  },
+
+  /**
+   * 跳转到商品详情页
+   */
+  navigateToProduct: function (productId, extraParams = {}) {
+    console.log('跳转到商品详情页:', productId, extraParams)
+    
+    if (!productId) {
+      console.error('商品ID无效')
+      return
+    }
+    
+    // 构建跳转URL
+    const params = [`id=${productId}`]
+    
+    // 添加额外的追踪参数
+    if (extraParams.source) {
+      params.push(`source=${extraParams.source}`)
+    } else {
+      params.push('source=qrcode')
+    }
+    
+    if (extraParams.referrer) {
+      params.push(`referrer=${extraParams.referrer}`)
+    }
+    
+    const url = `/pages/product/detail/detail?${params.join('&')}`
+    console.log('构建的跳转URL:', url)
+    
+    // 执行跳转
+    wx.reLaunch({
+      url: url,
+      success: () => {
+        console.log('跳转商品详情页成功')
+      },
+      fail: (error) => {
+        console.error('跳转商品详情页失败:', error)
+        // 跳转失败时回到首页
+        wx.reLaunch({
+          url: '/pages/index/index'
+        })
+      }
+    })
   },
   
   /**

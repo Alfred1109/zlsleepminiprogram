@@ -658,7 +658,7 @@ Page({
   goToPurchaseDevice: function() {
     // 跳转到商品列表，筛选设备类商品
     wx.navigateTo({
-      url: '/pages/product/list/list?category=device&source=homepage_device_card'
+      url: '/pages/product/list/list?category=智能设备&source=homepage_device_card'
     });
   },
   

@@ -50,6 +50,7 @@ Page({
   },
 
   onShow() {
+    console.log('商品列表页面显示，当前商品数量:', this.data.productList.length)
     // 每次显示页面时刷新数据
     this.loadProductList(true)
   },
@@ -71,39 +72,20 @@ Page({
   // 初始化页面数据
   async initPageData() {
     try {
-      // 并行加载分类和商品列表
-      let categoriesRes
-      try {
-        categoriesRes = await productApi.getProductCategories()
-      } catch (apiError) {
-        console.warn('商品分类API暂不可用，使用默认分类:', apiError)
-        // 使用默认分类作为后备方案
-        categoriesRes = {
-          success: true,
-          data: [
-            { id: 'device', name: '疗愈设备' },
-            { id: 'accessory', name: '配件耗材' },
-            { id: 'gift', name: '礼品套装' }
-          ]
-        }
-      }
+      // 加载商品分类
+      const categoriesRes = await productApi.getProductCategories()
       
       await this.loadProductList(true)
       
-      if (categoriesRes.success) {
+      if (categoriesRes.success && categoriesRes.data.categories) {
+        // 处理分类数据
+        const categories = categoriesRes.data.categories.map(name => ({ id: name, name: name }))
         this.setData({
-          categories: [{ id: '', name: '全部' }, ...categoriesRes.data]
+          categories: [{ id: '', name: '全部' }, ...categories]
         })
       }
     } catch (error) {
       console.error('初始化页面数据失败:', error)
-      // 设置最基本的分类
-      this.setData({
-        categories: [
-          { id: '', name: '全部' },
-          { id: 'device', name: '疗愈设备' }
-        ]
-      })
     }
   },
 
@@ -122,7 +104,8 @@ Page({
     }
 
     try {
-      const params = {
+      // 构建请求参数，过滤掉空值
+      const rawParams = {
         page: refresh ? 1 : this.data.page,
         pageSize: this.data.pageSize,
         category: selectedCategory,
@@ -130,33 +113,41 @@ Page({
         sort: sortType,
         minPrice: priceRange[0],
         maxPrice: priceRange[1],
-        // 添加追踪参数
         source: this.data.sourceCode,
         referrer: this.data.referrer
       }
 
-      let response
-      try {
-        response = await productApi.getProductList(params)
-      } catch (apiError) {
-        console.warn('商品列表API暂不可用，使用模拟数据:', apiError)
-        // 使用模拟数据作为后备方案
-        response = {
-          success: true,
-          data: {
-            list: this.getMockProductList(selectedCategory)
-          }
+      // 过滤掉空字符串和null/undefined值
+      const params = {}
+      Object.keys(rawParams).forEach(key => {
+        const value = rawParams[key]
+        if (value !== '' && value !== null && value !== undefined) {
+          params[key] = value
         }
-      }
+      })
+
+      console.log('发起商品列表API请求，原始参数:', rawParams)
+      console.log('发起商品列表API请求，过滤后参数:', params)
+      const response = await productApi.getProductList(params)
+      console.log('商品列表API响应:', response)
       
       if (response.success) {
-        const newProducts = response.data.list || []
-        const productList = refresh ? newProducts : [...this.data.productList, ...newProducts]
+        // 处理API返回的真实商品数据
+        const products = response.data.products || []
+        
+        // 格式化商品数据，处理价格显示
+        const formattedProducts = products.map(product => ({
+          ...product,
+          displayPrice: (product.price / 100).toFixed(2),
+          displayOriginalPrice: product.original_price ? (product.original_price / 100).toFixed(2) : null
+        }))
+        
+        const productList = refresh ? formattedProducts : [...this.data.productList, ...formattedProducts]
         
         this.setData({
           productList,
           page: refresh ? 2 : this.data.page + 1,
-          hasMore: newProducts.length >= this.data.pageSize,
+          hasMore: response.data.pagination ? response.data.pagination.has_next : false,
           loading: false,
           loadingMore: false
         })
@@ -165,6 +156,13 @@ Page({
       }
     } catch (error) {
       console.error('加载商品列表失败:', error)
+      console.log('错误详情:', {
+        message: error.message,
+        code: error.code,
+        statusCode: error.statusCode,
+        fullError: error
+      })
+      
       this.setData({
         loading: false,
         loadingMore: false
@@ -227,6 +225,7 @@ Page({
 
   // 重置筛选
   resetFilter() {
+    console.log('重置筛选，重新加载商品数据')
     this.setData({
       selectedCategory: '',
       sortType: 'default',
@@ -236,9 +235,13 @@ Page({
     this.loadProductList(true)
   },
 
+
   // 跳转到商品详情
   goToProductDetail(e) {
     const productId = e.currentTarget.dataset.id
+    console.log('跳转到商品详情，商品ID:', productId)
+    console.log('当前商品数据:', e.currentTarget.dataset)
+    
     const trackingParams = {
       source: this.data.sourceCode,
       referrer: this.data.referrer,
@@ -251,6 +254,7 @@ Page({
       .join('&')
     
     const url = `/pages/product/detail/detail?id=${productId}${queryString ? '&' + queryString : ''}`
+    console.log('构建的跳转URL:', url)
     
     wx.navigateTo({ url })
   },
@@ -267,42 +271,6 @@ Page({
     this.goToProductDetail(e)
   },
 
-  // 获取模拟商品数据（后备方案）
-  getMockProductList(category) {
-    const mockProducts = [
-      {
-        id: 'mock_device_001',
-        name: 'AI疗愈脑波设备 Pro',
-        description: '专业级脑波反馈设备，提供个性化疗愈体验',
-        price: 2999,
-        originalPrice: 3999,
-        images: ['/images/default-image.png'],
-        tags: ['热销', '专业级'],
-        salesCount: 1280,
-        stock: 50
-      },
-      {
-        id: 'mock_device_002', 
-        name: 'AI疗愈脑波设备 Lite',
-        description: '入门级脑波设备，轻松开启疗愈之旅',
-        price: 1299,
-        originalPrice: 1599,
-        images: ['/images/default-image.png'],
-        tags: ['入门级', '性价比'],
-        salesCount: 890,
-        stock: 120
-      }
-    ]
-
-    // 根据分类筛选
-    if (category === 'device') {
-      return mockProducts
-    } else if (category === '') {
-      return mockProducts
-    } else {
-      return []
-    }
-  },
 
   // 分享商品列表
   onShareAppMessage() {

@@ -1,4 +1,5 @@
 const productApi = require('../../../utils/productApi')
+const AuthService = require('../../../services/AuthService')
 
 Page({
   data: {
@@ -44,8 +45,28 @@ Page({
     loading: true
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     console.log('订单创建页面参数:', options)
+    
+    // 首先检查用户登录状态
+    try {
+      const isLoggedIn = await this.checkUserLogin()
+      if (!isLoggedIn) {
+        return // 如果未登录，checkUserLogin 会处理跳转
+      }
+    } catch (error) {
+      console.error('检查登录状态失败:', error)
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none',
+        complete: () => {
+          wx.navigateTo({
+            url: '/pages/login/login'
+          })
+        }
+      })
+      return
+    }
     
     if (options.data) {
       try {
@@ -69,6 +90,70 @@ Page({
     }
   },
 
+  // 检查用户登录状态
+  async checkUserLogin() {
+    try {
+      console.log('检查订单页面用户登录状态...')
+      
+      const currentUser = AuthService.getCurrentUser()
+      const hasToken = AuthService.getAccessToken()
+      
+      console.log('登录状态检查:', {
+        hasUser: !!currentUser,
+        hasToken: !!hasToken,
+        userInfo: currentUser
+      })
+      
+      if (!currentUser || !hasToken) {
+        console.log('用户未登录，跳转到登录页面')
+        wx.showModal({
+          title: '需要登录',
+          content: '购买商品需要先登录账户',
+          confirmText: '去登录',
+          cancelText: '返回',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/order/create/create')
+              })
+            } else {
+              wx.navigateBack()
+            }
+          }
+        })
+        return false
+      }
+      
+      // 验证token有效性
+      try {
+        await AuthService.ensureValidToken()
+        console.log('✅ Token验证通过')
+        return true
+      } catch (error) {
+        console.error('❌ Token验证失败:', error)
+        wx.showModal({
+          title: '登录已过期',
+          content: '请重新登录',
+          confirmText: '去登录',
+          cancelText: '返回',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/order/create/create')
+              })
+            } else {
+              wx.navigateBack()
+            }
+          }
+        })
+        return false
+      }
+    } catch (error) {
+      console.error('检查登录状态失败:', error)
+      return false
+    }
+  },
+
   // 初始化订单页面
   async initOrderPage() {
     this.setData({ loading: true })
@@ -86,10 +171,28 @@ Page({
       
     } catch (error) {
       console.error('初始化订单页面失败:', error)
+      
+      // 根据具体错误提供不同的提示
+      let errorMessage = '加载失败，请重试'
+      
+      if (error.message && error.message.includes('商品')) {
+        errorMessage = '商品信息加载失败'
+      } else if (error.message && error.message.includes('网络')) {
+        errorMessage = '网络连接异常，请检查网络'
+      }
+      
       wx.showToast({
-        title: '加载失败',
-        icon: 'error'
+        title: errorMessage,
+        icon: 'none',
+        duration: 2000
       })
+      
+      // 如果是关键错误，可以考虑返回上一页
+      if (error.message && error.message.includes('商品不存在')) {
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 2000)
+      }
     } finally {
       this.setData({ loading: false })
     }
@@ -103,17 +206,19 @@ Page({
       const response = await productApi.getProductDetail(orderData.productId)
       
       if (response.success) {
-        const productInfo = {
-          ...response.data,
-          selectedSpecs: orderData.specs,
-          quantity: orderData.quantity,
-          skuId: orderData.skuId
-        }
-        
         // 计算商品价格
         const unitPrice = orderData.skuId 
           ? (response.data.skus.find(sku => sku.id === orderData.skuId)?.price || response.data.price)
           : response.data.price
+        
+        const productInfo = {
+          ...response.data,
+          selectedSpecs: orderData.specs,
+          quantity: orderData.quantity,
+          skuId: orderData.skuId,
+          displayPrice: (unitPrice / 100).toFixed(2),
+          displayOriginalPrice: response.data.original_price ? (response.data.original_price / 100).toFixed(2) : null
+        }
         
         const productTotal = unitPrice * orderData.quantity
         
@@ -139,7 +244,7 @@ Page({
         
         this.setData({
           addressList,
-          selectedAddress: defaultAddress
+          selectedAddress: defaultAddress || null
         })
         
         // 如果有默认地址，计算配送费
@@ -155,25 +260,78 @@ Page({
 
   // 加载配送方式
   async loadDeliveryMethods() {
+    // 默认配送方式（确保数据结构完整）
+    const defaultDeliveryMethods = [
+      { 
+        id: 'express', 
+        key: 'express',
+        name: '快递配送', 
+        fee: 0, 
+        description: '48小时内发货',
+        requires_address: true
+      },
+      { 
+        id: 'pickup', 
+        key: 'pickup',
+        name: '门店自提', 
+        fee: 0, 
+        description: '预约到店自提',
+        requires_address: false
+      }
+    ]
+    
     try {
       const response = await productApi.getDeliveryMethods()
       
-      if (response.success) {
+      if (response.success && response.data && response.data.length > 0) {
+        console.log('✅ 成功获取配送方式:', response.data)
+        
+        // 确保API返回的数据也有id字段
+        const processedMethods = response.data.map(method => ({
+          ...method,
+          id: method.id || method.key || method.name // 确保有id字段
+        }))
+        
         this.setData({
-          deliveryMethods: response.data || [
-            { id: 'express', name: '快递配送', fee: 0, description: '48小时内发货' },
-            { id: 'pickup', name: '门店自提', fee: 0, description: '预约到店自提' }
-          ]
+          deliveryMethods: processedMethods
+        })
+      } else {
+        console.log('⚠️ API返回空数据，使用默认配送方式')
+        this.setData({
+          deliveryMethods: defaultDeliveryMethods
         })
       }
     } catch (error) {
-      console.error('加载配送方式失败:', error)
-      // 使用默认配送方式
+      console.log('⚠️ 配送方式API调用失败，使用默认配送方式:', error.message)
+      // 静默处理，使用默认配送方式，不显示错误提示给用户
       this.setData({
-        deliveryMethods: [
-          { id: 'express', name: '快递配送', fee: 0, description: '48小时内发货' },
-          { id: 'pickup', name: '门店自提', fee: 0, description: '预约到店自提' }
-        ]
+        deliveryMethods: defaultDeliveryMethods
+      })
+    }
+    
+    // 确保有默认选中的配送方式
+    this.ensureValidDeliverySelection()
+  },
+
+  // 确保有效的配送方式选择
+  ensureValidDeliverySelection() {
+    const { deliveryMethods, selectedDeliveryMethod } = this.data
+    
+    // 如果没有配送方式，直接返回
+    if (!deliveryMethods || deliveryMethods.length === 0) {
+      console.warn('没有可用的配送方式')
+      return
+    }
+    
+    // 检查当前选中的配送方式是否有效
+    const isCurrentSelectionValid = deliveryMethods.some(method => method.id === selectedDeliveryMethod)
+    
+    if (!isCurrentSelectionValid) {
+      // 如果当前选择无效，默认选择第一个配送方式
+      const defaultMethod = deliveryMethods[0]
+      console.log('配送方式选择无效，默认选择:', defaultMethod.name)
+      this.setData({
+        selectedDeliveryMethod: defaultMethod.id
       })
     }
   },
@@ -181,17 +339,69 @@ Page({
   // 加载可用优惠券
   async loadAvailableCoupons() {
     try {
-      // 这里应该调用获取可用优惠券的API
-      // 暂时使用模拟数据
-      this.setData({
-        availableCoupons: [
-          { id: '1', name: '新用户专享', discount: 10, minAmount: 100, type: 'amount' },
-          { id: '2', name: '满减优惠', discount: 0.9, minAmount: 200, type: 'percent' }
-        ]
-      })
+      // 计算当前订单金额
+      const orderAmount = this.calculateOrderAmount()
+      
+      console.log('开始加载可用优惠券，订单金额:', orderAmount)
+      
+      const response = await productApi.getAvailableCoupons(orderAmount)
+      
+      if (response.success && response.data) {
+        console.log('✅ 成功获取优惠券:', response.data.length, '张')
+        
+        // 处理优惠券数据，转换为订单页面需要的格式
+        const processedCoupons = response.data.map(coupon => ({
+          id: coupon.id,
+          code: coupon.code,
+          name: coupon.name,
+          description: coupon.description,
+          discount: coupon.calculated_discount || coupon.discount_value,
+          minAmount: coupon.min_amount || 0,
+          type: coupon.discount_type, // 'fixed' 或 'percent'
+          discountType: coupon.discount_type,
+          discountValue: coupon.discount_value,
+          maxDiscount: coupon.max_discount,
+          // 显示用的折扣信息
+          displayDiscount: this.formatCouponDiscount(coupon)
+        }))
+        
+        this.setData({
+          availableCoupons: processedCoupons
+        })
+        
+        console.log('处理后的优惠券数据:', processedCoupons)
+      } else {
+        console.log('⚠️ 暂无可用优惠券')
+        this.setData({
+          availableCoupons: []
+        })
+      }
     } catch (error) {
       console.error('加载优惠券失败:', error)
+      // 静默处理，不显示错误给用户
+      this.setData({
+        availableCoupons: []
+      })
     }
+  },
+  
+  // 计算当前订单金额（不含配送费）
+  calculateOrderAmount() {
+    const { productTotal } = this.data
+    return productTotal / 100 // 转换为元（后端存储是分）
+  },
+  
+  // 格式化优惠券折扣显示
+  formatCouponDiscount(coupon) {
+    if (coupon.discount_type === 'fixed') {
+      // 固定金额：显示"¥10"
+      return `¥${coupon.discount_value}`
+    } else if (coupon.discount_type === 'percent') {
+      // 百分比：显示"8折"
+      const percent = Math.round(coupon.discount_value * 10)
+      return `${percent}折`
+    }
+    return '优惠券'
   },
 
   // 地址相关
@@ -235,6 +445,20 @@ Page({
   // 配送方式选择
   selectDeliveryMethod(e) {
     const methodId = e.currentTarget.dataset.id
+    
+    // 验证methodId有效性，避免设置undefined
+    if (!methodId) {
+      console.warn('配送方式ID无效:', methodId)
+      return
+    }
+    
+    // 确保所选的配送方式在可用列表中
+    const isValidMethod = this.data.deliveryMethods.some(method => method.id === methodId)
+    if (!isValidMethod) {
+      console.warn('无效的配送方式ID:', methodId)
+      return
+    }
+    
     this.setData({ selectedDeliveryMethod: methodId })
     this.calculateDeliveryFee()
   },
@@ -278,7 +502,17 @@ Page({
 
   selectCoupon(e) {
     const couponId = e.currentTarget.dataset.id
-    const selectedCoupon = this.data.availableCoupons.find(coupon => coupon.id === couponId)
+    
+    // 如果couponId为空，表示不使用优惠券
+    let selectedCoupon = null
+    if (couponId && couponId !== '') {
+      selectedCoupon = this.data.availableCoupons.find(coupon => coupon.id === couponId)
+      // 确保找到了优惠券，避免设置undefined
+      if (!selectedCoupon) {
+        console.warn('未找到对应的优惠券:', couponId)
+        selectedCoupon = null
+      }
+    }
     
     this.setData({
       selectedCoupon,
@@ -296,6 +530,20 @@ Page({
   // 支付方式选择
   selectPaymentMethod(e) {
     const methodId = e.currentTarget.dataset.id
+    
+    // 验证methodId有效性，避免设置undefined
+    if (!methodId) {
+      console.warn('支付方式ID无效:', methodId)
+      return
+    }
+    
+    // 确保所选的支付方式在可用列表中
+    const isValidMethod = this.data.paymentMethods.some(method => method.id === methodId)
+    if (!isValidMethod) {
+      console.warn('无效的支付方式ID:', methodId)
+      return
+    }
+    
     this.setData({ selectedPaymentMethod: methodId })
   },
 
@@ -304,30 +552,51 @@ Page({
     this.setData({ orderNote: e.detail.value })
   },
 
-  // 计算总价
-  calculateTotal() {
-    const { productTotal, deliveryFee, selectedCoupon } = this.data
+  // 计算优惠券折扣金额
+  calculateCouponDiscount() {
+    const { selectedCoupon, productTotal } = this.data
     
-    let discountTotal = 0
-    let finalTotal = productTotal + deliveryFee
+    if (!selectedCoupon || !productTotal) {
+      return 0
+    }
     
-    // 计算优惠券折扣
-    if (selectedCoupon) {
-      if (productTotal >= selectedCoupon.minAmount) {
-        if (selectedCoupon.type === 'amount') {
-          discountTotal = selectedCoupon.discount
-        } else if (selectedCoupon.type === 'percent') {
-          discountTotal = productTotal * (1 - selectedCoupon.discount)
-        }
+    const orderAmount = productTotal / 100 // 转换为元
+    let discountAmount = 0
+    
+    // 检查最低消费金额
+    if (selectedCoupon.minAmount && orderAmount < selectedCoupon.minAmount) {
+      return 0
+    }
+    
+    if (selectedCoupon.discountType === 'fixed') {
+      // 固定金额折扣
+      discountAmount = Math.min(selectedCoupon.discountValue, orderAmount)
+    } else if (selectedCoupon.discountType === 'percent') {
+      // 百分比折扣
+      discountAmount = orderAmount * (1 - selectedCoupon.discountValue)
+      if (selectedCoupon.maxDiscount) {
+        discountAmount = Math.min(discountAmount, selectedCoupon.maxDiscount)
       }
     }
     
-    finalTotal = Math.max(0, finalTotal - discountTotal)
+    return Math.max(0, Math.round(discountAmount * 100)) // 转换回分并四舍五入
+  },
+
+  // 计算总价
+  calculateTotal() {
+    const { productTotal, deliveryFee } = this.data
+    const discountTotal = this.calculateCouponDiscount()
+    const finalTotal = Math.max(0, productTotal + deliveryFee - discountTotal)
     
     this.setData({
       deliveryTotal: deliveryFee,
       discountTotal,
-      finalTotal
+      finalTotal,
+      // 格式化显示价格（已经是分为单位，直接除以100转为元）
+      displayProductTotal: (productTotal / 100).toFixed(2),
+      displayDeliveryTotal: deliveryFee > 0 ? (deliveryFee / 100).toFixed(2) : '0.00',
+      displayDiscountTotal: discountTotal > 0 ? (discountTotal / 100).toFixed(2) : '0.00',
+      displayFinalTotal: (finalTotal / 100).toFixed(2)
     })
   },
 
@@ -360,32 +629,55 @@ Page({
     try {
       // 构建订单提交数据
       const submitData = {
-        productId: orderData.productId,
-        skuId: orderData.skuId,
+        plan_id: orderData.productId,  // 后端期望的参数名
         quantity: orderData.quantity,
-        specs: orderData.specs,
         
         // 地址和配送
-        addressId: selectedAddress ? selectedAddress.id : null,
-        deliveryMethod: selectedDeliveryMethod,
+        shipping_type: selectedDeliveryMethod,  // 后端期望的参数名
         
-        // 优惠和支付
-        couponId: selectedCoupon ? selectedCoupon.id : null,
+        // 支付方式
         paymentMethod: selectedPaymentMethod,
         
-        // 备注
-        note: orderNote,
-        
-        // 追踪参数
-        source: orderData.source,
-        referrer: orderData.referrer,
-        listPosition: orderData.listPosition,
-        
-        // 价格信息
+        // 价格信息（转换为分）
         productTotal: this.data.productTotal,
         deliveryTotal: this.data.deliveryTotal,
         discountTotal: this.data.discountTotal,
         finalTotal: finalTotal
+      }
+      
+      // 可选字段，只在有值时添加
+      if (orderData.skuId) {
+        submitData.skuId = orderData.skuId
+      }
+      
+      if (orderData.specs && Object.keys(orderData.specs).length > 0) {
+        submitData.specs = orderData.specs
+      }
+      
+      if (selectedAddress && selectedDeliveryMethod === 'express') {
+        submitData.address_id = selectedAddress.id  // 后端期望的参数名
+      }
+      
+      if (selectedCoupon) {
+        submitData.coupon_id = selectedCoupon.id  // 后端期望的参数名
+      }
+      
+      if (orderNote && orderNote.trim()) {
+        submitData.user_remark = orderNote.trim()  // 后端期望的参数名
+      }
+      
+      // 追踪参数（可选）
+      if (orderData.qrCode) {
+        submitData.qr_code = orderData.qrCode  // 后端期望的参数名
+      }
+      if (orderData.source) {
+        submitData.source = orderData.source
+      }
+      if (orderData.referrer) {
+        submitData.referrer = orderData.referrer
+      }
+      if (orderData.listPosition !== undefined) {
+        submitData.listPosition = orderData.listPosition
       }
       
       console.log('提交订单数据:', submitData)
@@ -419,9 +711,38 @@ Page({
       
     } catch (error) {
       console.error('提交订单失败:', error)
+      
+      // 根据错误类型提供更友好的提示
+      let errorMessage = '提交失败，请重试'
+      
+      if (error.details && error.details.statusCode === 400) {
+        if (error.details.data && error.details.data.message) {
+          errorMessage = error.details.data.message
+        } else {
+          errorMessage = '订单信息有误，请检查后重试'
+        }
+      } else if (error.details && error.details.statusCode === 401) {
+        errorMessage = '请先登录'
+        // 可以考虑跳转到登录页面
+        setTimeout(() => {
+          wx.navigateTo({
+            url: '/pages/login/login'
+          })
+        }, 2000)
+      } else if (error.details && error.details.statusCode === 404) {
+        errorMessage = '商品不存在或已下架'
+      } else if (error.details && error.details.statusCode >= 500) {
+        errorMessage = '服务器繁忙，请稍后重试'
+      } else if (error.error) {
+        errorMessage = error.error
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       wx.showToast({
-        title: error.message || '提交失败，请重试',
-        icon: 'error'
+        title: errorMessage,
+        icon: 'none',
+        duration: 3000
       })
     } finally {
       this.setData({ isSubmitting: false })

@@ -80,7 +80,7 @@
       <view class="product-image-wrapper">
         <image 
           class="product-image" 
-          src="{{item.images && item.images.length ? item.images[0] : '/images/default-image.png'}}" 
+          src="{{item.image_url || item.images && item.images.length ? item.images[0] : '/images/default-image.png'}}" 
           mode="aspectFill"
           lazy-load
         />
@@ -95,8 +95,8 @@
         
         <view class="product-bottom">
           <view class="product-price-wrapper">
-            <text class="product-price">¥{{item.price}}</text>
-            <text wx:if="{{item.originalPrice && item.originalPrice > item.price}}" class="original-price">¥{{item.originalPrice}}</text>
+            <text class="product-price">¥{{item.displayPrice}}</text>
+            <text wx:if="{{item.displayOriginalPrice}}" class="original-price">¥{{item.displayOriginalPrice}}</text>
           </view>
           
           <view class="product-actions">
@@ -111,8 +111,8 @@
         </view>
         
         <view class="product-meta">
-          <text class="sales-count">已售 {{item.salesCount || 0}}</text>
-          <text class="stock-count">库存 {{item.stock || 0}}</text>
+          <text class="sales-count">已售 {{item.sales_count || item.salesCount || 0}}</text>
+          <text class="stock-count">库存 {{item.stock_quantity || item.stock || 0}}</text>
         </view>
       </view>
     </view>
@@ -137,7 +137,7 @@
 
   <!-- 空状态 -->
   <view wx:if="{{!loading && productList.length === 0}}" class="empty-state">
-    <image class="empty-image" src="/images/empty-product.svg" />
+    <image class="empty-image" src="/images/empty-music.svg" />
     <text class="empty-text">暂无商品</text>
     <view class="empty-actions">
       <button class="btn btn-primary" bindtap="resetFilter">重置筛选</button>

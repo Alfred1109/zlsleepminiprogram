@@ -40,12 +40,12 @@
     <!-- 商品基本信息 -->
     <view class="product-basic-info">
       <view class="product-price-section">
-        <view class="current-price">¥{{selectedSku ? selectedSku.price : productDetail.price}}</view>
-        <view wx:if="{{productDetail.originalPrice && productDetail.originalPrice > productDetail.price}}" class="original-price">
-          ¥{{productDetail.originalPrice}}
+        <view class="current-price">¥{{selectedSku ? selectedSku.displayPrice : productDetail.displayPrice}}</view>
+        <view wx:if="{{productDetail.displayOriginalPrice}}" class="original-price">
+          ¥{{productDetail.displayOriginalPrice}}
         </view>
         <view wx:if="{{productDetail.discount}}" class="discount-badge">
-          {{productDetail.discount}}折
+          {{productDetail.discount}}
         </view>
       </view>
       
@@ -80,7 +80,7 @@
       </view>
       <view class="delivery-item">
         <text class="delivery-label">运费</text>
-        <text class="delivery-value">{{productDetail.shippingFee || '包邮'}}</text>
+        <text class="delivery-value">{{productDetail.displayShippingFee ? '¥' + productDetail.displayShippingFee : '包邮'}}</text>
       </view>
       <view class="delivery-item">
         <text class="delivery-label">发货</text>
@@ -180,7 +180,7 @@
       <view class="spec-product-info">
         <image class="spec-product-image" src="{{productDetail.images[0]}}" />
         <view class="spec-product-details">
-          <view class="spec-price">¥{{selectedSku ? selectedSku.price : productDetail.price}}</view>
+          <view class="spec-price">¥{{selectedSku ? selectedSku.displayPrice : productDetail.displayPrice}}</view>
           <view class="spec-stock">库存 {{selectedSku ? selectedSku.stock : productDetail.stock}}</view>
           <view class="spec-selected-info">
             已选: <text wx:for="{{selectedSpecs}}" wx:for-item="value" wx:for-index="name" wx:key="name">{{value}} </text>

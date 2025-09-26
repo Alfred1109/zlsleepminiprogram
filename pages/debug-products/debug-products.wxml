@@ -1,0 +1,49 @@
+<!--商品数据调试页面-->
+<view class="container">
+  <view class="header">
+    <text class="title">商品数据调试</text>
+    <text class="subtitle">诊断商品列表为空的问题</text>
+  </view>
+
+  <view class="actions">
+    <button class="action-btn primary" bindtap="runDebugTests">
+      🔄 重新运行测试
+    </button>
+    
+    <button class="action-btn" bindtap="goToProductList">
+      📱 打开商品列表
+    </button>
+    
+    <button class="action-btn" bindtap="copyResults">
+      📋 复制结果
+    </button>
+  </view>
+
+  <view class="results-container">
+    <view class="results-header">
+      <text class="results-title">调试结果</text>
+    </view>
+    
+    <scroll-view class="results-scroll" scroll-y="true">
+      <view class="result-item" wx:for="{{testResults}}" wx:key="index">
+        <text class="result-text">{{item}}</text>
+      </view>
+      
+      <view wx:if="{{testResults.length === 0}}" class="empty-results">
+        <text class="empty-text">正在运行调试测试...</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- API数据预览 -->
+  <view wx:if="{{apiData}}" class="data-preview">
+    <view class="preview-header">
+      <text class="preview-title">API数据预览</text>
+    </view>
+    <view class="data-content">
+      <text class="data-text">商品数量: {{apiData.products ? apiData.products.length : 0}}</text>
+      <text class="data-text">分类: {{apiData.categories ? apiData.categories.join(', ') : '无'}}</text>
+    </view>
+  </view>
+
+</view>
