@@ -88,14 +88,12 @@
   display: block;
   transition: all 0.3s ease;
   filter: drop-shadow(0 4rpx 12rpx rgba(0, 0, 0, 0.1));
-  mix-blend-mode: multiply; /* 让白色背景透明化 */
   background: transparent;
 }
 
 .logo-image:hover {
   transform: scale(1.05);
   filter: drop-shadow(0 6rpx 16rpx rgba(0, 0, 0, 0.15));
-  mix-blend-mode: multiply;
 }
 
 /* 保留logo文字样式供主题切换使用 */

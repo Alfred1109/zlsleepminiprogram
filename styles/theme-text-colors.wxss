@@ -335,19 +335,19 @@
 /* 夜间主题 - 保持浅色文字（深色背景） */
 .night-theme .text-white,
 .night-theme .white-text {
-  color: #F6E6D7 !important; /* 温暖浅色 - 对比度12.8:1 */
+  color: #E5E7EB !important; /* 浅灰 */
 }
 
 .night-theme .text-primary {
-  color: #F6E6D7 !important; /* 温暖浅色 - 主要文字 */
+  color: #E5E7EB !important; /* 主要文字浅灰 */
 }
 
 .night-theme .text-secondary {
-  color: #E5D4C1 !important; /* 温暖次要色 - 次要文字 */
+  color: #9CA3AF !important; /* 次要文字浅灰 */
 }
 
 .night-theme .text-muted {
-  color: #C5A882 !important; /* 温暖辅助色 - 辅助文字 */
+  color: #6B7280 !important; /* 辅助灰 */
 }
 
 /* 夜间主题 - 所有元素保持温暖浅色 */
@@ -362,22 +362,22 @@
 /* 夜间主题 - 页面元素适配 */
 .night-theme .page-title,
 .night-theme .section-title {
-  color: #F9FAFB !important;
+  color: #E5E7EB !important;
 }
 
 .night-theme .card-title {
-  color: #F9FAFB !important;
+  color: #E5E7EB !important;
 }
 
 .night-theme .card-content {
-  color: #E5E7EB !important;
+  color: #9CA3AF !important;
 }
 
 .night-theme .question-text,
 .night-theme .page-subtitle,
 .night-theme .header-subtitle,
 .night-theme .loading-text {
-  color: #F6E6D7 !important;
+  color: #9CA3AF !important;
 }
 
 /* ========================================

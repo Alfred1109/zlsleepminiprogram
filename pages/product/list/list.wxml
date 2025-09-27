@@ -1,4 +1,9 @@
-<view class="container">
+<theme-switcher 
+  show-theme-switcher="{{true}}" 
+  page-type="default"
+  bind:themechange="onThemeChange"
+/>
+<view class="container {{themeClass}}">
   <!-- 搜索栏 -->
   <view class="search-bar">
     <view class="search-input-wrapper">

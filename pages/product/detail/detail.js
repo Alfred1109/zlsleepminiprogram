@@ -33,7 +33,11 @@ Page({
     
     // 二维码相关
     isFromQR: false,
-    seller: null
+    seller: null,
+    // 主题
+    currentTheme: 'default',
+    themeClass: '',
+    themeConfig: null
   },
 
   onLoad(options) {
@@ -84,11 +88,49 @@ Page({
     }
     
     this.loadProductDetail()
+    this.initTheme && this.initTheme()
   },
 
   onShow() {
     // 检查收藏状态
     this.checkFavoriteStatus()
+    this.forceRefreshTheme && this.forceRefreshTheme()
+  },
+
+  // ===== 主题接入（与库页对齐的最小实现）=====
+  initTheme() {
+    try {
+      const app = getApp()
+      const currentTheme = app.globalData.currentTheme || 'default'
+      const themeConfig = app.globalData.themeConfig
+      this.setData({ currentTheme, themeClass: themeConfig?.class || '', themeConfig })
+
+      wx.$emitter = wx.$emitter || { listeners: {}, on(e, cb){(this.listeners[e]||(this.listeners[e]=[])).push(cb)}, emit(e,d){(this.listeners[e]||[]).forEach(cb=>{try{cb(d)}catch(_){}})} }
+      this.themeChangeHandler = (data) => {
+        if (data && data.theme && data.config) {
+          this.setData({ currentTheme: data.theme, themeClass: data.config?.class || '', themeConfig: data.config })
+        }
+      }
+      wx.$emitter.on && wx.$emitter.on('themeChanged', this.themeChangeHandler)
+    } catch (e) { console.error('initTheme失败:', e) }
+  },
+
+  forceRefreshTheme() {
+    try {
+      const app = getApp()
+      const savedTheme = wx.getStorageSync('user_preferred_theme') || 'default'
+      const currentTheme = app.globalData.currentTheme || savedTheme
+      const themeConfig = app.globalData.themeConfig
+      this.setData({ currentTheme, themeClass: themeConfig?.class || (currentTheme==='default'?'':currentTheme), themeConfig: themeConfig || { class: (currentTheme==='default'?'':currentTheme) } })
+    } catch (e) { console.error('forceRefreshTheme失败:', e) }
+  },
+
+  onThemeChange(e){
+    const { theme, config } = (e && e.detail) || {}
+    if (!theme || !config) return
+    this.setData({ currentTheme: theme, themeClass: config.class || '', themeConfig: config })
+    const app = getApp(); if (app.globalData){ app.globalData.currentTheme = theme; app.globalData.themeConfig = config }
+    wx.$emitter && wx.$emitter.emit && wx.$emitter.emit('themeChanged', { theme, config })
   },
 
   // 加载商品详情

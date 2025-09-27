@@ -11,7 +11,7 @@
   <!-- 顶部Logo区域 -->
   <view class="header-section">
     <view class="logo-container">
-      <image class="logo-image" src="/images/logo.png" mode="aspectFit" />
+      <image class="logo-image" src="/medsleep.png" mode="aspectFit" />
       <text class="logo-subtitle">AI疗愈脑波</text>
     </view>
     <view class="header-actions">

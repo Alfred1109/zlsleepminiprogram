@@ -8,6 +8,7 @@ const { getCurrentConfig } = require('../../utils/config')
 const { MusicAPI, LongSequenceAPI } = require('../../utils/healingApi')
 const { getUnifiedSubscriptionStatus } = require('../../utils/subscription')
 const { getDeviceWhitelistManager } = require('../../utils/deviceWhitelist')
+const { sceneContextManager } = require('../../utils/sceneContextManager')
 
 Page({
   data: {
@@ -256,7 +257,8 @@ Page({
         
         // 🔧 修复：简化场景数据处理，移除映射逻辑
         const scenes = backendScenes
-          .filter(scene => scene.is_active) // 只显示激活的场景
+          // 只显示激活场景，且排除无场景（id=0/代码none/名称无场景）
+          .filter(scene => scene.is_active && scene.id !== 0 && scene.code !== 'none' && scene.name !== '无场景')
           .map(scene => {
             // 根据场景code设置显示名称
             let sceneName = scene.name
@@ -622,8 +624,8 @@ Page({
     
     console.log('点击场景:', { sceneId, sceneName, scaleType, sceneTheme });
     
-    // 验证场景ID
-    if (!sceneId || isNaN(sceneId)) {
+    // 验证场景ID（允许0表示“无场景”）
+    if (isNaN(sceneId)) {
       console.error('无效的场景ID:', sceneId);
       wx.showToast({
         title: '场景ID无效',
@@ -632,7 +634,19 @@ Page({
       return;
     }
     
-    // 跳转到场景详情页面
+    // 无场景（scene_id=0）：进入脑波库并设置上下文为无场景
+    if (sceneId === 0) {
+      sceneContextManager.setSceneContext({
+        sceneId: 0,
+        sceneName: '无场景',
+        sceneTheme: '无场景',
+        source: 'homepage'
+      })
+      wx.switchTab({ url: '/pages/music/library/library' })
+      return
+    }
+
+    // 其他场景：进入场景详情
     wx.navigateTo({
       url: `/pages/scene/detail/detail?sceneId=${sceneId}&sceneName=${encodeURIComponent(sceneName)}&scaleType=${scaleType || ''}&sceneTheme=${encodeURIComponent(sceneTheme || sceneName)}`
     });

@@ -1,5 +1,8 @@
 // 主题切换组件 - 基于色彩心理学的智能主题切换
 Component({
+  options: {
+    addGlobalClass: true
+  },
   properties: {
     // 是否显示主题切换器
     showThemeSwitcher: {
@@ -18,17 +21,18 @@ Component({
     isPanelVisible: false,
     currentTheme: 'default',
     recommendedTheme: null,
+    autoRecommend: false,
     
     // 主题配置
     themeConfig: {
       'default': {
-        name: '🌸 默认主题',
-        desc: '温暖平衡的疗愈配色',
-        class: '',
+        name: '🌸 默认主题（平静）',
+        desc: '蓝绿色调，降低心率',
+        class: 'calm-mode',
         colors: {
-          primary: '#C0A9BD',
-          brand: '#FF6B35',
-          healing: '#7DD3C0'
+          primary: '#14B8A6',
+          brand: '#10B981',
+          healing: '#E0F2F1'
         }
       },
       'calm-mode': {
@@ -41,16 +45,6 @@ Component({
           background: '#E0F2F1'
         }
       },
-      'focus-mode': {
-        name: '🎯 专注模式',
-        desc: '深紫色调，提升注意力',
-        class: 'focus-mode',
-        colors: {
-          primary: '#7C3AED',
-          secondary: '#8B5CF6',
-          background: '#EEE7F4'
-        }
-      },
       'energy-mode': {
         name: '⚡ 活力模式',
         desc: '暖橙色调，激发活力',
@@ -59,25 +53,6 @@ Component({
           primary: '#EA580C',
           secondary: '#F97316',
           background: '#FFF4E6'
-        }
-      },
-      'relax-mode': {
-        name: '🌿 放松模式',
-        desc: '柔和绿调，缓解压力',
-        class: 'relax-mode',
-        colors: {
-          primary: '#22C55E',
-          secondary: '#16A34A',
-          background: '#F0FDF4'
-        }
-      },
-      'morning-theme': {
-        name: '🌅 晨间主题',
-        desc: '温暖明亮，模拟日出',
-        class: 'morning-theme',
-        colors: {
-          primary: '#F59E0B',
-          background: '#FEF3C7'
         }
       },
       'evening-theme': {
@@ -89,15 +64,7 @@ Component({
           background: '#E0E7FF'
         }
       },
-      'night-theme': {
-        name: '🌙 夜间主题',
-        desc: '深色护眼，减少蓝光',
-        class: 'night-theme',
-        colors: {
-          primary: '#6366F1',
-          background: '#1F2937'
-        }
-      }
+      
     }
   },
 
@@ -105,11 +72,15 @@ Component({
     attached() {
       this.initializeTheme();
       this.setupIntelligentRecommendation();
+      this.loadAutoRecommend();
       
       // 延迟显示组件，避免影响页面加载
       setTimeout(() => {
         this.setData({ isVisible: true });
       }, 1000);
+    },
+    detached() {
+      this.stopAutoRecommendTimer && this.stopAutoRecommendTimer();
     }
   },
 
@@ -119,7 +90,9 @@ Component({
      */
     initializeTheme() {
       // 从本地存储获取用户偏好主题
-      const savedTheme = wx.getStorageSync('user_preferred_theme');
+      let savedTheme = wx.getStorageSync('user_preferred_theme');
+      // 将历史default映射到calm-mode
+      if (savedTheme === 'default') savedTheme = 'calm-mode';
       if (savedTheme && this.data.themeConfig[savedTheme]) {
         this.setData({ currentTheme: savedTheme });
         this.applyTheme(savedTheme);
@@ -145,20 +118,20 @@ Component({
       let recommendedTheme = null;
 
       if (hour >= 6 && hour < 10) {
-        // 早晨 6-10点：推荐活力模式或晨间主题
-        recommendedTheme = Math.random() > 0.5 ? 'energy-mode' : 'morning-theme';
+        // 早晨 6-10点：推荐活力模式
+        recommendedTheme = 'energy-mode';
       } else if (hour >= 10 && hour < 14) {
-        // 上午 10-14点：推荐专注模式
-        recommendedTheme = 'focus-mode';
+        // 上午 10-14点：推荐平静模式
+        recommendedTheme = 'calm-mode';
       } else if (hour >= 14 && hour < 18) {
         // 下午 14-18点：推荐平静模式
         recommendedTheme = 'calm-mode';
       } else if (hour >= 18 && hour < 22) {
-        // 傍晚 18-22点：推荐放松模式或暮间主题
-        recommendedTheme = Math.random() > 0.5 ? 'relax-mode' : 'evening-theme';
+        // 傍晚 18-22点：推荐暮间主题
+        recommendedTheme = 'evening-theme';
       } else {
-        // 夜晚 22-6点：推荐夜间主题
-        recommendedTheme = 'night-theme';
+        // 夜晚 22-6点：推荐暮间主题
+        recommendedTheme = 'evening-theme';
       }
 
       // 如果推荐主题与当前主题不同，显示推荐
@@ -173,15 +146,78 @@ Component({
     },
 
     /**
+     * 加载并应用“智能推荐自动切换”
+     */
+    loadAutoRecommend() {
+      try {
+        const saved = wx.getStorageSync('theme_auto_recommend');
+        const enabled = !!saved;
+        this.setData({ autoRecommend: enabled });
+        if (enabled) {
+          this.applyAutoRecommendation(true);
+        }
+      } catch (_) {}
+    },
+
+    /**
+     * 切换智能推荐开关
+     */
+    onAutoRecommendChange(e) {
+      const enabled = !!e.detail.value;
+      this.setData({ autoRecommend: enabled });
+      try { wx.setStorageSync('theme_auto_recommend', enabled); } catch(_) {}
+      if (enabled) {
+        this.applyAutoRecommendation(true);
+      } else {
+        this.stopAutoRecommendTimer();
+      }
+    },
+
+    /**
+     * 立即应用一次推荐主题并启动定时器
+     */
+    applyAutoRecommendation(immediate) {
+      if (immediate) {
+        const rec = this.getPersonalizedRecommendation();
+        if (rec && rec !== this.data.currentTheme) {
+          this.setData({ currentTheme: rec });
+          this.applyTheme(rec);
+        }
+      }
+      this.startAutoRecommendTimer();
+    },
+
+    startAutoRecommendTimer() {
+      this.stopAutoRecommendTimer();
+      // 每10分钟检查一次
+      this._autoTimer = setInterval(() => {
+        if (!this.data.autoRecommend) return;
+        const rec = this.getPersonalizedRecommendation();
+        if (rec && rec !== this.data.currentTheme) {
+          this.setData({ currentTheme: rec });
+          this.applyTheme(rec);
+          try { wx.setStorageSync('user_preferred_theme', rec); } catch(_) {}
+        }
+      }, 600000);
+    },
+
+    stopAutoRecommendTimer() {
+      if (this._autoTimer) {
+        clearInterval(this._autoTimer);
+        this._autoTimer = null;
+      }
+    },
+
+    /**
      * 获取基于时间的主题推荐
      */
     getTimeBasedRecommendation() {
       const hour = new Date().getHours();
       
-      if (hour >= 6 && hour < 12) return 'morning-theme';
-      if (hour >= 12 && hour < 18) return 'default';
-      if (hour >= 18 && hour < 22) return 'evening-theme';
-      return 'night-theme';
+      if (hour >= 6 && hour < 12) return 'energy-mode';
+      if (hour >= 12 && hour < 18) return 'calm-mode';
+      if (hour >= 18 && hour < 24) return 'evening-theme';
+      return 'evening-theme';
     },
 
     /**

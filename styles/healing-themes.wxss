@@ -132,130 +132,7 @@
   box-shadow: 0 4rpx 16rpx rgba(16, 185, 129, 0.25);
 }
 
-/* 专注模式 - 深紫色调，提升注意力集中度 */
-.focus-mode {
-  --primary-bg: #EEE7F4;        /* 极浅紫背景 */
-  --secondary-bg: #F3F0F9;       /* 淡紫背景 */
-  --accent-color: #7C3AED;       /* 深紫强调色 */
-  --text-primary: #4C1D95;       /* 深紫色文字 */
-  --text-secondary: #5B21B6;     /* 中紫色文字 */
-  --text-muted: #7C3AED;         /* 辅助紫色文字 */
-  --button-primary: #8B5CF6;     /* 紫色按钮 */
-}
-
-.focus-mode .container {
-  background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%);
-}
-
-.focus-mode .page-container {
-  background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%);
-}
-
-.focus-mode .profile-header {
-  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
-}
-
-.focus-mode .result-header-new {
-  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
-}
-
-.focus-mode .play-container {
-  background: linear-gradient(135deg, #EEE7F4 0%, #F3F0F9 100%);
-}
-
-.focus-mode .section-card {
-  background: rgba(243, 240, 249, 0.9);
-}
-
-.focus-mode .assessment-section .section-header {
-  border-bottom-color: rgba(124, 58, 237, 0.2);
-}
-
-.focus-mode .assessment-section .section-action {
-  background: rgba(124, 58, 237, 0.1);
-  color: #7C3AED;
-  border-color: rgba(124, 58, 237, 0.3);
-}
-
-.focus-mode .brainwave-section .section-header {
-  border-bottom-color: rgba(139, 92, 246, 0.2);
-}
-
-.focus-mode .brainwave-section .section-action {
-  background: rgba(139, 92, 246, 0.1);
-  color: #8B5CF6;
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.focus-mode .scene-header {
-  background: rgba(243, 240, 249, 0.85);
-}
-
-/* Music Library 主题样式 */
-.focus-mode .tab-item.active {
-  background: #7C3AED;
-}
-
-.focus-mode .btn-primary {
-  background: linear-gradient(135deg, #7C3AED, #8B5CF6);
-}
-
-.focus-mode .btn-upgrade {
-  background: linear-gradient(135deg, #7C3AED, #8B5CF6);
-}
-
-.focus-mode .fab {
-  background: linear-gradient(135deg, #7C3AED, #8B5CF6);
-}
-
-.focus-mode .fab.secondary {
-  background: linear-gradient(135deg, #8B5CF6, #A855F7);
-}
-
-.focus-mode .page-header {
-  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
-}
-
-.focus-mode .scene-indicator {
-  background: linear-gradient(135deg, rgba(243, 240, 249, 0.95), rgba(243, 240, 249, 0.9));
-}
-
-.focus-mode .scene-indicator-action {
-  background: rgba(124, 58, 237, 0.1);
-  border: 1rpx solid rgba(124, 58, 237, 0.2);
-}
-
-.focus-mode .scene-indicator-action:active {
-  background: rgba(124, 58, 237, 0.2);
-}
-
-.focus-mode .exit-text {
-  color: #7C3AED;
-}
-
-.focus-mode .user-card {
-  background: rgba(243, 240, 249, 0.9);
-  border: 1rpx solid rgba(139, 92, 246, 0.2);
-}
-
-.focus-mode .scene-category-item {
-  background: rgba(243, 240, 249, 0.8);
-  border: 1rpx solid rgba(139, 92, 246, 0.1);
-}
-
-.focus-mode .logo-text {
-  color: #4C1D95;
-}
-
-.focus-mode .logo-image {
-  filter: drop-shadow(0 4rpx 12rpx rgba(139, 92, 246, 0.2));
-  mix-blend-mode: multiply;
-}
-
-.focus-mode .btn-primary {
-  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-  box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.25);
-}
+/* 删除 focus-mode 全部样式 */
 
 /* 活力模式 - 暖橙色调，提升精神状态 */
 .energy-mode {
@@ -382,256 +259,13 @@
   box-shadow: 0 4rpx 16rpx rgba(249, 115, 22, 0.25);
 }
 
-/* 放松模式 - 柔和绿色调，缓解压力和紧张 */
-.relax-mode {
-  --primary-bg: #F0FDF4;        /* 极浅绿背景 */
-  --secondary-bg: #ECFDF5;       /* 淡绿背景 */
-  --accent-color: #22C55E;       /* 自然绿强调色 */
-  --text-primary: #166534;       /* 深绿色文字 */
-  --text-secondary: #15803D;     /* 中绿色文字 */
-  --text-muted: #22C55E;         /* 辅助绿色文字 */
-  --button-primary: #16A34A;     /* 自然绿按钮 */
-}
-
-.relax-mode .container {
-  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
-}
-
-.relax-mode .page-container {
-  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
-}
-
-.relax-mode .profile-header {
-  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
-}
-
-.relax-mode .result-header-new {
-  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
-}
-
-.relax-mode .play-container {
-  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
-}
-
-.relax-mode .section-card {
-  background: rgba(236, 253, 245, 0.9);
-}
-
-.relax-mode .assessment-section .section-header {
-  border-bottom-color: rgba(34, 197, 94, 0.2);
-}
-
-.relax-mode .assessment-section .section-action {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22C55E;
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.relax-mode .brainwave-section .section-header {
-  border-bottom-color: rgba(22, 163, 74, 0.2);
-}
-
-.relax-mode .brainwave-section .section-action {
-  background: rgba(22, 163, 74, 0.1);
-  color: #16A34A;
-  border-color: rgba(22, 163, 74, 0.3);
-}
-
-.relax-mode .scene-header {
-  background: rgba(236, 253, 245, 0.85);
-}
-
-/* Music Library 主题样式 */
-.relax-mode .tab-item.active {
-  background: #22C55E;
-}
-
-.relax-mode .btn-primary {
-  background: linear-gradient(135deg, #22C55E, #16A34A);
-}
-
-.relax-mode .btn-upgrade {
-  background: linear-gradient(135deg, #22C55E, #16A34A);
-}
-
-.relax-mode .fab {
-  background: linear-gradient(135deg, #22C55E, #16A34A);
-}
-
-.relax-mode .fab.secondary {
-  background: linear-gradient(135deg, #16A34A, #15803D);
-}
-
-.relax-mode .page-header {
-  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
-}
-
-.relax-mode .scene-indicator {
-  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(236, 253, 245, 0.9));
-}
-
-.relax-mode .scene-indicator-action {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1rpx solid rgba(34, 197, 94, 0.2);
-}
-
-.relax-mode .scene-indicator-action:active {
-  background: rgba(34, 197, 94, 0.2);
-}
-
-.relax-mode .exit-text {
-  color: #22C55E;
-}
-
-.relax-mode .user-card {
-  background: rgba(236, 253, 245, 0.9);
-  border: 1rpx solid rgba(22, 197, 94, 0.2);
-}
-
-.relax-mode .scene-category-item {
-  background: rgba(236, 253, 245, 0.8);
-  border: 1rpx solid rgba(22, 197, 94, 0.1);
-}
-
-.relax-mode .logo-text {
-  color: #166534;
-}
-
-.relax-mode .logo-image {
-  filter: drop-shadow(0 4rpx 12rpx rgba(22, 197, 94, 0.2));
-  mix-blend-mode: multiply;
-}
-
-.relax-mode .btn-primary {
-  background: linear-gradient(135deg, #16A34A, #15803D);
-  box-shadow: 0 4rpx 16rpx rgba(22, 197, 94, 0.25);
-}
+/* 删除 relax-mode 全部样式 */
 
 /* ========================================
    时间感知配色主题
    ======================================== */
 
-/* 晨间主题 - 温暖明亮，模拟日出 */
-.morning-theme {
-  --bg-gradient: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FBBF24 100%);
-  --primary-tint: #FFF8E1;      /* 晨光黄 */
-  --accent-warm: #F59E0B;       /* 金色强调 */
-  --text-primary: #92400E;      /* 深棕橙色文字 */
-  --text-secondary: #B45309;    /* 中棕橙色文字 */
-  --text-muted: #D97706;        /* 辅助金色文字 */
-}
-
-.morning-theme .container {
-  background: var(--bg-gradient);
-  color: #92400E;
-}
-
-.morning-theme .page-container {
-  background: var(--bg-gradient);
-  color: #92400E;
-}
-
-.morning-theme .profile-header {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-}
-
-.morning-theme .result-header-new {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-}
-
-.morning-theme .play-container {
-  background: var(--bg-gradient);
-}
-
-.morning-theme .section-card {
-  background: rgba(255, 248, 225, 0.9);
-}
-
-.morning-theme .assessment-section .section-header {
-  border-bottom-color: rgba(245, 158, 11, 0.2);
-}
-
-.morning-theme .assessment-section .section-action {
-  background: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.morning-theme .brainwave-section .section-header {
-  border-bottom-color: rgba(217, 119, 6, 0.2);
-}
-
-.morning-theme .brainwave-section .section-action {
-  background: rgba(217, 119, 6, 0.1);
-  color: #D97706;
-  border-color: rgba(217, 119, 6, 0.3);
-}
-
-.morning-theme .scene-header {
-  background: rgba(255, 248, 225, 0.85);
-}
-
-/* Music Library 主题样式 */
-.morning-theme .tab-item.active {
-  background: #F59E0B;
-}
-
-.morning-theme .btn-primary {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-}
-
-.morning-theme .btn-upgrade {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-}
-
-.morning-theme .fab {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-}
-
-.morning-theme .fab.secondary {
-  background: linear-gradient(135deg, #D97706, #B45309);
-}
-
-.morning-theme .page-header {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-}
-
-.morning-theme .scene-indicator {
-  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95), rgba(255, 248, 225, 0.9));
-}
-
-.morning-theme .scene-indicator-action {
-  background: rgba(245, 158, 11, 0.1);
-  border: 1rpx solid rgba(245, 158, 11, 0.2);
-}
-
-.morning-theme .scene-indicator-action:active {
-  background: rgba(245, 158, 11, 0.2);
-}
-
-.morning-theme .exit-text {
-  color: #F59E0B;
-}
-
-.morning-theme .user-card {
-  background: rgba(255, 248, 225, 0.9);
-  border: 1rpx solid rgba(245, 158, 11, 0.2);
-}
-
-.morning-theme .scene-category-item {
-  background: rgba(255, 248, 225, 0.8);
-  border: 1rpx solid rgba(245, 158, 11, 0.1);
-}
-
-.morning-theme .logo-image {
-  filter: drop-shadow(0 4rpx 12rpx rgba(245, 158, 11, 0.2));
-  mix-blend-mode: multiply;
-}
-
-.morning-theme .btn-primary {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-  box-shadow: 0 4rpx 16rpx rgba(245, 158, 11, 0.25);
-}
+/* 删除 morning-theme 全部样式 */
 
 /* 午间主题 - 平衡中性，最佳工作状态 */
 .noon-theme {
@@ -768,12 +402,12 @@
 
 /* 夜间主题 - 深色护眼，减少蓝光，使用温暖色调 */
 .night-theme {
-  --bg-primary: #2D1B1B;        /* 温暖深棕背景，减少蓝光刺激 */
-  --bg-secondary: #1A1413;      /* 更深的温暖背景 */
-  --text-primary: #F6E6D7;      /* 温暖浅色文字，护眼 */
-  --text-secondary: #E5D4C1;    /* 温暖次要文字 */
-  --text-muted: #C5A882;        /* 温暖辅助文字 */
-  --accent-dim: #D97706;        /* 温暖琥珀色强调，符合睡前使用 */
+  --bg-primary: #121212;        /* 深灰黑，护眼且不至于纯黑 */
+  --bg-secondary: #1A1A1A;      /* 次级深灰黑 */
+  --text-primary: #E5E7EB;      /* 浅灰文本 */
+  --text-secondary: #9CA3AF;    /* 次级浅灰 */
+  --text-muted: #6B7280;        /* 辅助灰 */
+  --accent-dim: #A3A3A3;        /* 柔和灰强调 */
 }
 
 .night-theme .container {
@@ -786,21 +420,15 @@
   color: var(--text-primary);
 }
 
-.night-theme .profile-header {
-  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
-}
+.night-theme .profile-header { background: #121212; }
 
-.night-theme .result-header-new {
-  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
-}
+.night-theme .result-header-new { background: #121212; }
 
 .night-theme .play-container {
   background-color: var(--bg-primary);
 }
 
-.night-theme .section-card {
-  background: #374151;
-}
+.night-theme .section-card { background: #1A1A1A; }
 
 .night-theme .assessment-section .section-header {
   border-bottom-color: rgba(217, 119, 6, 0.2);
@@ -822,82 +450,59 @@
   border-color: rgba(180, 83, 9, 0.3);
 }
 
-.night-theme .scene-header {
-  background: rgba(55, 65, 81, 0.85);
-}
+.night-theme .scene-header { background: #1A1A1A; }
 
 /* Music Library 主题样式 */
 .night-theme .tab-item.active {
-  background: #D97706;
+  background: #1F2937; /* 深灰作为选中底色，避免强对比 */
 }
 
-.night-theme .btn-primary {
-  background: linear-gradient(135deg, #D97706, #B45309);
-}
+.night-theme .btn-primary { background: #111827; }
 
-.night-theme .btn-upgrade {
-  background: linear-gradient(135deg, #D97706, #B45309);
-}
+.night-theme .btn-upgrade { background: #111827; }
 
-.night-theme .fab {
-  background: linear-gradient(135deg, #D97706, #B45309);
-}
+.night-theme .fab { background: #111827; }
 
 .night-theme .fab.secondary {
-  background: linear-gradient(135deg, #B45309, #92400E);
+  background: #1F2937;
 }
 
-.night-theme .page-header {
-  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
-}
+.night-theme .page-header { background: #121212; }
 
-.night-theme .scene-indicator {
-  background: linear-gradient(135deg, rgba(55, 65, 81, 0.95), rgba(55, 65, 81, 0.9));
-}
+.night-theme .scene-indicator { background: #1A1A1A; }
 
 .night-theme .scene-indicator-action {
-  background: rgba(217, 119, 6, 0.1);
-  border: 1rpx solid rgba(217, 119, 6, 0.2);
+  background: #111827;
+  border: 1rpx solid #1F2937;
 }
 
 .night-theme .scene-indicator-action:active {
-  background: rgba(217, 119, 6, 0.2);
+  background: #1F2937;
 }
 
 .night-theme .exit-text {
-  color: #D97706;
+  color: #9CA3AF;
 }
 
-.night-theme .user-card {
-  background: #3D2B24;
-  border: 1rpx solid #4B3429;
-  color: #F6E6D7;
-}
+.night-theme .user-card { background: #1A1A1A; border: 1rpx solid #111827; color: var(--text-primary); }
 
-.night-theme .scene-category-item {
-  background: #3D2B24;
-  border: 1rpx solid #4B3429;
-  color: #F6E6D7;
-}
+.night-theme .scene-category-item { background: #1A1A1A; border: 1rpx solid #111827; color: var(--text-primary); }
 
 .night-theme .logo-text {
-  color: #F6E6D7;
+  color: var(--text-primary);
 }
 
 .night-theme .logo-image {
-  filter: drop-shadow(0 4rpx 12rpx rgba(217, 119, 6, 0.3)) brightness(0.9) sepia(0.3);
-  mix-blend-mode: multiply; /* 使用温暖的混合模式 */
+  filter: drop-shadow(0 4rpx 12rpx rgba(0,0,0,0.6));
+  mix-blend-mode: normal;
 }
 
 .night-theme .btn-primary {
-  background: linear-gradient(135deg, #D97706, #B45309);
-  box-shadow: 0 4rpx 16rpx rgba(217, 119, 6, 0.25);
+  background: #111827;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.35);
 }
 
-.night-theme .card {
-  background: #3D2B24;
-  border: 1rpx solid #4B3429;
-}
+.night-theme .card { background: #1A1A1A; border: 1rpx solid #111827; }
 
 /* ========================================
    音频可视化配色
@@ -1052,10 +657,7 @@
   background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 50%, #A5B4FC 100%) !important;
 }
 
-.night-theme {
-  background: #2D1B1B !important;
-  color: #F6E6D7 !important;
-}
+.night-theme { background: #121212 !important; color: #E5E7EB !important; }
 
 .energy-mode {
   background: linear-gradient(135deg, #FFF4E6 0%, #FFFBEB 100%) !important;

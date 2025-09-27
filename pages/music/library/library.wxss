@@ -30,7 +30,7 @@
 
 .page-header-subtitle {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.9);
+  color: #4B5563; /* 高对比副标题 */
   line-height: 1.5;
   position: relative;
   z-index: 2;

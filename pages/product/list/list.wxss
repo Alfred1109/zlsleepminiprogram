@@ -2,7 +2,7 @@
 
 .container {
   min-height: 100vh;
-  background-color: #F4F2F3;
+  background-color: var(--bg-primary, #F4F2F3);
   padding-bottom: 20rpx;
 }
 
@@ -11,14 +11,14 @@
   display: flex;
   align-items: center;
   padding: 20rpx 24rpx;
-  background: white;
+  background: var(--card-bg, #FFFFFF);
   border-bottom: 1rpx solid #f0f0f0;
 }
 
 .search-input-wrapper {
   flex: 1;
   position: relative;
-  background: #F8F6F7;
+  background: var(--input-bg, #F8F6F7);
   border-radius: 50rpx;
   padding: 0 80rpx 0 50rpx;
   margin-right: 20rpx;
@@ -67,7 +67,7 @@
 
 /* 分类标签 */
 .category-tabs {
-  background: white;
+  background: var(--card-bg, #FFFFFF);
   padding: 20rpx 0;
   border-bottom: 1rpx solid #f0f0f0;
   white-space: nowrap;
@@ -77,10 +77,10 @@
   display: inline-block;
   padding: 12rpx 24rpx;
   margin: 0 12rpx;
-  background: #F8F6F7;
+  background: var(--chip-bg, #F8F6F7);
   border-radius: 30rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-secondary, #666);
   transition: all 0.2s ease;
 }
 
@@ -138,7 +138,7 @@
 }
 
 .product-item {
-  background: white;
+  background: var(--card-bg, #FFFFFF);
   border-radius: 24rpx;
   margin-bottom: 32rpx;
   overflow: hidden;
@@ -186,7 +186,7 @@
 .product-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary, #333);
   line-height: 1.4;
   margin-bottom: 12rpx;
   overflow: hidden;
@@ -198,7 +198,7 @@
 
 .product-description {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-secondary, #666);
   line-height: 1.4;
   margin-bottom: 20rpx;
   overflow: hidden;
@@ -259,7 +259,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-muted, #999);
 }
 
 /* 加载状态 */
@@ -288,7 +288,7 @@
 .loading-text {
   margin-top: 20rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-secondary, #666);
 }
 
 .loading-more {
@@ -305,7 +305,7 @@
   text-align: center;
   padding: 40rpx 0;
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-muted, #999);
 }
 
 /* 空状态 */
