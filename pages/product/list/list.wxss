@@ -440,3 +440,126 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* 搜索建议样式 */
+.search-suggestions {
+  background: white;
+  border: 1rpx solid #f0f0f0;
+  border-top: none;
+  max-height: 400rpx;
+  overflow-y: auto;
+  position: relative;
+  z-index: 10;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #f8f8f8;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item .iconfont {
+  font-size: 28rpx;
+  color: #999;
+  margin-right: 20rpx;
+}
+
+.suggestion-text {
+  font-size: 28rpx;
+  color: #333;
+  flex: 1;
+}
+
+.suggestion-item:active {
+  background-color: #f8f8f8;
+}
+
+/* 搜索历史和热门搜索样式 */
+.search-history-panel {
+  background: white;
+  margin: 20rpx 24rpx;
+  border-radius: 16rpx;
+  padding: 32rpx;
+}
+
+.history-section, .hot-search-section {
+  margin-bottom: 40rpx;
+}
+
+.history-section:last-child, .hot-search-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.clear-btn {
+  font-size: 28rpx;
+  color: #FF6B35;
+  padding: 8rpx 16rpx;
+}
+
+.history-tags, .hot-search-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.history-tag, .hot-search-tag {
+  background: #F8F6F7;
+  color: #666;
+  font-size: 26rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 50rpx;
+  border: 1rpx solid #f0f0f0;
+}
+
+.hot-search-tag {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A65 100%);
+  color: white;
+  border: none;
+}
+
+.history-tag:active, .hot-search-tag:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+/* 改进的按钮样式 */
+.btn {
+  border: none;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  padding: 20rpx 40rpx;
+  margin: 0 8rpx;
+}
+
+.btn-secondary {
+  background: #F8F6F7;
+  color: #666;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A65 100%);
+  color: white;
+}
+
+.btn:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}

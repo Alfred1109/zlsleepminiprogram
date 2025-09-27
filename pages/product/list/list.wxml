@@ -35,35 +35,57 @@
     </view>
   </scroll-view>
 
-  <!-- 排序栏 -->
-  <view class="sort-bar">
+  <!-- 搜索建议 -->
+  <view wx:if="{{showSearchSuggestions}}" class="search-suggestions">
     <view 
-      class="sort-item {{sortType === 'default' ? 'active' : ''}}" 
-      data-type="default" 
-      bindtap="onSortChange"
+      class="suggestion-item"
+      wx:for="{{searchSuggestions}}"
+      wx:key="*this"
+      data-keyword="{{item}}"
+      bindtap="onSearchSuggestionTap"
     >
-      综合
+      <text class="iconfont icon-search"></text>
+      <text class="suggestion-text">{{item}}</text>
     </view>
-    <view 
-      class="sort-item {{sortType === 'sales' ? 'active' : ''}}" 
-      data-type="sales" 
-      bindtap="onSortChange"
-    >
-      销量
+  </view>
+
+  <!-- 搜索历史和热门搜索 -->
+  <view wx:if="{{!searchKeyword && (searchHistory.length > 0 || hotSearchKeywords.length > 0)}}" class="search-history-panel">
+    <!-- 搜索历史 -->
+    <view wx:if="{{searchHistory.length > 0}}" class="history-section">
+      <view class="section-header">
+        <text class="section-title">搜索历史</text>
+        <text class="clear-btn" bindtap="clearSearchHistory">清除</text>
+      </view>
+      <view class="history-tags">
+        <view 
+          class="history-tag"
+          wx:for="{{searchHistory}}"
+          wx:key="*this"
+          data-keyword="{{item}}"
+          bindtap="onSearchHistoryTap"
+        >
+          {{item}}
+        </view>
+      </view>
     </view>
-    <view 
-      class="sort-item {{sortType === 'price_asc' ? 'active' : ''}}" 
-      data-type="price_asc" 
-      bindtap="onSortChange"
-    >
-      价格 ↑
-    </view>
-    <view 
-      class="sort-item {{sortType === 'price_desc' ? 'active' : ''}}" 
-      data-type="price_desc" 
-      bindtap="onSortChange"
-    >
-      价格 ↓
+
+    <!-- 热门搜索 -->
+    <view wx:if="{{hotSearchKeywords.length > 0}}" class="hot-search-section">
+      <view class="section-header">
+        <text class="section-title">热门搜索</text>
+      </view>
+      <view class="hot-search-tags">
+        <view 
+          class="hot-search-tag"
+          wx:for="{{hotSearchKeywords}}"
+          wx:key="*this"
+          data-keyword="{{item}}"
+          bindtap="onHotSearchTap"
+        >
+          {{item}}
+        </view>
+      </view>
     </view>
   </view>
 
@@ -136,7 +158,16 @@
   </view>
 
   <!-- 空状态 -->
-  <view wx:if="{{!loading && productList.length === 0}}" class="empty-state">
+  <view wx:if="{{!loading && productList.length === 0 && searchKeyword}}" class="empty-state">
+    <image class="empty-image" src="/images/empty-music.svg" />
+    <text class="empty-text">没有找到"{{searchKeyword}}"相关商品</text>
+    <view class="empty-actions">
+      <button class="btn btn-secondary" bindtap="onSearchClear">清除搜索</button>
+      <button class="btn btn-primary" bindtap="resetFilter">重置筛选</button>
+    </view>
+  </view>
+  
+  <view wx:if="{{!loading && productList.length === 0 && !searchKeyword}}" class="empty-state">
     <image class="empty-image" src="/images/empty-music.svg" />
     <text class="empty-text">暂无商品</text>
     <view class="empty-actions">
