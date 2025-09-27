@@ -65,8 +65,18 @@ Page({
     // 检查场景上下文变化
     this.checkSceneContext()
     
-    // 更新播放状态
-    this.updatePlayingStatus()
+    // 检查登录状态
+    const currentUser = AuthService.getCurrentUser()
+    if (currentUser) {
+      this.setData({ userInfo: currentUser, isGuestMode: false })
+      this.loadMusicData()
+      this.updatePlayingStatus()
+      this.refreshSubscriptionStatus()
+    } else {
+      this.showGuestContent()
+      // 即使未登录也要更新播放状态
+      this.updatePlayingStatus()
+    }
   },
 
   /**
@@ -241,18 +251,6 @@ Page({
     })
   },
 
-  onShow() {
-    // 检查登录状态
-    const currentUser = AuthService.getCurrentUser()
-    if (currentUser) {
-      this.setData({ userInfo: currentUser, isGuestMode: false })
-      this.loadMusicData()
-      this.updatePlayingStatus()
-      this.refreshSubscriptionStatus()
-    } else {
-      this.showGuestContent()
-    }
-  },
 
   onUnload() {
     // 页面卸载时清理播放器监听
@@ -301,18 +299,39 @@ Page({
   /**
    * 提示用户登录
    */
-  promptLogin(message = '查看个人脑波库需要先登录账户') {
+  promptLogin(e) {
+    // 🔧 修复：检查第一个参数是否为事件对象，如果是则使用默认消息
+    let message = '查看个人脑波库需要先登录账户'
+    
+    // 如果传入的是字符串，使用传入的消息；如果是事件对象或其他，使用默认消息
+    if (typeof e === 'string') {
+      message = e
+    }
+    
+    console.log('🔐 promptLogin 函数被调用')
+    console.log('🔍 当前页面数据状态:', {
+      isGuestMode: this.data.isGuestMode,
+      userInfo: this.data.userInfo,
+      isLoggedIn: this.data.isLoggedIn
+    })
+    console.log('📝 使用的消息内容:', message)
+    
     wx.showModal({
       title: '需要登录',
       content: message,
       confirmText: '去登录',
       cancelText: '取消',
       success: (res) => {
+        console.log('🔐 登录模态框用户选择:', res.confirm ? '确认' : '取消')
         if (res.confirm) {
+          console.log('🚀 准备跳转到登录页面')
           wx.navigateTo({
             url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/music/library/library')
           })
         }
+      },
+      fail: (error) => {
+        console.error('❌ 显示登录模态框失败:', error)
       }
     })
   },

@@ -1,12 +1,12 @@
 /* 统一底部播放器样式 */
 .global-player {
   position: fixed;
-  bottom: 0;
+  bottom: 120rpx; /* 调整位置，为底部菜单栏留出空间 */
   left: 0;
   right: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-top: 1rpx solid rgba(255, 255, 255, 0.1);
-  z-index: 1000;
+  z-index: 1001; /* 提高z-index确保在底部菜单栏之上 */
   transition: transform 0.3s ease-in-out; /* 只保留transform动画 */
   transform: translateY(100%);
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);

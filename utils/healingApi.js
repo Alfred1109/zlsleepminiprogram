@@ -187,9 +187,30 @@ const MusicAPI = {
 
     const requestData = { assessment_id: assessmentId }
     
+    // 🔧 修复：添加用户ID（从认证服务获取）
+    try {
+      const AuthService = require('../services/AuthService')
+      const currentUser = AuthService.getCurrentUser()
+      if (currentUser && (currentUser.id || currentUser.user_id || currentUser.userId)) {
+        requestData.user_id = currentUser.id || currentUser.user_id || currentUser.userId
+        console.log('🎯 添加用户ID到60秒音乐请求:', requestData.user_id)
+      } else {
+        console.warn('⚠️ 无法获取用户ID，使用默认用户ID: 1')
+        requestData.user_id = 1
+      }
+    } catch (error) {
+      console.error('❌ 获取用户ID失败:', error)
+      requestData.user_id = 1
+    }
+    
     // 🔧 适配后端新接口：发送scene_id而不是scene_context对象
     if (options.sceneContext && options.sceneContext.sceneId) {
       requestData.scene_id = options.sceneContext.sceneId
+      console.log('🎯 60秒音乐生成传递场景ID:', requestData.scene_id)
+    } else {
+      console.log('ℹ️ 60秒音乐生成无场景上下文，使用默认场景ID: 1')
+      // 🔧 修复：当没有场景上下文时，使用默认场景ID
+      requestData.scene_id = 1
     }
     
     // 添加默认时长参数（后端可能需要）
@@ -214,7 +235,14 @@ const MusicAPI = {
       if (validAdditionalAssessments.length === 0) {
         console.warn('⚠️ 所有额外评测ID都无效，切换到单一生成模式')
         // 如果所有额外评测ID都无效，则切换到单一生成模式
-        return post('/api/music/generate', requestData)
+        console.log('🎵 发送单一音乐生成请求（额外ID无效）:', {
+          评测ID: assessmentId,
+          场景ID: requestData.scene_id
+        })
+        return post('/api/music/generate', requestData, {
+          loadingText: '正在生成音乐...',
+          timeout: 90000
+        })
       }
 
       requestData.assessment_ids = [assessmentId, ...validAdditionalAssessments]
@@ -226,10 +254,13 @@ const MusicAPI = {
         主评测ID: assessmentId,
         全部评测IDs: requestData.assessment_ids,
         生成模式: requestData.generation_mode,
-        场景上下文: requestData.scene_context
+        场景ID: requestData.scene_id
       })
     } else {
-      console.log('🎵 发送单一音乐生成请求:', assessmentId)
+      console.log('🎵 发送单一音乐生成请求:', {
+        评测ID: assessmentId,
+        场景ID: requestData.scene_id
+      })
     }
 
     console.log('🔍 最终发送数据:', requestData)
@@ -468,10 +499,30 @@ const LongSequenceAPI = {
       duration_minutes: durationMinutes
     }
     
+    // 🔧 修复：添加用户ID（从认证服务获取）
+    try {
+      const AuthService = require('../services/AuthService')
+      const currentUser = AuthService.getCurrentUser()
+      if (currentUser && (currentUser.id || currentUser.user_id || currentUser.userId)) {
+        requestData.user_id = currentUser.id || currentUser.user_id || currentUser.userId
+        console.log('🎯 添加用户ID到请求:', requestData.user_id)
+      } else {
+        console.warn('⚠️ 无法获取用户ID，使用默认用户ID: 1')
+        requestData.user_id = 1
+      }
+    } catch (error) {
+      console.error('❌ 获取用户ID失败:', error)
+      requestData.user_id = 1
+    }
+    
     // 🔧 适配后端新接口：发送scene_id而不是scene_context对象
     if (options.sceneContext && options.sceneContext.sceneId) {
       requestData.scene_id = options.sceneContext.sceneId
       console.log('🎯 长序列生成传递场景ID:', requestData.scene_id)
+    } else {
+      console.log('ℹ️ 长序列生成无场景上下文，使用默认场景ID: 1')
+      // 🔧 修复：当没有场景上下文时，使用默认场景ID
+      requestData.scene_id = 1
     }
     
     // 如果有多选参数，添加综合生成相关字段
@@ -488,8 +539,16 @@ const LongSequenceAPI = {
       if (validAdditionalAssessments.length === 0) {
         console.warn('⚠️ 所有额外评测ID都无效，切换到单一生成模式')
         // 如果所有额外评测ID都无效，则切换到单一生成模式
-        console.log('🎶 发送单一长序列创建请求（额外ID无效）:', assessmentId, durationMinutes)
-        return post('/api/music/create_long_sequence', requestData)
+        console.log('🎶 发送单一长序列创建请求（额外ID无效）:', {
+          评测ID: assessmentId,
+          时长: durationMinutes,
+          场景ID: requestData.scene_id,
+          用户ID: requestData.user_id
+        })
+        return post('/api/music/create_long_sequence', requestData, {
+          loadingText: '正在生成长序列音乐...',
+          timeout: 180000
+        })
       }
 
       requestData.assessment_ids = [assessmentId, ...validAdditionalAssessments]
@@ -502,10 +561,16 @@ const LongSequenceAPI = {
         时长: durationMinutes,
         全部评测IDs: requestData.assessment_ids,
         生成模式: requestData.generation_mode,
-        场景上下文: requestData.scene_context
+        场景ID: requestData.scene_id,
+        用户ID: requestData.user_id
       })
     } else {
-      console.log('🎶 发送单一长序列创建请求:', assessmentId, durationMinutes)
+      console.log('🎶 发送单一长序列创建请求:', {
+        评测ID: assessmentId,
+        时长: durationMinutes,
+        场景ID: requestData.scene_id,
+        用户ID: requestData.user_id
+      })
     }
     
     return post('/api/music/create_long_sequence', requestData, {

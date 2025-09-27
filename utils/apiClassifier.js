@@ -78,6 +78,16 @@ const PRIVATE_APIS = [
   '/api/music/long_sequence_status',
   '/api/music/generate',
   '/api/music/long_sequence',
+  '/api/music/create_long_sequence',  // 🔧 修复：添加创建长序列API
+  '/api/music/status/',               // 🔧 修复：音乐状态查询
+  '/api/music/download/',             // 🔧 修复：音乐下载
+  '/api/music/delete/',               // 🔧 修复：音乐删除
+  '/api/music/personalized_recommendations/',  // 🔧 修复：个性化推荐
+  '/api/music/refresh_url/',          // 🔧 修复：刷新URL
+  '/api/music/download_long_sequence/', // 🔧 修复：长序列下载
+  '/api/music/check_long_sequence_file/', // 🔧 修复：检查长序列文件
+  '/api/music/delete_long_sequence/',  // 🔧 修复：删除长序列
+  '/api/music/refresh_long_sequence_url/', // 🔧 修复：刷新长序列URL
   
   // 设备绑定（需要认证）
   '/devices/bind',
@@ -105,7 +115,7 @@ const PRIVATE_APIS = [
   '/enterprise/',
   
   // 管理功能
-  '/admin/',
+  '/admin/'
 ]
 
 /**
