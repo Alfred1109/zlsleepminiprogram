@@ -155,6 +155,20 @@
 }
 
 /* 确保页面内容不被底部菜单栏遮挡 */
-.page-with-tabbar {
-  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+.page-with-tabbar, 
+.page-container.page-with-tabbar {
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box;
+}
+
+/* 为页面内容区域添加额外保护 - 针对所有使用底部菜单栏的页面 */
+.page-with-tabbar .page-content {
+  padding-bottom: 180rpx !important;
+}
+
+/* 响应式调整 - 小屏幕设备 */
+@media (max-width: 320px) {
+  .page-with-tabbar {
+    padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
+  }
 }

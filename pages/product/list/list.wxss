@@ -139,11 +139,11 @@
 
 .product-item {
   background: white;
-  border-radius: 20rpx;
-  margin-bottom: 20rpx;
+  border-radius: 24rpx;
+  margin-bottom: 32rpx;
   overflow: hidden;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .product-item:active {
@@ -482,8 +482,8 @@
 /* 搜索历史和热门搜索样式 */
 .search-history-panel {
   background: white;
-  margin: 20rpx 24rpx;
-  border-radius: 16rpx;
+  margin: 0 24rpx 32rpx;
+  border-radius: 24rpx;
   padding: 32rpx;
 }
 

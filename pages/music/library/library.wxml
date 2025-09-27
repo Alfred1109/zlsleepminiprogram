@@ -7,11 +7,6 @@
   bind:themechange="onThemeChange"
 />
 <view class="page-container page-with-tabbar {{themeClass}}">
-  <!-- 页面标题 -->
-  <view class="page-header">
-    <view class="page-header-title">脑波库</view>
-    <view class="page-header-subtitle">您的专属AI疗愈脑波</view>
-  </view>
 
   <!-- 场景状态指示器 -->
   <view wx:if="{{isInSceneMode}}" class="scene-indicator">

@@ -29,25 +29,23 @@
         
         <view class="user-detail">
           <!-- 昵称输入框 -->
-          <view wx:if="{{isLoggedIn}}" class="nickname-container">
-            <input 
-              class="nickname-input" 
-              type="nickname" 
-              placeholder="点击设置昵称" 
-              value="{{userInfo.nickName || userInfo.nickname || userInfo.username || ''}}"
-              bind:blur="onNicknameChange"
-              confirm-type="done"
-              maxlength="12"
-            />
-          </view>
-          <text wx:else class="nickname">{{userInfo.nickName || userInfo.username || '未登录'}}</text>
-          
-          <view class="user-status">
-            <view wx:if="{{isLoggedIn}}" class="status-badge">
-              <text class="vip-tag" style="background: {{subscriptionStatus.statusColor}};">
-                <text class="vip-icon">{{subscriptionStatus.statusIcon}}</text>
-                {{subscriptionStatus.displayName}}
-              </text>
+          <view class="nickname-row">
+            <view wx:if="{{isLoggedIn}}" class="nickname-container">
+              <input 
+                class="nickname-input" 
+                type="nickname" 
+                placeholder="点击设置昵称" 
+                value="{{userInfo.nickName || userInfo.nickname || userInfo.username || ''}}"
+                bind:blur="onNicknameChange"
+                confirm-type="done"
+                maxlength="12"
+              />
+            </view>
+            <text wx:else class="nickname">{{userInfo.nickName || userInfo.username || '未登录'}}</text>
+            
+            <!-- 退出按钮放在昵称后面 -->
+            <view wx:if="{{isLoggedIn}}" class="logout-btn-inline">
+              <button class="btn btn-secondary btn-mini" bindtap="onLogout">退出</button>
             </view>
           </view>
         </view>
@@ -58,24 +56,57 @@
         <view wx:if="{{!isLoggedIn}}" class="login-button-container">
           <button class="btn btn-primary btn-medium" bindtap="onLogin">登录</button>
         </view>
-        <view wx:else class="action-buttons-container">
-          <view class="action-buttons">
-            <!-- 保存按钮 -->
-            <button wx:if="{{hasChanges && !saving}}" class="btn btn-primary btn-mini" bind:tap="onSaveProfile">
-              保存
-            </button>
-            <!-- 自定义进度条 -->
-            <view wx:if="{{saving}}" class="saving-progress-container">
-              <view class="progress-bar-container">
-                <view class="progress-bar-bg">
-                  <view class="progress-bar-fill" style="width: {{savingProgress}}%"></view>
-                  <view class="progress-bar-glow"></view>
-                </view>
-                <text class="progress-text">保存中</text>
+        <view wx:elif="{{hasChanges || saving}}" class="save-actions">
+          <!-- 保存按钮 -->
+          <button wx:if="{{hasChanges && !saving}}" class="btn btn-primary btn-mini" bind:tap="onSaveProfile">
+            保存
+          </button>
+          <!-- 自定义进度条 -->
+          <view wx:if="{{saving}}" class="saving-progress-container">
+            <view class="progress-bar-container">
+              <view class="progress-bar-bg">
+                <view class="progress-bar-fill" style="width: {{savingProgress}}%"></view>
+                <view class="progress-bar-glow"></view>
               </view>
+              <text class="progress-text">保存中</text>
             </view>
-            <!-- 退出按钮 -->
-            <button class="btn btn-secondary btn-mini" bindtap="onLogout">退出</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 会员状态详细信息 -->
+    <view wx:if="{{isLoggedIn}}" class="subscription-detail-inline">
+      <!-- VIP角标 -->
+      <view class="vip-badge-corner">
+        <view class="vip-tag-corner" style="background: {{subscriptionStatus.statusColor}};">
+          <text class="vip-text">{{subscriptionStatus.displayName}}</text>
+          <text class="vip-icon-corner">{{subscriptionStatus.statusIcon}}</text>
+        </view>
+      </view>
+      
+      <view class="subscription-info-row">
+        <view class="subscription-status-info">
+          <view wx:if="{{subscriptionStatus.daysLeft > 0}}" class="subscription-expiry-text">
+            剩余 {{subscriptionStatus.daysLeft}} 天到期
+          </view>
+          <view wx:elif="{{subscriptionStatus.expiresAt}}" class="subscription-expiry-text expired">
+            会员已过期
+          </view>
+          <view wx:else class="subscription-expiry-text">
+            享受基础功能
+          </view>
+        </view>
+        <view wx:if="{{subscriptionStatus.showUpgrade}}" class="subscription-upgrade-btn">
+          <button class="btn-upgrade" bindtap="onUpgradeSubscription">升级</button>
+        </view>
+      </view>
+      
+      <view class="subscription-features">
+        <view class="features-grid">
+          <view wx:for="{{subscriptionStatus.features}}" wx:key="*this" class="feature-tag">
+            <text class="feature-check">✓</text>
+            <text class="feature-name">{{item}}</text>
           </view>
         </view>
       </view>
@@ -93,12 +124,13 @@
 
       <view class="stats-container">
         <view class="stats-row">
-          <view class="stat-card">
+          <view class="stat-card" bindtap="goToAssessmentHistory">
             <view class="stat-icon">📊</view>
             <view class="stat-content">
               <text class="stat-number">{{stats.assessmentCount}}</text>
               <text class="stat-label">评测次数</text>
             </view>
+            <view class="stat-action">查看历史</view>
           </view>
           <view class="stat-card">
             <view class="stat-icon">🎵</view>
@@ -128,47 +160,6 @@
       </view>
     </view>
 
-    <!-- 订阅状态 -->
-    <view wx:if="{{isLoggedIn}}" class="content-section">
-      <view class="section-header">
-        <view class="section-title">会员状态</view>
-      </view>
-
-      <view class="subscription-detail-card">
-        <view class="subscription-header">
-          <view class="subscription-icon-container">
-            <text class="subscription-icon">{{subscriptionStatus.statusIcon}}</text>
-          </view>
-          <view class="subscription-info">
-            <view class="subscription-title" style="color: {{subscriptionStatus.statusColor}}">
-              {{subscriptionStatus.displayName}}
-            </view>
-            <view wx:if="{{subscriptionStatus.daysLeft > 0}}" class="subscription-expiry">
-              剩余 {{subscriptionStatus.daysLeft}} 天到期
-            </view>
-            <view wx:elif="{{subscriptionStatus.expiresAt}}" class="subscription-expiry expired">
-              会员已过期
-            </view>
-            <view wx:else class="subscription-expiry">
-              享受基础功能
-            </view>
-          </view>
-          <view wx:if="{{subscriptionStatus.showUpgrade}}" class="subscription-action">
-            <button class="btn-subscription-upgrade" bindtap="onUpgradeSubscription">升级</button>
-          </view>
-        </view>
-        
-        <view class="subscription-benefits">
-          <view class="benefits-title">可用功能</view>
-          <view class="benefits-grid">
-            <view wx:for="{{subscriptionStatus.features}}" wx:key="*this" class="benefit-item">
-              <text class="benefit-icon">✓</text>
-              <text class="benefit-text">{{item}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
 
     <!-- 我的内容 -->
     <view class="content-section">
@@ -182,7 +173,6 @@
           <view class="list-item-icon">📱</view>
           <view class="list-item-content">
             <view class="list-item-title">设备绑定</view>
-            <view class="list-item-subtitle">绑定智能设备与蓝牙音响</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -191,7 +181,6 @@
           <view class="list-item-icon">❤️</view>
           <view class="list-item-content">
             <view class="list-item-title">我的收藏</view>
-            <view class="list-item-subtitle">收藏的音频和评测</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -200,7 +189,6 @@
           <view class="list-item-icon">📥</view>
           <view class="list-item-content">
             <view class="list-item-title">我的下载</view>
-            <view class="list-item-subtitle">已下载的音频文件</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -209,7 +197,6 @@
           <view class="list-item-icon">🕒</view>
           <view class="list-item-content">
             <view class="list-item-title">播放历史</view>
-            <view class="list-item-subtitle">最近播放的音频</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -227,7 +214,6 @@
           <view class="list-item-icon">⚙️</view>
           <view class="list-item-content">
             <view class="list-item-title">设置</view>
-            <view class="list-item-subtitle">个性化设置和偏好</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -238,7 +224,6 @@
           <view class="list-item-icon">ℹ️</view>
           <view class="list-item-content">
             <view class="list-item-title">关于我们</view>
-            <view class="list-item-subtitle">版本 1.0.0</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -247,7 +232,6 @@
           <view class="list-item-icon">📄</view>
           <view class="list-item-content">
             <view class="list-item-title">用户协议</view>
-            <view class="list-item-subtitle">服务条款与使用协议</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>
@@ -256,7 +240,6 @@
           <view class="list-item-icon">🔒</view>
           <view class="list-item-content">
             <view class="list-item-title">隐私政策</view>
-            <view class="list-item-subtitle">隐私保护与数据安全</view>
           </view>
           <view class="list-item-action">▶</view>
         </view>

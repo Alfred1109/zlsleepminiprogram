@@ -2083,6 +2083,28 @@ Page({
   },
 
   /**
+   * 分享应用消息
+   */
+  onShareAppMessage() {
+    return {
+      title: 'AI疗愈音乐 - 个性化心理疗愈体验',
+      path: '/pages/index/index',
+      imageUrl: '/images/logo.png'
+    }
+  },
+
+  /**
+   * 分享到朋友圈
+   */
+  onShareTimeline() {
+    return {
+      title: 'AI疗愈音乐 - 个性化心理疗愈体验',
+      query: '',
+      imageUrl: '/images/logo.png'
+    }
+  },
+
+  /**
    * 🔧 强制刷新主题状态（用于解决跨页面同步问题）
    */
   forceRefreshTheme() {

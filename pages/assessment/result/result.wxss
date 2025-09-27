@@ -8,11 +8,11 @@
   background-color: #f7f9fc;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   min-height: 100vh;
-  padding-bottom: 40rpx;
+  padding-bottom: 180rpx;
 }
 
 .page-content {
-  padding: 0 32rpx;
+  padding: 0 32rpx 180rpx;
 }
 
 /* 加载动画 */

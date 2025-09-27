@@ -198,6 +198,12 @@ page {
   background-color: #F4F2F3; /* 使用主背景色 */
 }
 
+/* 确保container也适配底部菜单栏 */
+.container.page-with-tabbar {
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
 .container-theme {
   background-color: #C0A9BD;
 }

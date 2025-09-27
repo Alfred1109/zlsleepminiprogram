@@ -1,10 +1,5 @@
 <!-- pages/scene/list/list.wxml -->
 <view class="container">
-  <!-- 调试信息 -->
-  <view style="padding: 20rpx; background: yellow; margin: 20rpx; border-radius: 10rpx;">
-    <text>🧪 调试信息：scenes数量 = {{scenes.length}}</text>
-  </view>
-  
   <!-- 页面头部 -->
   <view class="page-header">
     <view class="header-content">

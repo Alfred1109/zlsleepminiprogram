@@ -14,6 +14,11 @@
       <image class="logo-image" src="/images/logo.png" mode="aspectFit" />
       <text class="logo-subtitle">AI疗愈脑波</text>
     </view>
+    <view class="header-actions">
+      <button class="share-btn" open-type="share">
+        <image class="share-icon" src="/images/share.svg" mode="aspectFit" />
+      </button>
+    </view>
   </view>
 
   <!-- 用户信息展示模块 -->
@@ -25,7 +30,7 @@
       </view>
       <view class="user-details">
         <text class="user-name">点击登录</text>
-        <text class="user-status">登录后享受个性化疗愈体验</text>
+        <text class="user-desc">登录后享受个性化疗愈体验</text>
       </view>
       <view class="user-action">
         <text class="action-arrow">→</text>
@@ -33,76 +38,79 @@
     </view>
 
     <!-- 已登录状态 -->
-    <view class="user-card" wx:else>
-      <view class="user-avatar">
-        <image class="avatar-image" 
-               src="{{userInfo.avatar || userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}" 
-               wx:if="{{userInfo.avatar || userInfo.avatarUrl || userInfo.avatar_url}}"
-               bind:error="onAvatarError"
-               mode="aspectFill" />
-        <text class="avatar-icon" wx:else>{{subscriptionStatus.statusIcon || '👤'}}</text>
-      </view>
-      <view class="user-details">
-        <text class="user-name">{{userInfo.nickname || userInfo.name || '用户'}}</text>
-        <view class="user-status">
-          <!-- 已订阅状态 -->
-          <text class="status-text subscribed" wx:if="{{unifiedStatus.isSubscribed}}" style="color: {{subscriptionStatus.statusColor}}">
-            {{subscriptionStatus.displayName}} · {{subscriptionStatus.description}}
-          </text>
-          <!-- 试用状态 -->
-          <text class="status-text trial" wx:elif="{{unifiedStatus.isInTrial}}" style="color: {{subscriptionStatus.statusColor}}">
-            {{subscriptionStatus.displayName}} · {{subscriptionStatus.description}}
-          </text>
-          <!-- 免费用户 -->
-          <text class="status-text free" wx:else>
-            {{subscriptionStatus.description || '免费版用户'}}
-          </text>
-          
-          <!-- 设备绑定状态 -->
-          <view class="device-status">
-            <view wx:if="{{loadingDeviceStatus}}" class="device-loading">
-              <text class="loading-text">检查设备状态...</text>
-            </view>
-            <view wx:elif="{{hasBindedDevice}}" class="device-bound-container">
-              <view class="device-info bound">
-                <image class="device-icon" src="/images/check.svg" mode="aspectFit" />
-                <text class="device-text">已绑定 {{bindedDeviceCount}} 台设备</text>
-              </view>
-              <view class="device-actions">
-                <view class="device-action-btn" bindtap="goToDeviceBinding">
-                  <text class="action-text">管理设备</text>
-                </view>
-                <view class="device-action-btn purchase" bindtap="goToPurchaseDevice">
-                  <text class="action-text">购买设备</text>
-                </view>
-              </view>
-            </view>
-            <view wx:else class="device-unbound-container">
-              <view class="device-info unbound" bindtap="goToDeviceBinding">
-                <image class="device-icon" src="/images/phone-icon.svg" mode="aspectFit" />
-                <text class="device-text">未绑定设备</text>
-                <text class="device-action">绑定设备 →</text>
-              </view>
-              <view class="device-purchase-prompt">
-                <view class="purchase-hint">
-                  <text class="hint-text">还没有疗愈设备？</text>
-                  <view class="purchase-btn" bindtap="goToPurchaseDevice">
-                    <image class="purchase-icon" src="/images/product-icon.svg" mode="aspectFit" />
-                    <text class="purchase-text">购买设备</text>
-                  </view>
-                </view>
-              </view>
-            </view>
+    <view class="user-card unified-card" wx:else>
+      <!-- 用户基本信息 -->
+      <view class="user-basic-info">
+        <view class="user-avatar">
+          <image class="avatar-image" 
+                 src="{{userInfo.avatar || userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}" 
+                 wx:if="{{userInfo.avatar || userInfo.avatarUrl || userInfo.avatar_url}}"
+                 bind:error="onAvatarError"
+                 mode="aspectFill" />
+          <text class="avatar-icon" wx:else>{{subscriptionStatus.statusIcon || '👤'}}</text>
+        </view>
+        <view class="user-details">
+          <text class="user-name">{{userInfo.nickname || userInfo.name || '用户'}}</text>
+          <text class="user-desc">欢迎回来，开始今日的疗愈之旅</text>
+        </view>
+        <!-- 订阅状态图标 -->
+        <view class="user-action">
+          <view class="status-badge" style="background-color: {{subscriptionStatus.statusColor}};">
+            <text class="status-icon">{{subscriptionStatus.statusIcon}}</text>
           </view>
         </view>
       </view>
-      <!-- 订阅引导按钮 -->
-      <view class="user-action" wx:if="{{subscriptionStatus.showUpgrade}}" bindtap="goToSubscription">
-        <text class="upgrade-text">升级</text>
+
+      <!-- 订阅状态区域 -->
+      <view class="subscription-section">
+        <view class="subscription-info">
+          <view class="subscription-status">
+            <text class="subscription-title">{{subscriptionStatus.displayName}}</text>
+            <text class="subscription-desc">{{subscriptionStatus.description}}</text>
+          </view>
+          <view class="subscription-action" wx:if="{{subscriptionStatus.showUpgrade}}" bindtap="goToSubscription">
+            <text class="upgrade-text">升级</text>
+          </view>
+        </view>
       </view>
-      <!-- 已订阅用户显示状态图标 -->
-      <view class="user-action" wx:else>
-        <text class="status-icon" style="color: {{subscriptionStatus.statusColor}}">{{subscriptionStatus.statusIcon}}</text>
+
+      <!-- 设备状态区域 -->
+      <view class="device-section">
+        <view class="device-header">
+          <image class="device-header-icon" src="/images/phone-icon.svg" mode="aspectFit" />
+          <text class="device-header-title">我的设备</text>
+        </view>
+        
+        <view class="device-content">
+          <!-- 加载状态 -->
+          <view wx:if="{{loadingDeviceStatus}}" class="device-loading">
+            <text class="loading-text">检查设备状态...</text>
+          </view>
+          
+          <!-- 已绑定设备 -->
+          <view wx:elif="{{hasBindedDevice}}" class="device-bound">
+            <view class="device-status-info">
+              <image class="device-status-icon" src="/images/check.svg" mode="aspectFit" />
+              <text class="device-status-text">已绑定 {{bindedDeviceCount}} 台设备</text>
+            </view>
+            <view class="device-actions">
+              <button class="device-btn secondary" bindtap="goToDeviceBinding">管理设备</button>
+              <button class="device-btn primary" bindtap="goToPurchaseDevice">购买更多</button>
+            </view>
+          </view>
+          
+          <!-- 未绑定设备 -->
+          <view wx:else class="device-unbound">
+            <view class="device-status-info">
+              <image class="device-status-icon" src="/images/phone-icon.svg" mode="aspectFit" />
+              <text class="device-status-text">暂未绑定设备</text>
+            </view>
+            <view class="device-actions">
+              <button class="device-btn secondary" bindtap="goToDeviceBinding">绑定设备</button>
+              <button class="device-btn primary" bindtap="goToPurchaseDevice">购买设备</button>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
@@ -137,34 +145,11 @@
 
 
 
-  <!-- 精选商品推荐 -->
+  <!-- 疗愈商品推荐 -->
   <view class="section-header">
-    <text class="section-title">精选商品</text>
+    <text class="section-title">疗愈商品</text>
     <view class="section-actions">
       <view class="section-more" bindtap="goToProductList">查看全部</view>
-    </view>
-  </view>
-  
-  <!-- 商品卡片 -->
-  <view class="product-showcase">
-    <view class="product-card" bindtap="goToProductList">
-      <view class="product-icon">
-        <text class="product-emoji">🛍️</text>
-      </view>
-      <view class="product-info">
-        <text class="product-title">疗愈产品</text>
-        <text class="product-desc">精选实物商品，提升疗愈体验</text>
-      </view>
-      <view class="product-arrow">→</view>
-    </view>
-  </view>
-
-  <!-- 场景使用提示 -->
-  <view class="usage-tip">
-    <view class="tip-icon">🎯</view>
-    <view class="tip-content">
-      <text class="tip-title">开始您的疗愈之旅</text>
-      <text class="tip-desc">点击场景卡片，查看评测记录并开始个性化疗愈</text>
     </view>
   </view>
 </view>

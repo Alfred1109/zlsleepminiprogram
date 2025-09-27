@@ -401,7 +401,7 @@
 /* 快速操作 */
 .quick-actions {
   position: fixed;
-  bottom: 200rpx;
+  bottom: calc(220rpx + env(safe-area-inset-bottom));
   right: 32rpx;
   display: flex;
   flex-direction: column;

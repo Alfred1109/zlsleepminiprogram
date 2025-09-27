@@ -570,6 +570,17 @@ Page({
   },
 
   /**
+   * 分享到朋友圈
+   */
+  onShareTimeline() {
+    return {
+      title: `AI疗愈心理评测 - 我的得分：${this.data.assessment?.total_score || 0}分`,
+      query: '',
+      imageUrl: '/images/share-result.png'
+    }
+  },
+
+  /**
    * 🔧 新增：检查场景上下文
    */
   checkSceneContext() {

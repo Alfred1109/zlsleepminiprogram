@@ -7,11 +7,6 @@
   bind:themechange="onThemeChange"
 />
 <view class="page-container page-with-tabbar {{themeClass}}">
-  <!-- 页面标题 -->
-  <view class="page-header">
-    <view class="page-title">心理评测</view>
-    <view class="page-subtitle">了解您的心理状态，获得个性化疗愈</view>
-  </view>
 
   <!-- 场景状态指示器 -->
   <view wx:if="{{isInSceneMode}}" class="scene-indicator">

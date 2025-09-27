@@ -196,6 +196,10 @@
           <view class="btn-icon">📤</view>
           <text>分享结果</text>
         </button>
+        <button class="action-btn outline-btn" open-type="timeline">
+          <view class="btn-icon">🌐</view>
+          <text>朋友圈</text>
+        </button>
       </view>
     </view>
 

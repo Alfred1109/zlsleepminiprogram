@@ -7,12 +7,6 @@
   bind:themechange="onThemeChange"
 />
 <view class="page-container page-with-tabbar {{themeClass}}">
-  <!-- 页面标题 -->
-  <view class="page-header">
-    <view class="header-icon">🎵</view>
-    <view class="page-title">AI音乐生成</view>
-    <view class="page-subtitle">基于您的心理评测结果，生成个性化疗愈音乐</view>
-  </view>
 
   <!-- 页面内容 -->
   <view class="page-content">

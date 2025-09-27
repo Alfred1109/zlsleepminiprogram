@@ -594,6 +594,20 @@ Page({
   },
 
   /**
+   * 跳转到评测历史页面
+   */
+  goToAssessmentHistory() {
+    if (!AuthService.isLoggedIn()) {
+      this.showLoginTip()
+      return
+    }
+
+    wx.navigateTo({
+      url: '/pages/assessment/history/history'
+    })
+  },
+
+  /**
    * 查看音乐库
    */
   onViewMusicLibrary() {

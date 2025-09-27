@@ -41,10 +41,10 @@
 .tab-container {
   display: flex;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
+  border-radius: 24rpx;
   padding: 8rpx;
   margin: 0 24rpx 32rpx;
-  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
   border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
@@ -105,10 +105,10 @@
   justify-content: center;
   padding: 100rpx 40rpx;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
-  margin: 20rpx;
-  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  border-radius: 24rpx;
+  margin: 0 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
 .loading-spinner {
@@ -131,9 +131,14 @@
   100% { transform: rotate(360deg); }
 }
 
+/* 页面内容区域 */
+.page-content {
+  padding-bottom: 180rpx;
+}
+
 /* 内容容器 */
 .content-container {
-  padding: 20rpx;
+  padding: 0;
   min-height: 1034rpx;
 }
 
@@ -143,10 +148,10 @@
   padding: 100rpx 40rpx;
   color: #2c3e50;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
-  margin: 20rpx;
-  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  border-radius: 24rpx;
+  margin: 0 24rpx 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
 .empty-icon {
@@ -436,7 +441,7 @@
 /* 浮动操作按钮 */
 .fab-container {
   position: fixed;
-  bottom: 100rpx;
+  bottom: calc(180rpx + env(safe-area-inset-bottom));
   right: 40rpx;
   z-index: 100;
 }
@@ -473,9 +478,9 @@
 .subscription-status-card {
   margin: 0 24rpx 32rpx;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
-  padding: 32rpx;
-  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.12);
   border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
@@ -568,7 +573,7 @@
 .scene-indicator {
   margin: 0 24rpx 32rpx;
   /* 背景由主题系统控制，移除硬编码颜色 */
-  border-radius: 20rpx;
+  border-radius: 24rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8rpx 32rpx rgba(43, 186, 165, 0.15);
   overflow: hidden;

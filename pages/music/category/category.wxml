@@ -7,11 +7,6 @@
   bind:themechange="onThemeChange"
 />
 <view class="page-container {{themeClass}}">
-  <!-- 页面标题 -->
-  <view class="page-header">
-    <view class="page-header-title">{{categoryName}}</view>
-    <view class="page-header-subtitle">探索这个分类下的疗愈音乐</view>
-  </view>
 
   <!-- 页面内容 -->
   <view class="page-content">
