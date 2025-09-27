@@ -2,6 +2,7 @@
 const app = getApp()
 const util = require('../../utils/util.js')
 const { unifiedMusicManager } = require('../../utils/unifiedMusicManager')
+const imageHandler = require('../../utils/imageHandler')
 const AuthService = require('../../services/AuthService')
 const { getCurrentConfig } = require('../../utils/config')
 const { MusicAPI, LongSequenceAPI } = require('../../utils/healingApi')
@@ -16,6 +17,7 @@ Page({
     themeConfig: null,
     isLoggedIn: false,
     userInfo: null,
+    safeAvatarUrl: '/images/default-avatar.svg',
     selectedCategory: 1,
     sounds: [],
     
@@ -358,7 +360,8 @@ Page({
       // 更新页面数据
       this.setData({
         isLoggedIn: loggedIn,
-        userInfo: userInfo
+        userInfo: userInfo,
+        safeAvatarUrl: imageHandler.getSafeAvatarUrl(userInfo)
       });
 
       // 如果已登录，加载订阅状态
@@ -379,6 +382,7 @@ Page({
       this.setData({
         isLoggedIn: false,
         userInfo: null,
+        safeAvatarUrl: '/images/default-avatar.svg',
         subscriptionStatus: null,
         unifiedStatus: null
       });
@@ -2173,7 +2177,8 @@ Page({
     userInfo.avatar_url = '/images/default-avatar.svg'
     
     this.setData({
-      userInfo: userInfo
+      userInfo: userInfo,
+      safeAvatarUrl: '/images/default-avatar.svg'
     })
     
     console.log('🔄 首页已切换到默认头像')

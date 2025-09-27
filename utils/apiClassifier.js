@@ -76,6 +76,7 @@ const PRIVATE_APIS = [
   '/api/music/user_music',
   '/api/music/user_long_sequences',
   '/api/music/long_sequence_status',
+  '/api/music/long_sequence_progress/',
   '/api/music/generate',
   '/api/music/long_sequence',
   '/api/music/create_long_sequence',  // 🔧 修复：添加创建长序列API

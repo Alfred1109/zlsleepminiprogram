@@ -35,6 +35,10 @@ Page({
     sceneHint: ''
   },
 
+  // 轮询相关（不放到data避免频繁setData）
+  __progressTimer: null,
+  __progressSessionId: null,
+
   onLoad(options) {
     console.log('长序列创建页面加载', options)
     
@@ -465,27 +469,11 @@ Page({
       }
       
       if (result.success) {
-        this.setData({ 
-          sessionResult: result.data,
-          generationProgress: 100,
-          currentPhase: '生成完成'
-        })
-        
-        const successMessage = selectionMode === 'single'
-          ? '长序列生成成功'
-          : `综合${selectedAssessments.length}个评测的长序列生成成功`
-          
-        wx.showToast({
-          title: successMessage,
-          icon: 'success'
-        })
-
-        // 跳转到播放页面
-        setTimeout(() => {
-          wx.redirectTo({
-            url: `/pages/longSequence/player/player?sessionId=${result.data.session_id}`
-          })
-        }, 2000)
+        // 启动进度轮询，直至完成
+        const sessionId = result.data.session_id
+        this.__progressSessionId = sessionId
+        this.setData({ sessionResult: result.data })
+        this.startProgressPolling(sessionId)
       } else {
         throw new Error(result.error || '生成失败')
       }
@@ -503,9 +491,72 @@ Page({
           }
         }
       })
+      // 错误时结束“生成中”状态，避免0%长时间停留
+      this.setData({ generating: false, currentPhase: '生成失败' })
     } finally {
-      this.setData({ generating: false })
+      // 在进度轮询结束前保持 generating=true
     }
+  },
+
+  /**
+   * 启动进度轮询
+   */
+  startProgressPolling(sessionId) {
+    if (!sessionId) return
+    // 先清理旧的
+    this.stopProgressPolling()
+
+    const pollOnce = async () => {
+      try {
+        const res = await LongSequenceAPI.getLongSequenceProgress(sessionId)
+        if (res && res.success && res.data) {
+          const data = res.data
+          // 兼容字段
+          const percentage = data.progress?.percentage ?? data.progress_percentage ?? 0
+          const phase = data.progress?.phase_display || data.progress?.phase || data.phase || ''
+          const isCompleted = data.progress?.is_completed === true || data.status === 'completed'
+
+          this.setData({
+            generationProgress: Math.max(0, Math.min(100, Math.round(percentage))),
+            currentPhase: phase || this.data.currentPhase || '处理中...'
+          })
+
+          if (isCompleted) {
+            this.stopProgressPolling()
+            this.setData({ generating: false, currentPhase: '生成完成', generationProgress: 100 })
+            wx.showToast({ title: '长序列生成成功', icon: 'success' })
+            wx.redirectTo({ url: `/pages/longSequence/player/player?sessionId=${sessionId}` })
+            return
+          }
+        }
+      } catch (e) {
+        console.warn('获取进度失败，稍后重试:', e.message || e)
+      }
+
+      // 继续下一次
+      this.__progressTimer = setTimeout(pollOnce, 1500)
+    }
+
+    // 立即执行一次
+    pollOnce()
+  },
+
+  /**
+   * 停止进度轮询
+   */
+  stopProgressPolling() {
+    if (this.__progressTimer) {
+      clearTimeout(this.__progressTimer)
+      this.__progressTimer = null
+    }
+  },
+
+  onHide() {
+    this.stopProgressPolling()
+  },
+
+  onUnload() {
+    this.stopProgressPolling()
   },
 
   /**

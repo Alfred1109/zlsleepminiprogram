@@ -204,13 +204,13 @@ const MusicAPI = {
     }
     
     // 🔧 适配后端新接口：发送scene_id而不是scene_context对象
-    if (options.sceneContext && options.sceneContext.sceneId) {
+    if (options.sceneContext && options.sceneContext.sceneId != null) {
       requestData.scene_id = options.sceneContext.sceneId
       console.log('🎯 60秒音乐生成传递场景ID:', requestData.scene_id)
     } else {
-      console.log('ℹ️ 60秒音乐生成无场景上下文，使用默认场景ID: 1')
-      // 🔧 修复：当没有场景上下文时，使用默认场景ID
-      requestData.scene_id = 1
+      console.log('ℹ️ 60秒音乐生成无场景上下文，使用默认场景ID: 0')
+      // 默认场景为0，避免与业务场景冲突
+      requestData.scene_id = 0
     }
     
     // 添加默认时长参数（后端可能需要）
@@ -516,13 +516,13 @@ const LongSequenceAPI = {
     }
     
     // 🔧 适配后端新接口：发送scene_id而不是scene_context对象
-    if (options.sceneContext && options.sceneContext.sceneId) {
+    if (options.sceneContext && options.sceneContext.sceneId != null) {
       requestData.scene_id = options.sceneContext.sceneId
       console.log('🎯 长序列生成传递场景ID:', requestData.scene_id)
     } else {
-      console.log('ℹ️ 长序列生成无场景上下文，使用默认场景ID: 1')
-      // 🔧 修复：当没有场景上下文时，使用默认场景ID
-      requestData.scene_id = 1
+      console.log('ℹ️ 长序列生成无场景上下文，使用默认场景ID: 0')
+      // 默认场景为0，避免与业务场景冲突
+      requestData.scene_id = 0
     }
     
     // 如果有多选参数，添加综合生成相关字段
@@ -547,7 +547,8 @@ const LongSequenceAPI = {
         })
         return post('/api/music/create_long_sequence', requestData, {
           loadingText: '正在生成长序列音乐...',
-          timeout: 180000
+          timeout: 180000,
+          showLoading: false // 使用页面内进度条，关闭全局遮罩
         })
       }
 
@@ -575,7 +576,8 @@ const LongSequenceAPI = {
     
     return post('/api/music/create_long_sequence', requestData, {
       loadingText: options.mode === 'comprehensive' ? '正在综合分析生成长序列...' : '正在生成长序列音乐...',
-      timeout: 180000 // 综合生成长序列需要更长时间，调整为3分钟
+      timeout: 180000, // 综合生成长序列需要更长时间，调整为3分钟
+      showLoading: false // 使用页面内进度条，关闭全局遮罩
     }).then(response => {
       console.log('🎶 长序列创建API响应 success:', response?.success)
       
@@ -640,6 +642,25 @@ const LongSequenceAPI = {
       console.error('❌ 长序列状态查询请求失败:', error)
       console.error('❌ 会话ID:', sessionId)
       throw error
+    })
+  },
+
+  /**
+   * 获取长序列实时进度
+   */
+  getLongSequenceProgress(sessionId) {
+    // 与后端新接口对齐：GET /api/music/long_sequence_progress/<session_id>
+    return get(`/api/music/long_sequence_progress/${sessionId}`).then(response => {
+      // 保持日志克制，只输出关键字段
+      if (response && response.success && response.data && response.data.progress) {
+        const p = response.data.progress
+        console.log('📊 长序列进度:', {
+          segment: `${p.current_segment}/${p.total_segments}`,
+          percentage: p.percentage,
+          phase: p.phase
+        })
+      }
+      return response
     })
   },
 

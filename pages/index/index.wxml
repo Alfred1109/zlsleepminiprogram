@@ -43,11 +43,9 @@
       <view class="user-basic-info">
         <view class="user-avatar">
           <image class="avatar-image" 
-                 src="{{userInfo.avatar || userInfo.avatarUrl || userInfo.avatar_url || '/images/default-avatar.svg'}}" 
-                 wx:if="{{userInfo.avatar || userInfo.avatarUrl || userInfo.avatar_url}}"
+                 src="{{safeAvatarUrl}}"
                  bind:error="onAvatarError"
                  mode="aspectFill" />
-          <text class="avatar-icon" wx:else>{{subscriptionStatus.statusIcon || '👤'}}</text>
         </view>
         <view class="user-details">
           <text class="user-name">{{userInfo.nickname || userInfo.name || '用户'}}</text>

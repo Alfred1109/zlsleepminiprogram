@@ -641,10 +641,8 @@ Page({
         duration_seconds: 60
       };
       
-      // 🔧 确保scene_id传递
-      if (sceneId) {
-        generateParams.scene_id = sceneId;
-      }
+      // 🔧 确保scene_id传递：无场景时默认为0，避免与业务场景冲突
+      generateParams.scene_id = (sceneId != null) ? sceneId : 0;
       
       // 根据模式添加额外参数
       if (selectionMode === 'multiple' || assessmentIds.length > 1) {
@@ -652,7 +650,7 @@ Page({
         generateParams.generation_mode = 'comprehensive';
       }
       
-      if (isFromSceneHistory && sceneId) {
+      if (isFromSceneHistory && sceneId != null) {
         generateParams.scene_context = {
           sceneId: sceneId,
           source: 'history'

@@ -116,6 +116,13 @@
   font-weight: bold;
 }
 
+.progress-eta {
+  margin-top: 8rpx;
+  text-align: center;
+  font-size: 24rpx;
+  opacity: 0.8;
+}
+
 .generation-tips {
   width: 100%;
 }

@@ -5,6 +5,7 @@
 // -------------------------------------------
 
 const EventEmitter = require('../utils/eventEmitter')
+const imageHandler = require('../utils/imageHandler')
 
 class AuthService {
   constructor() {
@@ -72,6 +73,18 @@ class AuthService {
           wx.setStorageSync(this.keys.userInfo, userInfo)
         }
       }
+      // 运行一次头像字段规范化迁移，防止历史tmp链接残留
+      if (userInfo) {
+        const normalized = this.normalizeUser(userInfo)
+        // 如有变化，写回存储
+        try {
+          if (JSON.stringify(normalized) !== JSON.stringify(userInfo)) {
+            wx.setStorageSync(this.keys.userInfo, normalized)
+            wx.setStorageSync('userInfo', normalized)
+            userInfo = normalized
+          }
+        } catch (_) {}
+      }
       return userInfo || null
     } catch (error) {
       console.error('获取用户信息失败:', error)
@@ -81,9 +94,10 @@ class AuthService {
 
   setCurrentUser(userInfo) {
     try {
-      wx.setStorageSync(this.keys.userInfo, userInfo)
+      const normalized = this.normalizeUser(userInfo)
+      wx.setStorageSync(this.keys.userInfo, normalized)
       // 同时保存到 userInfo key 以保证兼容性
-      wx.setStorageSync('userInfo', userInfo)
+      wx.setStorageSync('userInfo', normalized)
     } catch (error) {
       console.error('保存用户信息失败:', error)
     }
@@ -96,6 +110,37 @@ class AuthService {
     const user = this.getCurrentUser()
     const token = this.getAccessToken()
     return !!(user && token && !this.isTokenExpired(token))
+  }
+
+  /**
+   * 规范化用户对象中的头像字段，杜绝 tmp/__tmp__/wxfile 本地路径
+   */
+  normalizeUser(user) {
+    if (!user || typeof user !== 'object') return user
+    const cloned = { ...user }
+    const avatarCandidates = [cloned.avatar_url, cloned.avatarUrl, cloned.avatar]
+
+    const pickValid = (url) => {
+      if (!url || typeof url !== 'string') return null
+      const lower = url.toLowerCase()
+      const isTmp = lower.startsWith('tmp') || lower.includes('__tmp__') || lower.startsWith('wxfile://') || lower.startsWith('http://tmp')
+      if (isTmp) return null
+      return imageHandler.isValidImageUrl(url) ? url : null
+    }
+
+    let safe = null
+    for (const c of avatarCandidates) {
+      const v = pickValid(c)
+      if (v) { safe = v; break }
+    }
+    if (!safe) {
+      safe = '/images/default-avatar.svg'
+    }
+
+    cloned.avatar = safe
+    cloned.avatarUrl = safe
+    cloned.avatar_url = safe
+    return cloned
   }
 
   // 检查token是否过期
@@ -357,27 +402,43 @@ class AuthService {
   // 为请求添加认证头
   async addAuthHeader(headers = {}) {
     try {
-      // 避免过度日志
+      // 检查用户登录状态
+      const currentUser = this.getCurrentUser()
+      console.log('🔍 认证头添加 - 用户状态:', {
+        hasUser: !!currentUser,
+        userId: currentUser?.id || currentUser?.user_id || 'none',
+        username: currentUser?.username || 'none'
+      })
+
       const token = await this.ensureValidToken()
-      // 仅在需要时打印简要信息
       
-      // 临时调试：检查token完整性
-      console.log('🔍 Token调试信息:', {
+      // 详细的token调试信息
+      console.log('🔍 Token详细调试信息:', {
+        tokenExists: !!token,
         tokenLength: token ? token.length : 0,
         tokenStart: token ? token.substring(0, 50) : 'none',
-        tokenEnd: token ? token.substring(token.length - 20) : 'none'
+        tokenEnd: token ? token.substring(token.length - 20) : 'none',
+        isValidFormat: token ? token.split('.').length === 3 : false
       })
       
       if (token) {
         const authHeaders = { ...headers, Authorization: `Bearer ${token}` }
-        console.log('✅ 认证头添加成功')
+        console.log('✅ 认证头添加成功，完整认证头:', {
+          authHeaderLength: authHeaders.Authorization.length,
+          authHeaderStart: authHeaders.Authorization.substring(0, 30)
+        })
         return authHeaders
       }
       
       console.warn('⚠️ 没有可用的token，使用原始headers')
       return headers
     } catch (error) {
-      console.error('❌ 添加认证头失败:', error.message, error)
+      console.error('❌ 添加认证头失败:', {
+        errorMessage: error.message,
+        errorStack: error.stack,
+        currentUser: this.getCurrentUser(),
+        hasStoredToken: !!this.getAccessToken()
+      })
       throw error // 让调用者决定如何处理
     }
   }

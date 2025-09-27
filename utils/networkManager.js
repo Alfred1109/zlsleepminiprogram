@@ -117,6 +117,19 @@ class NetworkManager {
       finalTimeout: timeout
     })
     
+    // 🔍 调试：记录请求详情（特别是认证头）
+    if (options.url && options.url.includes('create_long_sequence')) {
+      console.log('🔍 长序列请求调试信息:', {
+        url: options.url,
+        method: options.method,
+        hasAuthHeader: !!(options.header && options.header.Authorization),
+        authHeaderValue: options.header && options.header.Authorization ? 
+          options.header.Authorization.substring(0, 30) + '...' : 'none',
+        fullHeaders: options.header,
+        dataKeys: options.data ? Object.keys(options.data) : 'none'
+      })
+    }
+
     // 创建请求
     const requestTask = wx.request({
       ...options,
@@ -125,6 +138,19 @@ class NetworkManager {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res)
         } else {
+          // 🔍 调试：记录失败响应详情
+          if (options.url && options.url.includes('create_long_sequence')) {
+            console.log('🔍 长序列请求失败详情:', {
+              statusCode: res.statusCode,
+              responseData: res.data,
+              responseHeaders: res.header,
+              fullResponse: res
+            })
+            // 特别输出具体的错误信息
+            if (res.data) {
+              console.log('🔍 服务器返回的具体错误:', JSON.stringify(res.data, null, 2))
+            }
+          }
           this.handleRequestError(res, options, resolve, reject, retryCount)
         }
       },

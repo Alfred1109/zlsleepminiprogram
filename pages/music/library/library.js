@@ -146,31 +146,23 @@ Page({
     }
     
     try {
-      // 使用映射服务过滤60秒脑波
-      const musicFilterPromises = musicList.map(music => 
-        sceneMappingService.isMusicMatchingScene(
-          music,
-          sceneContext.sceneId,
-          sceneContext.sceneName
-        )
-      )
-      
-      // 使用映射服务过滤疗愈脑波
-      const longSequenceFilterPromises = longSequenceList.map(sequence => 
-        sceneMappingService.isMusicMatchingScene(
-          sequence,
-          sceneContext.sceneId,
-          sceneContext.sceneName
-        )
-      )
-      
-      const [musicMatchResults, longSequenceMatchResults] = await Promise.all([
-        Promise.all(musicFilterPromises),
-        Promise.all(longSequenceFilterPromises)
-      ])
-      
-      const filteredMusic = musicList.filter((music, index) => musicMatchResults[index])
-      const filteredLongSequence = longSequenceList.filter((sequence, index) => longSequenceMatchResults[index])
+      // 简化：严格使用 scene_id 等字段过滤；无 scene_id 的条目直接排除
+      const matchesSceneId = (item, targetSceneId) => {
+        const candidateIds = [
+          item.scene_id,
+          item.sceneId,
+          item.session_scene_id,
+          item.scene?.id,
+          item.scene_context?.sceneId,
+          item.metadata?.scene_id,
+          item.assessment_info?.scene_id
+        ].filter(v => v !== undefined && v !== null)
+        if (candidateIds.length === 0) return false
+        return candidateIds.some(v => parseInt(v) === parseInt(targetSceneId))
+      }
+
+      const filteredMusic = musicList.filter(m => matchesSceneId(m, sceneContext.sceneId))
+      const filteredLongSequence = longSequenceList.filter(s => matchesSceneId(s, sceneContext.sceneId))
       
       this.setData({ 
         filteredMusicList: filteredMusic,
@@ -188,8 +180,8 @@ Page({
     } catch (error) {
       console.error('❌ 场景脑波过滤失败，显示所有脑波:', error)
       this.setData({ 
-        filteredMusicList: musicList,
-        filteredLongSequenceList: longSequenceList
+        filteredMusicList: [],
+        filteredLongSequenceList: []
       })
     }
   },
