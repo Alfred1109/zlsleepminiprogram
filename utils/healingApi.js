@@ -684,16 +684,6 @@ const LongSequenceAPI = {
     return get(`/api/music/user_long_sequences/${userId}`)
   },
 
-  /**
-   * 检查长序列音频文件是否存在
-   */
-  checkLongSequenceFile(sessionId) {
-    return get(`/api/music/check_long_sequence_file/${sessionId}`).catch(error => {
-      console.warn('检查长序列文件失败:', error)
-      // 如果接口不存在，返回假设存在的默认结果
-      return { success: true, data: { exists: true } }
-    })
-  },
 
   /**
    * 删除长序列音乐

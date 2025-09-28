@@ -352,7 +352,7 @@ Component({
       try {
         wx.showLoading({ title: '刷新播放链接...' })
         
-        const { MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
+        const { MusicAPI, LongSequenceAPI } = require('../../utils/healingApi')
         let newUrl = null
         
         // 根据音频类型选择不同的刷新策略
@@ -466,22 +466,9 @@ Component({
         }
       }
 
-      // 🔍 对长序列音频进行预检查
+      // 🔍 长序列音频直接播放（移除文件检查，因为后端API不存在）
       if (trackInfo.type === 'longSequence' && trackInfo.sessionId) {
-        console.log('🔍 检测到长序列音频，进行文件状态预检查')
-        try {
-          // 异步检查文件状态，但不阻塞播放
-          const { LongSequenceAPI } = require('../../../utils/healingApi')
-          LongSequenceAPI.checkLongSequenceFile(trackInfo.sessionId).then(result => {
-            if (!result.success || !result.data.exists) {
-              console.warn('⚠️ 长序列文件可能不存在，但仍然尝试播放')
-            }
-          }).catch(error => {
-            console.warn('长序列文件检查失败:', error)
-          })
-        } catch (error) {
-          console.warn('长序列文件检查异常:', error)
-        }
+        console.log('🔍 检测到长序列音频，直接播放')
       }
 
       const { globalPlayer } = this.data
