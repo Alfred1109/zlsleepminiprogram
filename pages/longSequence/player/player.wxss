@@ -10,6 +10,8 @@
   min-height: 100vh;
   padding: 40rpx 0;
   box-sizing: border-box;
+  /* 底部安全距离，防止被菜单栏遮挡 */
+  padding-bottom: calc(40rpx + 140rpx + env(safe-area-inset-bottom));
 }
 
 .page-content {

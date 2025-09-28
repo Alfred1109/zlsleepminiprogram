@@ -36,6 +36,10 @@ class MusicPlayer {
     }
 
     this.audioContext = wx.createInnerAudioContext()
+    
+    // 🔧 关键修复：使用原生播放器而不是WebAudio
+    this.audioContext.useWebAudioAPI = false
+    
     this.setupEventListeners()
     
     // 设置默认音量
@@ -90,7 +94,17 @@ class MusicPlayer {
     // 时间更新
     this.audioContext.onTimeUpdate(() => {
       this.currentTime = this.audioContext.currentTime
-      this.duration = this.audioContext.duration
+      
+      // 🔧 修复：只有当音频上下文能提供有效时长时才更新
+      if (this.audioContext.duration && !isNaN(this.audioContext.duration)) {
+        this.duration = this.audioContext.duration
+      } else if (!this.duration || this.duration <= 0) {
+        // 如果预设时长也无效，尝试从当前音乐对象获取
+        if (this.currentMusic && this.currentMusic.duration > 0) {
+          this.duration = this.currentMusic.duration
+        }
+      }
+      
       this.updateGlobalState()
       this.emit('timeUpdate', {
         currentTime: this.currentTime,
@@ -101,7 +115,22 @@ class MusicPlayer {
     // 音频数据加载完成
     this.audioContext.onCanplay(() => {
       console.log('🎵 音频事件: 可以播放 (onCanplay)')
-      console.log('🎵 音频时长:', this.audioContext.duration, '秒')
+      console.log('🎵 音频上下文时长:', this.audioContext.duration, '秒')
+      
+      // 🔧 修复：更新时长信息
+      if (this.audioContext.duration && !isNaN(this.audioContext.duration)) {
+        this.duration = this.audioContext.duration
+        console.log('🎵 使用音频上下文时长:', this.duration, '秒')
+      } else if (this.currentMusic && this.currentMusic.duration > 0) {
+        this.duration = this.currentMusic.duration
+        console.log('🎵 音频上下文时长无效，使用预设时长:', this.duration, '秒')
+      }
+      
+      // 清除加载超时检测
+      if (this._loadTimeout) {
+        clearTimeout(this._loadTimeout)
+        this._loadTimeout = null
+      }
     })
     
     // 音频缓冲等待
@@ -115,6 +144,12 @@ class MusicPlayer {
       
       this.isPlaying = false
       this.updateGlobalState()
+      
+      // 清除加载超时检测
+      if (this._loadTimeout) {
+        clearTimeout(this._loadTimeout)
+        this._loadTimeout = null
+      }
       
       // 🔄 检测需要刷新URL的错误类型
       const needsUrlRefresh = this.shouldRefreshUrl(err, this.currentMusic)
@@ -158,9 +193,40 @@ class MusicPlayer {
     this.audioContext.src = finalSrc
     this.currentTime = 0
     this._retryCount = 0 // 重置重试计数器
+    
+    // 🔧 修复：预设音频时长（解决流式播放时长NaN问题）
+    if (music.duration && music.duration > 0) {
+      console.log('🎵 使用预设时长:', music.duration, '秒')
+      this.duration = music.duration
+    } else {
+      this.duration = 0 // 等待onCanplay或onTimeUpdate更新
+    }
+    
     this.updateGlobalState()
     
     console.log('加载音乐:', music.title)
+    console.log('🔍 音频URL:', finalSrc)
+    
+    // 添加加载超时检测
+    this._loadTimeout = setTimeout(() => {
+      if (this.duration === 0 && this.currentTime === 0) {
+        console.warn('⚠️ 音频加载超时，可能URL无效或网络问题')
+        console.warn('⚠️ 问题URL:', finalSrc)
+        
+        // 🔍 对流式API进行简单测试
+        if (finalSrc.includes('/api/music/long_sequence_stream/')) {
+          console.warn('🔍 检测到流式API，进行连通性测试...')
+          this.testStreamingApi(finalSrc)
+        }
+        
+        // 触发错误处理
+        this.emit('error', {
+          errMsg: '音频加载超时',
+          errCode: 'LOAD_TIMEOUT',
+          src: finalSrc
+        })
+      }
+    }, 5000) // 5秒超时
   }
 
   /**
@@ -218,26 +284,91 @@ class MusicPlayer {
    * 🌊 构建流式播放URL
    */
   buildStreamUrl(music) {
-    // 如果已有流式URL，直接使用
-    if (music.stream_url) {
-      return music.stream_url
-    }
-
     const app = getApp()
     const baseUrl = app.globalData.apiBaseUrl || 'https://medsleep.cn'
     
-    // 如果是长序列音频
-    if (music.sessionId) {
-      return `${baseUrl}/api/music/long_sequence_stream/${music.sessionId}`
+    // 🔧 优先使用后端提供的流式URL
+    if (music.stream_url) {
+      // 如果是相对路径，构建完整URL
+      if (music.stream_url.startsWith('/')) {
+        const fullStreamUrl = `${baseUrl}${music.stream_url}`
+        console.log('🌊 使用后端流式URL:', fullStreamUrl)
+        return fullStreamUrl
+      }
+      // 如果已经是完整URL，直接使用
+      console.log('🌊 使用后端完整流式URL:', music.stream_url)
+      return music.stream_url
     }
     
-    // 如果是静态文件
+    // 🔧 回退：如果是长序列音频但没有提供stream_url
+    if (music.sessionId) {
+      const fallbackUrl = `${baseUrl}/api/music/long_sequence_stream/${music.sessionId}`
+      console.log('🌊 使用回退流式URL:', fallbackUrl)
+      return fallbackUrl
+    }
+    
+    // 🔧 回退：如果是静态文件
     if (music.src && music.src.startsWith('/static/')) {
       const filePath = music.src.substring(1) // 移除开头的'/'
-      return `${baseUrl}/api/music/stream/${filePath}`
+      const staticStreamUrl = `${baseUrl}/api/music/stream/${filePath}`
+      console.log('🌊 使用静态文件流式URL:', staticStreamUrl)
+      return staticStreamUrl
     }
     
+    console.log('🌊 无法构建流式URL，使用原始URL:', music.src)
     return music.src // 回退到原始URL
+  }
+
+  /**
+   * 🔍 测试流式API连通性
+   */
+  async testStreamingApi(streamUrl) {
+    try {
+      console.log('🔍 开始测试流式API:', streamUrl)
+      
+      // 获取认证头
+      const AuthService = require('../services/AuthService')
+      let headers = { 'Content-Type': 'application/json' }
+      
+      if (AuthService.isLoggedIn()) {
+        try {
+          headers = await AuthService.addAuthHeader(headers)
+          console.log('🔍 已添加认证头')
+        } catch (error) {
+          console.warn('🔍 获取认证头失败:', error)
+        }
+      }
+      
+      // 发送HEAD请求测试API
+      wx.request({
+        url: streamUrl,
+        method: 'HEAD',
+        header: headers,
+        timeout: 10000,
+        success: (res) => {
+          console.log('🔍 流式API测试结果:', {
+            statusCode: res.statusCode,
+            headers: res.header,
+            contentType: res.header['content-type'] || res.header['Content-Type']
+          })
+          
+          if (res.statusCode === 200) {
+            console.log('✅ 流式API可访问')
+          } else if (res.statusCode === 401) {
+            console.warn('🔐 流式API需要认证，但认证失败')
+          } else if (res.statusCode === 404) {
+            console.warn('❌ 流式API不存在 (404)')
+          } else {
+            console.warn('⚠️ 流式API返回异常状态:', res.statusCode)
+          }
+        },
+        fail: (err) => {
+          console.error('❌ 流式API连通性测试失败:', err)
+        }
+      })
+    } catch (error) {
+      console.error('❌ 流式API测试异常:', error)
+    }
   }
 
   /**
@@ -283,6 +414,14 @@ class MusicPlayer {
       if (this.currentMusic.src && this.currentMusic.src.includes('long_sequence')) {
         console.warn('⚠️ 长序列音频文件较大，可能需要更长的加载时间')
       }
+      
+      // 🔍 立即测试流式API（如果是流式URL）
+      if (this.currentMusic.src && this.currentMusic.src.includes('/api/music/long_sequence_stream/')) {
+        console.log('🔍 立即测试流式API连通性...')
+        setTimeout(() => {
+          this.testStreamingApi(this.currentMusic.src)
+        }, 100) // 100ms后测试，不阻塞播放
+      }
       this.lastPlayedMusic = this.currentMusic.title
     }
     
@@ -299,8 +438,21 @@ class MusicPlayer {
           src: this.audioContext.src
         })
         
-        if (!this.isPlaying && this.currentMusic && !this._refreshing) {
+        // 检查音频是否真正在播放：
+        // 1. 状态显示未播放，或
+        // 2. 状态显示播放但时长为0（加载失败），或
+        // 3. 状态显示播放但3秒后进度仍为0（可能卡住）
+        const audioFailed = !this.isPlaying || 
+                           (this.isPlaying && this.duration === 0) ||
+                           (this.isPlaying && this.currentTime === 0)
+        
+        if (audioFailed && this.currentMusic && !this._refreshing) {
           console.warn('⚠️ 音频可能加载失败，尝试智能重试')
+          console.warn('⚠️ 失败原因:', {
+            notPlaying: !this.isPlaying,
+            zeroDuration: this.duration === 0,
+            zeroProgress: this.currentTime === 0
+          })
           this.intelligentRetry(this.currentMusic)
         }
       }, 3000)

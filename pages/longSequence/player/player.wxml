@@ -209,3 +209,9 @@
   bind:closePlayer="onCloseGlobalPlayer"
   bind:expandPlayer="onExpandGlobalPlayer"
 />
+
+<!-- 底部菜单栏 -->
+<global-tabbar 
+  currentPage="longSequence/player"
+  themeClass="{{themeClass}}"
+/>

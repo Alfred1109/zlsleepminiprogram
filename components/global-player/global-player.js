@@ -491,12 +491,17 @@ Component({
       // 构建音乐对象
       const musicData = {
         id: trackInfo.id || `track_${Date.now()}`,
-        title: trackInfo.name || '未知音乐',
+        title: trackInfo.name || trackInfo.title || '未知音乐',
         src: fullUrl,
         duration: trackInfo.duration || 0,
         type: trackInfo.type || 'unknown',
         image: trackInfo.image,
-        category: trackInfo.category
+        category: trackInfo.category,
+        // 🔧 修复：传递流式播放相关属性
+        stream_url: trackInfo.stream_url,
+        use_stream: trackInfo.use_stream,
+        sessionId: trackInfo.sessionId,
+        file_size: trackInfo.file_size
       }
 
       // 检查URL协议，本地开发环境避免HTTPS转换

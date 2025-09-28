@@ -7,6 +7,7 @@
   "disableScroll": true,
   "usingComponents": {
     "global-player": "/components/global-player/global-player",
+    "global-tabbar": "/components/global-tabbar/global-tabbar",
     "theme-switcher": "/components/theme-switcher/theme-switcher"
   }
 }
