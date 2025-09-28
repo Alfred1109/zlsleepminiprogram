@@ -108,13 +108,26 @@ class NetworkManager {
       return
     }
     
-    // 设置默认超时时间，优先使用请求指定的超时时间
-    const timeout = options.timeout || config.getTimeout()
+    // 智能超时设置：为大文件（特别是流式音频）使用更长的超时时间
+    let timeout = options.timeout || config.getTimeout()
+    
+    // 检测是否为大文件请求，需要更长的超时时间
+    if (options.url && (
+      options.url.includes('long_sequence_stream') || 
+      options.url.includes('stream') ||
+      options.url.includes('large_file')
+    )) {
+      timeout = options.timeout || config.getLargeFileTimeout()
+      console.log('🌊 检测到大文件请求，使用延长超时时间')
+    }
+    
     console.log('请求超时设置:', {
       url: options.url,
       requestTimeout: options.timeout,
       defaultTimeout: config.getTimeout(),
-      finalTimeout: timeout
+      largeFileTimeout: config.getLargeFileTimeout(),
+      finalTimeout: timeout,
+      isLargeFile: options.url && options.url.includes('stream')
     })
     
     // 🔍 调试：记录请求详情（特别是认证头）

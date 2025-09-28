@@ -69,6 +69,7 @@ const UNIFIED_CONFIG = {
   },
   // 网络配置 - 统一超时和重试策略
   TIMEOUT: 15000,
+  LARGE_FILE_TIMEOUT: 60000, // 大文件超时时间60秒（用于长序列音频）
   RETRY_COUNT: 3,
   // 功能开关 - 统一关闭以避免复杂性
   ENABLE_IP_DETECTION: false,
@@ -183,6 +184,11 @@ function getTimeout() {
   return getCurrentConfig().TIMEOUT
 }
 
+// 获取大文件超时时间
+function getLargeFileTimeout() {
+  return getCurrentConfig().LARGE_FILE_TIMEOUT || 60000
+}
+
 // 获取重试次数
 function getRetryCount() {
   return getCurrentConfig().RETRY_COUNT
@@ -285,6 +291,7 @@ module.exports = {
   getCurrentConfig,
   getApiBaseUrl,
   getTimeout,
+  getLargeFileTimeout,
   getRetryCount,
   isDebug,
   useMock,

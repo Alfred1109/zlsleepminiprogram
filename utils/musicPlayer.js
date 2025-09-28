@@ -190,7 +190,6 @@ class MusicPlayer {
       ...music,
       src: finalSrc
     }
-    this.audioContext.src = finalSrc
     this.currentTime = 0
     this._retryCount = 0 // 重置重试计数器
     
@@ -207,11 +206,37 @@ class MusicPlayer {
     console.log('加载音乐:', music.title)
     console.log('🔍 音频URL:', finalSrc)
     
-    // 添加加载超时检测
+    // 🌊 重要修复：对于流式音频，延迟设置src以避免微信小程序的内置超时
+    const isStreamingAudio = finalSrc.includes('/api/music/long_sequence_stream/') || 
+                           finalSrc.includes('stream') || 
+                           this.shouldUseStreamPlayback(music)
+    
+    if (isStreamingAudio) {
+      console.log('🌊 检测到流式音频，使用延迟加载策略')
+      // 🔧 关键修复：对于七牛云URL，直接设置src，不需要延迟
+      if (finalSrc.includes('cdn.medsleep.cn') || finalSrc.startsWith('http')) {
+        console.log('🌊 七牛云URL，直接设置src')
+        this.audioContext.src = finalSrc
+        this._isStreamingLoad = false
+      } else {
+        // 流式API，延迟设置src
+        this._pendingSrc = finalSrc
+        this._isStreamingLoad = true
+      }
+    } else {
+      // 普通音频立即设置src
+      this.audioContext.src = finalSrc
+      this._isStreamingLoad = false
+    }
+    
+    // 智能加载超时检测：流式音频使用更长的超时时间
+    const loadTimeout = isStreamingAudio ? 60000 : 10000 // 流式音频60秒，普通音频10秒
+    
     this._loadTimeout = setTimeout(() => {
       if (this.duration === 0 && this.currentTime === 0) {
         console.warn('⚠️ 音频加载超时，可能URL无效或网络问题')
         console.warn('⚠️ 问题URL:', finalSrc)
+        console.warn('⚠️ 超时时间:', loadTimeout + 'ms')
         
         // 🔍 对流式API进行简单测试
         if (finalSrc.includes('/api/music/long_sequence_stream/')) {
@@ -221,12 +246,13 @@ class MusicPlayer {
         
         // 触发错误处理
         this.emit('error', {
-          errMsg: '音频加载超时',
+          errMsg: isStreamingAudio ? '大文件音频加载超时，请稍候重试' : '音频加载超时',
           errCode: 'LOAD_TIMEOUT',
-          src: finalSrc
+          src: finalSrc,
+          isStreamingAudio: isStreamingAudio
         })
       }
-    }, 5000) // 5秒超时
+    }, loadTimeout)
   }
 
   /**
@@ -344,7 +370,7 @@ class MusicPlayer {
         url: streamUrl,
         method: 'HEAD',
         header: headers,
-        timeout: 10000,
+        timeout: 60000, // 流式API测试使用60秒超时
         success: (res) => {
           console.log('🔍 流式API测试结果:', {
             statusCode: res.statusCode,
@@ -405,6 +431,13 @@ class MusicPlayer {
       return
     }
 
+    // 🌊 重要修复：如果是流式音频，在播放时才设置src
+    if (this._isStreamingLoad && this._pendingSrc) {
+      console.log('🌊 流式音频播放时设置src:', this._pendingSrc)
+      this.audioContext.src = this._pendingSrc
+      this._pendingSrc = null // 清除待设置的src
+    }
+
     // 只在首次播放该音乐时输出详细信息
     if (!this.lastPlayedMusic || this.lastPlayedMusic !== this.currentMusic.title) {
       console.log('🎵 开始播放音乐:', this.currentMusic.title)
@@ -429,19 +462,28 @@ class MusicPlayer {
       this.audioContext.play()
       console.log('✅ audioContext.play() 调用成功')
       
-      // 延迟检查播放状态，给音频更多加载时间
+      // 智能延迟检查：流式音频需要更长的加载时间
+      const isStreamingAudio = this.currentMusic.src && (
+        this.currentMusic.src.includes('/api/music/long_sequence_stream/') || 
+        this.currentMusic.src.includes('stream') || 
+        this.shouldUseStreamPlayback(this.currentMusic)
+      )
+      const checkDelay = isStreamingAudio ? 15000 : 3000 // 流式音频15秒后检查，普通音频3秒后检查
+      
       setTimeout(() => {
-        console.log('🎵 延迟状态检查 (3秒后):', {
+        const delayLabel = isStreamingAudio ? '(15秒后-流式音频)' : '(3秒后-普通音频)'
+        console.log(`🎵 延迟状态检查 ${delayLabel}:`, {
           isPlaying: this.isPlaying,
           currentTime: this.currentTime,
           duration: this.duration,
-          src: this.audioContext.src
+          src: this.audioContext.src,
+          isStreamingAudio: isStreamingAudio
         })
         
         // 检查音频是否真正在播放：
         // 1. 状态显示未播放，或
         // 2. 状态显示播放但时长为0（加载失败），或
-        // 3. 状态显示播放但3秒后进度仍为0（可能卡住）
+        // 3. 状态显示播放但延迟检查后进度仍为0（可能卡住）
         const audioFailed = !this.isPlaying || 
                            (this.isPlaying && this.duration === 0) ||
                            (this.isPlaying && this.currentTime === 0)
@@ -451,11 +493,12 @@ class MusicPlayer {
           console.warn('⚠️ 失败原因:', {
             notPlaying: !this.isPlaying,
             zeroDuration: this.duration === 0,
-            zeroProgress: this.currentTime === 0
+            zeroProgress: this.currentTime === 0,
+            isStreamingAudio: isStreamingAudio
           })
           this.intelligentRetry(this.currentMusic)
         }
-      }, 3000)
+      }, checkDelay)
       
     } catch (error) {
       console.error('❌ audioContext.play() 调用失败:', error)
@@ -768,6 +811,14 @@ class MusicPlayer {
     this.currentIndex = 0
     this._refreshing = false
     this._retryCount = 0
+    this._pendingSrc = null
+    this._isStreamingLoad = false
+    
+    // 清理超时定时器
+    if (this._loadTimeout) {
+      clearTimeout(this._loadTimeout)
+      this._loadTimeout = null
+    }
     
     // 清空事件监听器
     Object.keys(this.listeners).forEach(event => {
