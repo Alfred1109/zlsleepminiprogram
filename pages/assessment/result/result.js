@@ -10,7 +10,7 @@ Page({
     assessment: null,
     loading: false,
     generating: false,
-    generationType: null, // '60s' or 'long'
+    generationType: null, // 'quick' or 'deep'
     musicResult: null,
     longSequenceResult: null,
     // 新增数据
@@ -163,9 +163,9 @@ Page({
   },
 
   /**
-   * 跳转到60秒音乐生成页面
+   * 跳转到脑波生成页面
    */
-  generate60sMusic() {
+  generateBrainwave() {
     if (!this.data.assessmentId) {
       wx.showToast({
         title: '评测数据异常',
@@ -174,20 +174,17 @@ Page({
       return
     }
 
-    // 🔧 修复：跳转时保持场景上下文，确保生成的音乐能正确关联场景
-    // 如果在场景模式下，需要确保场景上下文传递给音乐生成页面（通过sceneContextManager）
-    console.log('🎵 跳转到60秒音乐生成，场景上下文:', this.data.sceneContext)
-    
-    // 跳转到音乐生成页面，并预选当前评测记录
+    console.log('🎵 跳转到脑波生成，场景上下文:', this.data.sceneContext)
+
     wx.navigateTo({
       url: `/pages/music/generate/generate?assessmentId=${this.data.assessmentId}`
     })
   },
 
   /**
-   * 跳转到长序列创建页面
+   * 跳转到脑波计划创建页面
    */
-  generateLongSequence() {
+  generateBrainwavePlan() {
     if (!this.data.assessmentId) {
       wx.showToast({
         title: '评测数据异常',
@@ -196,11 +193,8 @@ Page({
       return
     }
 
-    // 🔧 修复：跳转时保持场景上下文，确保生成的长序列能正确关联场景
-    // 如果在场景模式下，需要确保场景上下文传递给长序列生成页面（通过sceneContextManager）
-    console.log('🎶 跳转到长序列生成，场景上下文:', this.data.sceneContext)
-    
-    // 跳转到长序列创建页面，并预选当前评测记录
+    console.log('🎶 跳转到脑波计划生成，场景上下文:', this.data.sceneContext)
+
     wx.navigateTo({
       url: `/pages/longSequence/create/create?assessmentId=${this.data.assessmentId}`
     })

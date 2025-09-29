@@ -440,9 +440,9 @@ Component({
       }
     },
 
-    // 播放音轨
+    // 🚀 播放音轨 - 异步优化版本
     playTrack(trackInfo) {
-      console.log('播放音轨:', trackInfo)
+      console.log('🎵 异步播放音轨:', trackInfo?.title || trackInfo?.name)
       
       if (!trackInfo || !trackInfo.url) {
         wx.showToast({
@@ -452,114 +452,217 @@ Component({
         return
       }
 
-      // 构造完整的音频URL
-      let fullUrl = trackInfo.url
-      if (!fullUrl.startsWith('http')) {
-        if (fullUrl.startsWith('/')) {
-          // 绝对路径，直接拼接域名部分
-          const baseUrl = app.globalData.apiBaseUrl.replace('/api', '')
-          fullUrl = `${baseUrl}${fullUrl}`
-        } else {
-          // 相对路径，需要添加斜杠
-          const baseUrl = app.globalData.apiBaseUrl.replace('/api', '')
-          fullUrl = `${baseUrl}/${fullUrl}`
-        }
-      }
-
-      // 🔍 长序列音频直接播放（移除文件检查，因为后端API不存在）
-      if (trackInfo.type === 'longSequence' && trackInfo.sessionId) {
-        console.log('🔍 检测到长序列音频，直接播放')
-      }
-
-      const { globalPlayer } = this.data
-      
-      // 检查globalPlayer是否存在，如果不存在则重新初始化
-      if (!globalPlayer) {
-        console.warn('globalPlayer未初始化，重新初始化...')
-        this.initAudioContext()
-        const { globalPlayer: newGlobalPlayer } = this.data
-        if (!newGlobalPlayer) {
-          console.error('globalPlayer初始化失败')
-          wx.showToast({
-            title: '音频播放器初始化失败',
-            icon: 'none'
-          })
-          return
-        }
-      }
-      
-      // 构建音乐对象
-      const musicData = {
-        id: trackInfo.id || `track_${Date.now()}`,
-        title: trackInfo.name || trackInfo.title || '未知音乐',
-        src: fullUrl,
-        duration: trackInfo.duration || 0,
-        type: trackInfo.type || 'unknown',
-        image: trackInfo.image,
-        category: trackInfo.category,
-        // 🔧 修复：传递流式播放相关属性
-        stream_url: trackInfo.stream_url,
-        use_stream: trackInfo.use_stream,
-        sessionId: trackInfo.sessionId,
-        file_size: trackInfo.file_size
-      }
-
-      // 检查URL协议，本地开发环境避免HTTPS转换
-      const isLocalDev = fullUrl.includes('127.0.0.1') || fullUrl.includes('localhost') || fullUrl.includes('192.168.')
-      
-      if (fullUrl.startsWith('http://') && !isLocalDev) {
-        console.warn('检测到HTTP协议，可能在iOS上被拦截，尝试转为HTTPS')
-        const httpsUrl = fullUrl.replace('http://', 'https://')
-        console.log('尝试HTTPS URL:', httpsUrl)
-        musicData.src = httpsUrl
-      } else {
-        console.log('使用原始URL（本地开发环境或已是HTTPS）:', fullUrl)
-      }
-
-      // 使用全局播放器播放，这会自动停止之前播放的音乐
-      console.log('🎵 调用全局播放器播放音乐:', musicData.title)
-      console.log('🎵 音乐数据:', musicData)
-      console.log('🎵 全局播放器状态:', globalPlayer.getState())
-      
-      try {
-        globalPlayer.play(musicData)
-        console.log('✅ 全局播放器 play() 调用成功')
-      } catch (error) {
-        console.error('❌ 全局播放器 play() 调用失败:', error)
-        wx.showToast({
-          title: '播放失败: ' + error.message,
-          icon: 'none'
-        })
-        return
-      }
-      
-      // 使用真实的分类名称更新trackInfo
-      const realCategoryName = this.getRealCategoryName(trackInfo.category || trackInfo.categoryId)
-      const updatedTrackInfo = {
-        ...trackInfo,
-        category: realCategoryName || trackInfo.category || '未知分类'
-      }
-      
+      // 🚀 立即响应：先更新UI状态，再处理音频加载
       this.setData({
-        currentTrack: updatedTrackInfo,
-        isVisible: true,
-        currentTime: 0,
-        progress: 0,
-        duration: 0
+        currentTrack: {
+          ...trackInfo,
+          name: trackInfo.name || trackInfo.title || '未知音乐'
+        },
+        isVisible: true
+      })
+
+      // 🚀 异步处理音频播放逻辑，避免阻塞UI
+      this.processTrackPlayback(trackInfo)
+    },
+
+    /**
+     * 🚀 异步处理音轨播放逻辑
+     */
+    async processTrackPlayback(trackInfo) {
+      // 短暂延迟让UI先更新
+      await new Promise(resolve => setTimeout(resolve, 50))
+
+      try {
+        // 构造完整的音频URL
+        let fullUrl = trackInfo.url
+        if (!fullUrl.startsWith('http')) {
+          if (fullUrl.startsWith('/')) {
+            // 绝对路径，直接拼接域名部分
+            const baseUrl = app.globalData.apiBaseUrl.replace('/api', '')
+            fullUrl = `${baseUrl}${fullUrl}`
+          } else {
+            // 相对路径，需要添加斜杠
+            const baseUrl = app.globalData.apiBaseUrl.replace('/api', '')
+            fullUrl = `${baseUrl}/${fullUrl}`
+          }
+        }
+
+        // 🔍 长序列音频优化处理
+        if (trackInfo.type === 'longSequence' && trackInfo.sessionId) {
+          console.log('🔍 检测到长序列音频，使用优化播放策略')
+          this.setData({
+            currentTrack: {
+              ...this.data.currentTrack,
+              category: '长序列音频'
+            }
+          })
+        }
+
+        const { globalPlayer } = this.data
+        
+        // 🚀 异步初始化播放器
+        if (!globalPlayer) {
+          console.log('🚀 异步初始化音频播放器...')
+          this.initAudioContext()
+          
+          // 等待初始化完成
+          await new Promise(resolve => setTimeout(resolve, 100))
+          
+          const { globalPlayer: newGlobalPlayer } = this.data
+          if (!newGlobalPlayer) {
+            throw new Error('音频播放器初始化失败')
+          }
+        }
+        // 构建音乐对象
+        const musicData = {
+          id: trackInfo.id || `track_${Date.now()}`,
+          title: trackInfo.name || trackInfo.title || '未知音乐',
+          src: fullUrl,
+          duration: trackInfo.duration || 0,
+          type: trackInfo.type || 'unknown',
+          image: trackInfo.image,
+          category: trackInfo.category,
+          // 🔧 修复：传递流式播放相关属性
+          stream_url: trackInfo.stream_url,
+          use_stream: trackInfo.use_stream,
+          sessionId: trackInfo.sessionId,
+          file_size: trackInfo.file_size
+        }
+
+        // 🚀 智能URL协议处理
+        const isLocalDev = fullUrl.includes('127.0.0.1') || fullUrl.includes('localhost') || fullUrl.includes('192.168.')
+        
+        if (fullUrl.startsWith('http://') && !isLocalDev) {
+          console.log('🔒 检测到HTTP协议，转换为HTTPS以提高兼容性')
+          const httpsUrl = fullUrl.replace('http://', 'https://')
+          musicData.src = httpsUrl
+        }
+
+        // 🚀 使用真实的分类名称更新trackInfo
+        const realCategoryName = this.getRealCategoryName(trackInfo.category || trackInfo.categoryId)
+        const updatedTrackInfo = {
+          ...trackInfo,
+          category: realCategoryName || trackInfo.category || '未知分类'
+        }
+        
+        // 🚀 立即更新UI状态
+        this.setData({
+          currentTrack: updatedTrackInfo,
+          isVisible: true,
+          currentTime: 0,
+          progress: 0,
+          duration: musicData.duration || 0
+        })
+
+        // 🚀 异步启动音频播放
+        this.startAudioPlayback(musicData)
+        
+      } catch (error) {
+        console.error('🚀 音轨处理失败:', error)
+        this.handlePlaybackError(error)
+      }
+    },
+
+    /**
+     * 🚀 异步启动音频播放
+     */
+    async startAudioPlayback(musicData) {
+      try {
+        const { globalPlayer } = this.data
+
+        // 🚀 使用全局播放器播放音乐
+        console.log('🎵 异步启动音频播放:', musicData.title)
+        
+        // 🚀 立即开始播放，不等待
+        globalPlayer.play(musicData)
+        console.log('✅ 全局播放器异步启动成功')
+        
+        // 🚀 异步更新波形组件
+        this.updateWaveformAsync(globalPlayer)
+        
+        // 🚀 异步检查定时器状态
+        this.checkTimerStatus()
+        
+        // 🚀 延迟状态检查
+        setTimeout(() => {
+          const state = globalPlayer.getState()
+          console.log('🎵 播放状态检查:', state.isPlaying ? '播放中' : '未播放')
+          
+          // 如果1秒后仍未开始播放，可能需要用户交互
+          if (!state.isPlaying) {
+            this.promptUserInteraction()
+          }
+        }, 1000)
+        
+      } catch (error) {
+        throw error
+      }
+    },
+
+    /**
+     * 🚀 异步更新波形组件
+     */
+    updateWaveformAsync(globalPlayer) {
+      setTimeout(() => {
+        const realtimeWaveform = this.selectComponent('#realtimeWaveform')
+        if (realtimeWaveform && globalPlayer.audioContext) {
+          console.log('🎵 异步更新实时波形组件')
+          realtimeWaveform.setData({
+            audioContext: globalPlayer.audioContext
+          })
+          realtimeWaveform.onAudioContextChange(globalPlayer.audioContext, null)
+        }
+      }, 200) // 200ms后更新，避免阻塞主流程
+    },
+
+    /**
+     * 🚀 检查定时器状态
+     */
+    checkTimerStatus() {
+      if (this.data.timerEnabled && this.data.timerRemaining > 0) {
+        console.log('🕐 定时器运行中，剩余时间:', this.data.timerRemaining, '秒')
+        // 可以在这里添加UI提示
+      }
+    },
+
+    /**
+     * 🚀 提示用户交互
+     */
+    promptUserInteraction() {
+      // 在某些浏览器中，音频播放需要用户交互
+      console.log('🚀 音频可能需要用户交互才能播放')
+      // 这里可以添加一个小的交互提示
+    },
+
+    /**
+     * 🚀 处理播放错误
+     */
+    handlePlaybackError(error) {
+      console.error('🚀 播放处理失败:', error)
+      
+      let errorMessage = '播放失败'
+      if (error.message) {
+        if (error.message.includes('网络')) {
+          errorMessage = '网络连接失败，请检查网络'
+        } else if (error.message.includes('格式')) {
+          errorMessage = '音频格式不支持'
+        } else if (error.message.includes('权限')) {
+          errorMessage = '音频访问权限不足'
+        }
+      }
+      
+      wx.showToast({
+        title: errorMessage,
+        icon: 'none',
+        duration: 2000
       })
       
-      // 如果有定时器在运行，提示用户新歌曲也会受到定时器控制
-      if (this.data.timerEnabled && this.data.timerRemaining > 0) {
-        console.log('定时器仍在运行，新歌曲将受到定时器控制')
-        console.log('剩余定时时间:', this.data.timerRemaining, '秒')
-      }
-      
-      console.log('🎵 播放器状态更新完成:', musicData.title)
-      
-      // 延迟检查播放状态
-      setTimeout(() => {
-        console.log('🎵 播放状态检查 (1秒后):', globalPlayer.getState())
-      }, 1000)
+      // 重置播放状态
+      this.setData({
+        isPlaying: false,
+        currentTime: 0,
+        progress: 0
+      })
     },
 
     // 暂停播放

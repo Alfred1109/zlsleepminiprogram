@@ -138,12 +138,25 @@ Component({
      * 音频上下文变化处理
      */
     onAudioContextChange(newContext, oldContext) {
+      console.log('🎵 实时波形：音频上下文变化', {
+        新上下文: !!newContext,
+        新上下文类型: newContext?.constructor?.name,
+        旧上下文: !!oldContext
+      })
+      
       if (oldContext) {
         this.cleanup()
       }
 
       if (newContext && this.data.canvasContext) {
         this.initAudioAnalyzer(newContext)
+      } else if (newContext) {
+        // 如果Canvas还没初始化，延迟处理
+        setTimeout(() => {
+          if (this.data.canvasContext) {
+            this.initAudioAnalyzer(newContext)
+          }
+        }, 1000)
       }
     },
 
@@ -164,11 +177,17 @@ Component({
      */
     initAudioAnalyzer(audioContext) {
       try {
-        console.log('检测小程序音频环境...')
+        console.log('🎵 初始化音频分析器')
+        console.log('🎵 音频上下文详情:', {
+          存在: !!audioContext,
+          类型: audioContext?.constructor?.name,
+          是否内置音频: audioContext?.constructor?.name === 'InnerAudioContext',
+          支持分析器: typeof audioContext?.createAnalyser === 'function'
+        })
         
         // 小程序环境直接使用模拟分析，因为Web Audio API不完全支持
         if (audioContext && audioContext.constructor && audioContext.constructor.name === 'InnerAudioContext') {
-          console.log('检测到小程序音频上下文，使用模拟波形分析')
+          console.log('✅ 检测到小程序音频上下文，使用模拟波形分析')
           this.startSimulatedAnalysis()
           return
         }
@@ -186,13 +205,13 @@ Component({
             isInitialized: true
           })
           
-          console.log('Web Audio分析器初始化成功')
+          console.log('✅ Web Audio分析器初始化成功')
         } else {
-          console.log('当前环境不支持Web Audio分析，使用模拟波形')
+          console.log('⚠️ 当前环境不支持Web Audio分析，使用模拟波形')
           this.startSimulatedAnalysis()
         }
       } catch (error) {
-        console.error('音频分析器初始化失败:', error)
+        console.error('❌ 音频分析器初始化失败:', error)
         this.startSimulatedAnalysis()
       }
     },

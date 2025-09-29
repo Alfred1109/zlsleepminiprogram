@@ -46,6 +46,62 @@ function showLoginModalThrottled() {
   })
 }
 
+// 🔧 新增：410废弃API错误处理节流
+let __isShowingDeprecatedModal = false
+let __lastDeprecatedModalAt = 0
+
+/**
+ * 🔧 处理废弃API错误（410状态码）
+ */
+function handleDeprecatedApiError(error) {
+  const now = Date.now()
+  if (__isShowingDeprecatedModal || now - __lastDeprecatedModalAt < 5000) {
+    return // 5秒内不重复显示
+  }
+  __isShowingDeprecatedModal = true
+  __lastDeprecatedModalAt = now
+
+  // 解析错误信息
+  let title = '功能升级'
+  let content = '音乐生成功能已升级，请更新小程序版本获得更好体验'
+  let newEndpoint = ''
+
+  // 如果错误信息中包含详细说明，使用后端提供的信息
+  if (error.data) {
+    if (error.data.error) {
+      content = error.data.error
+    }
+    if (error.data.new_endpoint) {
+      newEndpoint = error.data.new_endpoint
+      content += `\n\n新接口：${newEndpoint}`
+    }
+    if (error.data.migration_guide) {
+      content += `\n\n升级说明：${error.data.migration_guide}`
+    }
+  }
+
+  wx.showModal({
+    title,
+    content,
+    showCancel: true,
+    cancelText: '稍后再说',
+    confirmText: '立即更新',
+    success: (modalRes) => {
+      if (modalRes.confirm) {
+        // 可以跳转到更新页面或显示更新指引
+        wx.showToast({
+          title: '请通过应用商店更新',
+          icon: 'none',
+          duration: 3000
+        })
+      }
+    },
+    complete: () => {
+      setTimeout(() => { __isShowingDeprecatedModal = false }, 500)
+    }
+  })
+}
+
 // 强制刷新API配置
 function refreshApiConfig() {
   API_CONFIG = {
@@ -174,6 +230,16 @@ function request(options) {
             reject(standardError)
           }
         } else {
+          // 🔧 特殊处理410废弃API错误
+          if (res.statusCode === 410) {
+            console.warn('⚠️ 检测到410废弃API错误:', fullUrl)
+            handleDeprecatedApiError({
+              statusCode: res.statusCode,
+              data: res.data,
+              url: fullUrl
+            })
+          }
+          
           // 非2xx交由下方catch统一处理（特别是401场景需要刷新token）
           throw {
             statusCode: res.statusCode,
@@ -362,6 +428,13 @@ function handleError(error, showToast = true) {
   } else if (error.code === 'HTTP_ERROR') {
     if (error.statusCode === 404) {
       message = '请求的资源不存在'
+    } else if (error.statusCode === 410) {
+      // 🔧 新增：废弃API特殊处理
+      message = '此功能已升级，请更新小程序版本'
+      if (showToast) {
+        handleDeprecatedApiError(error)
+        return // 不再显示普通错误提示
+      }
     } else if (error.statusCode === 500) {
       message = '服务器内部错误'
     } else {

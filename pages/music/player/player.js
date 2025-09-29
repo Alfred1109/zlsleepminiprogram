@@ -7,7 +7,7 @@ const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
 Page({
   data: {
     musicId: null,
-    musicType: '60s', // '60s' or 'long'
+    musicType: 'quick', // 'quick' or 'deep'
     musicInfo: null,
     player: null,
     isPlaying: false,
@@ -17,6 +17,18 @@ Page({
     loading: false,
     isFavorite: false,
     isDownloaded: false,
+    // 深度脑波专属
+    isDeepBrainwave: false,
+    isoPhases: null,
+    showPhaseInfo: false,
+    currentPhase: 'iso',
+    phaseProgress: 0,
+    phaseLabels: {
+      iso: '同质阶段',
+      transition: '过渡阶段',
+      target: '目标阶段'
+    },
+    phaseProgressDisplay: '0',
     // 全局播放器相关
     showGlobalPlayer: true,
     globalPlayer: null,
@@ -36,10 +48,12 @@ Page({
     console.log('音乐播放器页面加载', options)
     
     const musicId = options.musicId
-    const type = options.type || '60s'
+    const typeParam = options.type || ''
+    const inferredType = typeParam ? typeParam : (this.data.isDeepBrainwave ? 'deep' : 'quick')
     this.setData({
       musicId: parseInt(musicId),
-      musicType: type
+      musicType: inferredType,
+      isDeepBrainwave: inferredType === 'deep'
     })
 
     this.initTheme()
@@ -140,22 +154,23 @@ Page({
       
       if (result.success) {
         const musicInfo = result.data
-        // 计算音乐类型用于波形组件
-        const computedMusicType = this.getMusicType(musicInfo)
-        // 计算格式化后的时长
-        const formattedDuration = this.formatTimeDisplay(musicInfo.duration_seconds || 60)
-        this.setData({ 
-          musicInfo: musicInfo,
-          computedMusicType: computedMusicType,
-          formattedDuration: formattedDuration
+        const isDeep = (musicInfo.duration_seconds || 0) >= 600 || musicInfo.type === 'longSequence' || musicInfo.category === '深度脑波'
+        const isoPhases = musicInfo.iso_phase_plan ? this.parseIsoPhases(musicInfo.iso_phase_plan) : null
+        this.setData({
+          musicInfo,
+          isDeepBrainwave: isDeep,
+          musicType: isDeep ? 'deep' : 'quick',
+          isoPhases
         })
 
-        // Load real waveform data if available
+        const computedMusicType = this.getMusicType(musicInfo)
+        const formattedDuration = this.formatTimeDisplay(musicInfo.duration_seconds || 60)
+        this.setData({ computedMusicType, formattedDuration })
+
         if (musicInfo.waveform_data_path) {
           this.loadWaveformData(musicInfo.waveform_data_path)
         }
 
-        // 如果播放器中没有当前音乐，自动加载
         const currentMusic = this.data.player.currentMusic
         if (!currentMusic || currentMusic.id !== this.data.musicId) {
           this.loadMusicToPlayer(musicInfo)
@@ -209,50 +224,49 @@ Page({
    */
   loadMusicToPlayer(musicInfo) {
     // 优先使用带token的url字段，回退到file_path
-    const audioSource = musicInfo.url || musicInfo.file_path
-    if (!audioSource) {
-      wx.showToast({
-        title: '音乐文件不存在',
-        icon: 'error'
-      })
+    const audioSource = musicInfo.url || musicInfo.file_path || musicInfo.final_file_path || musicInfo.audio_url
+    if (!audioSource && !musicInfo.stream_url) {
+      wx.showToast({ title: '音乐文件不存在', icon: 'error' })
       return
     }
 
-    // 构建正确的音频URL
     let audioUrl = audioSource
-    if (audioUrl.indexOf('/') === 0) {
-      // 如果是相对路径，使用静态资源基础URL而不是API基础URL
+    if (audioUrl && audioUrl.indexOf('/') === 0) {
       const baseUrl = (app.globalData.apiBaseUrl || 'https://medsleep.cn').replace('/api', '')
       audioUrl = baseUrl + audioUrl
     }
 
-    // 准备全局播放器需要的音乐数据格式
+    const isDeep = this.data.isDeepBrainwave
     const trackInfo = {
-      name: '疗愈音乐 ' + (musicInfo.music_id || musicInfo.id),
-      url: audioUrl,
-      image: musicInfo.cover_url || '/images/default-music-cover.svg',
-      category: this.data.musicType === '60s' ? '60秒版本' : '长序列版本',
-      type: 'ai_music',
       id: musicInfo.music_id || musicInfo.id,
-      duration: musicInfo.duration_seconds || 60
+      name: musicInfo.title || musicInfo.music_name || `脑波 ${musicInfo.id}`,
+      title: musicInfo.title || musicInfo.music_title || `脑波 ${musicInfo.id}`,
+      url: audioUrl,
+      stream_url: musicInfo.stream_url,
+      use_stream: musicInfo.use_stream,
+      originalSrc: audioUrl,
+      image: musicInfo.cover_url || musicInfo.cover_image || '/images/default-music-cover.svg',
+      category: isDeep ? '深度脑波' : '快速脑波',
+      type: isDeep ? 'longSequence' : 'ai_music',
+      duration: musicInfo.duration_seconds || (musicInfo.total_duration_minutes ? musicInfo.total_duration_minutes * 60 : 60),
+      file_size: musicInfo.file_size || musicInfo.final_file_size,
+      sessionId: musicInfo.session_id || musicInfo.long_sequence_session_id
     }
 
     console.log('使用全局播放器加载音乐:', trackInfo)
-    
-    // 使用全局播放器播放
+
     setTimeout(() => {
       const globalPlayer = this.selectComponent('#globalPlayer')
       if (globalPlayer && globalPlayer.playTrack) {
         globalPlayer.playTrack(trackInfo)
       } else {
-        console.warn('Global player组件未找到')
-        // 降级到原有播放器
+        console.warn('Global player组件未找到，降级到本地播放器')
         this.data.player.loadMusic({
-          id: musicInfo.music_id || musicInfo.id,
-          title: trackInfo.name,
-          src: audioUrl,
-          duration: musicInfo.duration_seconds,
-          type: this.data.musicType
+          id: trackInfo.id,
+          title: trackInfo.title,
+          src: trackInfo.url,
+          duration: trackInfo.duration,
+          type: trackInfo.type
         })
       }
     }, 100)
@@ -298,6 +312,10 @@ Page({
       duration: data.duration,
       progress: progress
     })
+
+    if (this.data.isDeepBrainwave && this.data.isoPhases) {
+      this.updateIsoPhase(data.currentTime, data.duration)
+    }
   },
 
   onPlayerError(error) {
@@ -975,5 +993,66 @@ Page({
    */
   onNavigateBack() {
     wx.navigateBack()
+  },
+
+  parseIsoPhases(isoPlan) {
+    try {
+      const phases = typeof isoPlan === 'string' ? JSON.parse(isoPlan) : isoPlan
+      return phases || null
+    } catch (e) {
+      console.error('解析ISO阶段失败:', e)
+      return null
+    }
+  },
+
+  getIsoPhaseLabels() {
+    return {
+      iso: '同质阶段',
+      transition: '过渡阶段',
+      target: '目标阶段'
+    }
+  },
+
+  updateIsoPhase(currentTime, duration) {
+    const isoPhases = this.data.isoPhases
+    if (!isoPhases || duration <= 0) return
+
+    const { iso_phase, transition_phase, target_phase } = isoPhases
+    const total = duration
+
+    const isoDuration = (iso_phase?.duration_minutes || 0) * 60
+    const transitionDuration = (transition_phase?.duration_minutes || 0) * 60
+    const targetDuration = (target_phase?.duration_minutes || 0) * 60
+
+    const isoEnd = isoDuration
+    const transitionEnd = isoDuration + transitionDuration
+
+    let currentPhase = 'iso'
+    let phaseProgress = 0
+
+    if (currentTime <= isoEnd) {
+      currentPhase = 'iso'
+      phaseProgress = isoDuration > 0 ? (currentTime / isoDuration) * 100 : 0
+    } else if (currentTime <= transitionEnd) {
+      currentPhase = 'transition'
+      const progressInTransition = currentTime - isoEnd
+      phaseProgress = transitionDuration > 0 ? (progressInTransition / transitionDuration) * 100 : 0
+    } else {
+      currentPhase = 'target'
+      const progressInTarget = currentTime - transitionEnd
+      const targetTotal = targetDuration || (total - transitionEnd)
+      phaseProgress = targetTotal > 0 ? (progressInTarget / targetTotal) * 100 : 0
+    }
+
+    const clamped = Math.min(100, Math.max(0, phaseProgress))
+    this.setData({
+      currentPhase,
+      phaseProgress: clamped,
+      phaseProgressDisplay: clamped.toFixed(0)
+    })
+  },
+
+  onTogglePhaseInfo() {
+    this.setData({ showPhaseInfo: !this.data.showPhaseInfo })
   }
 })

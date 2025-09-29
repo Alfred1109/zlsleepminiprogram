@@ -16,17 +16,26 @@ Page({
     generating: false,
     // UI简化字段
     canGenerate: false,
-    generateButtonText: '生成音乐',
-    generatingText: '生成中...',
+    generateButtonText: '生成脑波',
+    generatingText: '脑波生成中...',
     selectedCount: 0,
     musicResult: null,
     loading: false,
-    subscriptionInfo: null,
-    canUseFeature: true,
-    // 全局播放器相关
-    showGlobalPlayer: false,
-    isPlaying: false,
-    player: null,
+    // 脑波时长选项
+    durationOptions: [
+      { value: 60, label: '1分钟', description: '快速放松脑波' },
+      { value: 600, label: '10分钟', description: '常规疗愈脑波' },
+      { value: 1200, label: '20分钟', description: '中等时长疗愈' },
+      { value: 1800, label: '30分钟', description: '深度疗愈体验' },
+      { value: 2700, label: '45分钟', description: '长时冥想模式' },
+      { value: 3600, label: '60分钟', description: '沉浸式疗愈' }
+    ],
+    selectedDuration: 60,
+    generationProgress: 0,
+    currentPhase: '',
+    sessionResult: null,
+    // 进度轮询关联
+    isDeepGeneration: false,
     // 主题相关
     currentTheme: 'default',
     themeClass: '',
@@ -36,7 +45,10 @@ Page({
     isInSceneMode: false,
     sceneHint: '',
     // 预选评测ID（从评测结果页面跳转时使用）
-    preselectedAssessmentId: null
+    preselectedAssessmentId: null,
+    __progressTimer: null,
+    __smartProgressTimer: null,
+    __progressSessionId: null
   },
 
   onLoad(options) {
@@ -462,7 +474,7 @@ Page({
   updateUIState() {
     // 🔧 修复：添加 selectionMode 变量安全检查
     const selectionMode = this.data.selectionMode || this.selectionMode || 'single';
-    const { selectedAssessments, generating, recentAssessments } = this.data
+    const { selectedAssessments, generating, recentAssessments, selectedDuration, isDeepGeneration } = this.data
     
     console.log('🔍 updateUIState - selectionMode:', selectionMode);
     
@@ -475,31 +487,34 @@ Page({
       let generateButtonText
       let generatingText
       
-      if (selectionMode === 'single') {
+      if (isDeepGeneration) {
+        generateButtonText = selectedCount > 0 ? `生成深度脑波 (${Math.round(selectedDuration / 60)}分钟)` : '选择评测后生成'
+        generatingText = '深度脑波生成中...'
+      } else if (selectionMode === 'single') {
         // 单选模式UI更新
-        generateButtonText = selectedCount > 0 ? '生成音乐' : '选择评测后生成'
-        generatingText = '生成中...'
+        generateButtonText = selectedCount > 0 ? '生成脑波' : '选择评测后生成'
+        generatingText = '脑波生成中...'
       } else if (selectionMode === 'multiple') {
         // 多选模式UI更新
         if (selectedCount === 1) {
-          generateButtonText = '生成音乐 (1个评测)'
-          generatingText = '生成中...'
+          generateButtonText = '生成脑波 (1个评测)'
+          generatingText = '脑波生成中...'
         } else if (selectedCount > 1) {
-          generateButtonText = `综合生成音乐 (${selectedCount}个评测)`
-          generatingText = '综合生成中...'
+          generateButtonText = `综合生成脑波 (${selectedCount}个评测)`
+          generatingText = '综合脑波生成中...'
         } else {
           generateButtonText = '选择评测后生成'
-          generatingText = '生成中...'
+          generatingText = '脑波生成中...'
         }
       } else if (selectionMode === 'scene_history') {
         // 🔧 新增：场景历史模式UI更新
-        generateButtonText = selectedCount > 0 ? '基于历史评测生成音乐' : '选择评测后生成'
-        generatingText = '基于历史评测生成中...'
+        generateButtonText = selectedCount > 0 ? '基于历史评测生成脑波' : '选择评测后生成'
+        generatingText = '基于历史评测生成脑波中...'
       } else {
         // 默认处理
         console.warn('⚠️ 未知的selectionMode:', selectionMode, '使用默认单选模式');
-        generateButtonText = selectedCount > 0 ? '生成音乐' : '选择评测后生成'
-        generatingText = '生成中...'
+        generateButtonText = selectedCount > 0 ? '生成脑波' : '选择评测后生成'
+        generatingText = '脑波生成中...'
       }
       
       // 给评测记录添加选中状态标记
@@ -531,7 +546,7 @@ Page({
         selectionMode: 'single',
         canGenerate: false,
         generateButtonText: '选择评测后生成',
-        generatingText: '生成中...'
+        generatingText: '脑波生成中...'
       });
     }
   },
@@ -570,39 +585,25 @@ Page({
    * 生成音乐
    */
   async onGenerateMusic() {
-    // 🔧 修复：统一使用多选逻辑验证
     const { selectedAssessments } = this.data
-    
+
     if (selectedAssessments.length === 0) {
-      wx.showToast({
-        title: '请选择评测记录',
-        icon: 'error'
-      })
+      wx.showToast({ title: '请选择评测记录', icon: 'error' })
       return
     }
 
-    // 检查订阅权限
     const permissionCheck = await requireSubscription('music_generate', {
-      modalTitle: 'AI音乐生成',
-      modalContent: 'AI音乐生成功能需要订阅后使用，订阅用户可无限次生成个性化音乐。',
+      modalTitle: 'AI脑波生成',
+      modalContent: 'AI脑波生成功能需要订阅后使用，订阅用户可无限次生成个性化脑波。',
       onConfirm: async (action) => {
         if (action === 'trial') {
-          // 试用成功后继续生成音乐
-          setTimeout(() => {
-            this.generateMusicProcess()
-          }, 1000)
-        } else if (action === 'subscribe') {
-          // 用户选择订阅，跳转到订阅页面
-          // 订阅成功后用户可以回到这个页面继续操作
+          setTimeout(() => { this.generateMusicProcess() }, 1000)
         }
       }
     })
 
-    if (!permissionCheck.allowed) {
-      return // 用户取消或需要订阅
-    }
+    if (!permissionCheck.allowed) return
 
-    // 有权限，继续生成音乐
     await this.generateMusicProcess()
   },
 
@@ -611,105 +612,78 @@ Page({
    */
   async generateMusicProcess() {
     try {
-      // 🔧 修复：确保 selectionMode 存在
-      const selectionMode = this.data.selectionMode || 'multiple';
-      const { selectedAssessments, sceneId, isFromSceneHistory } = this.data;
-      
-      console.log('🎵 开始生成音乐:', { selectionMode, selectedAssessments, sceneId });
-      
-      // 🔍 详细调试信息
-      this.logGenerateDebugInfo({ selectionMode, selectedAssessments, sceneId, isFromSceneHistory });
-      
-      this.setData({ generating: true })
+      const selectionMode = this.data.selectionMode || 'multiple'
+      const { selectedAssessments, sceneId, isFromSceneHistory, selectedDuration } = this.data
+
+      const isDeepGeneration = selectedDuration > 300
+      this.setData({
+        generating: true,
+        isDeepGeneration,
+        generationProgress: isDeepGeneration ? 5 : 0,
+        currentPhase: isDeepGeneration ? '连接AI服务...' : '',
+      })
       this.updateUIState()
+
+      if (isDeepGeneration) {
+        this.startSmartProgressDisplay()
+      }
 
       let result
       const assessmentIds = selectedAssessments.map(item => item.id)
-      
-      console.log('🎵 生成音乐，评测IDs:', assessmentIds)
-      console.log('🎵 基于量表:', selectedAssessments.map(item => item.scale_name))
-      
-      // 🔧 验证评测ID的有效性
-      const invalidIds = assessmentIds.filter(id => !id || typeof id !== 'number' || id <= 0)
-      if (invalidIds.length > 0) {
-        throw new Error(`发现无效的评测ID: ${invalidIds.join(', ')}, 请重新选择评测`)
-      }
-      
-      // 构建请求参数
+
       const generateParams = {
-        assessment_id: assessmentIds[0], // 主评测ID
-        duration_seconds: 60
-      };
-      
-      // 🔧 确保scene_id传递：无场景时默认为0，避免与业务场景冲突
-      generateParams.scene_id = (sceneId != null) ? sceneId : 0;
-      
-      // 根据模式添加额外参数
-      if (selectionMode === 'multiple' || assessmentIds.length > 1) {
-        generateParams.assessment_ids = assessmentIds;
-        generateParams.generation_mode = 'comprehensive';
+        assessment_id: assessmentIds[0],
+        duration_seconds: selectedDuration,
+        scene_id: (sceneId != null) ? sceneId : 0
       }
-      
+
+      if (selectionMode === 'multiple' || assessmentIds.length > 1) {
+        generateParams.assessment_ids = assessmentIds
+        generateParams.generation_mode = 'comprehensive'
+      }
+
       if (isFromSceneHistory && sceneId != null) {
         generateParams.scene_context = {
-          sceneId: sceneId,
+          sceneId,
           source: 'history'
-        };
+        }
       }
-      
-      // 传递场景上下文（如果存在）
+
       if (this.data.sceneContext) {
-        generateParams.sceneContext = this.data.sceneContext;
-        console.log('🎯 传递场景上下文:', this.data.sceneContext);
+        generateParams.sceneContext = this.data.sceneContext
       }
-      
-      // 🔧 修复：统一使用多选逻辑处理
-      // 当选择1个评测时相当于单选，多个评测时进行综合生成
+
       if (assessmentIds.length === 1) {
-        // 只有一个评测，按单选模式调用API
-        console.log('🎵 单个评测生成模式')
-        console.log('🔍 单个生成API参数:', { assessmentId: assessmentIds[0], generateParams });
         result = await MusicAPI.generateMusic(assessmentIds[0], generateParams)
-        
       } else {
-        // 多个评测，按综合生成模式调用API
-        console.log('🎵 多评测综合生成模式')
         const comprehensiveParams = {
           mode: 'comprehensive',
           additionalAssessments: assessmentIds.slice(1),
           ...generateParams
-        };
-        console.log('🔍 综合生成API参数:', { assessmentId: assessmentIds[0], comprehensiveParams });
+        }
         result = await MusicAPI.generateMusic(assessmentIds[0], comprehensiveParams)
       }
-      
-      console.log('🔍 API调用结果:', { success: result?.success, hasData: !!result?.data, error: result?.error });
-      
+
       if (result.success) {
-        this.handleGenerateSuccess(result);
+        if (isDeepGeneration) {
+          const musicId = result.data.music_id || result.data.session_id
+          this.__progressSessionId = musicId
+          this.setData({ sessionResult: result.data })
+          this.startEnhancedProgressPolling(musicId)
+        } else {
+          this.handleGenerateSuccess(result)
+        }
       } else {
-        this.handleGenerateError(result.error || '生成失败');
+        this.handleGenerateError(result.error || '生成失败')
       }
 
     } catch (error) {
-      console.error('❌ generateMusicProcess 执行失败:', error);
-      
-      // 🔧 改善错误信息传递
-      let processedError;
-      if (typeof error === 'string') {
-        processedError = error;
-      } else if (error && typeof error === 'object') {
-        // 保留完整的错误对象，让 handleGenerateError 进一步处理
-        processedError = error;
-      } else {
-        processedError = '音乐生成过程出错，请重试';
-      }
-      
-      console.log('🔍 传递错误对象:', processedError);
-      this.handleGenerateError(processedError);
+      this.handleGenerateError(error)
     } finally {
-      this.setData({ generating: false })
-      this.updateUIState()
+      if (!this.data.isDeepGeneration) {
+        this.setData({ generating: false })
+        this.updateUIState()
+      }
     }
   },
 
@@ -742,69 +716,57 @@ Page({
    */
   handleGenerateSuccess(result) {
     this.setData({ musicResult: result.data })
-    
-    // 🔧 修复：根据选择数量生成成功消息
-    const { selectedAssessments, selectionMode } = this.data;
-    let successMessage;
-    
-    if (selectionMode === 'scene_history') {
-      successMessage = '基于历史评测的音乐生成成功';
-    } else if (selectedAssessments.length === 1) {
-      successMessage = '音乐生成成功';
-    } else {
-      successMessage = `综合${selectedAssessments.length}个评测的音乐生成成功`;
-    }
-      
-    wx.showToast({
-      title: successMessage,
-      icon: 'success'
-    })
 
-    // 跳转到播放页面
+    const { selectedAssessments, selectionMode, selectedDuration, isDeepGeneration } = this.data
+    let successMessage
+
+    if (isDeepGeneration) {
+      successMessage = `${Math.round(selectedDuration / 60)}分钟深度脑波生成成功`
+    } else if (selectionMode === 'scene_history') {
+      successMessage = '基于历史评测的脑波生成成功'
+    } else if (selectedAssessments.length === 1) {
+      successMessage = '脑波生成成功'
+    } else {
+      successMessage = `综合${selectedAssessments.length}个评测的脑波生成成功`
+    }
+
+    wx.showToast({ title: successMessage, icon: 'success' })
+
     setTimeout(() => {
-      wx.navigateTo({
-        url: `/pages/music/player/player?musicId=${result.data.music_id}&type=60s`
-      })
-    }, 1500)
+      wx.navigateTo({ url: `/pages/music/player/player?musicId=${result.data.music_id}` })
+    }, 1200)
   },
 
   /**
    * 处理音乐生成错误
    */
   handleGenerateError(error) {
-    console.error('生成音乐失败:', error)
-    
-    // 🔧 改善错误处理，提取更详细的错误信息
-    let errorMessage = '音乐生成失败，请重试';
-    
+    this.stopSmartProgressDisplay()
+    this.stopProgressPolling()
+
+    let errorMessage = '脑波生成失败，请重试'
+
     if (typeof error === 'string') {
-      errorMessage = error;
+      errorMessage = error
     } else if (error && typeof error === 'object') {
-      // 处理不同格式的错误对象
-      if (error.error && typeof error.error === 'string') {
-        errorMessage = error.error;
-      } else if (error.message && typeof error.message === 'string') {
-        errorMessage = error.message;
-      } else if (error.data && error.data.error) {
-        errorMessage = error.data.error;
-      } else if (error.details && error.details.error) {
-        errorMessage = error.details.error;
-      } else if (error.statusCode) {
-        errorMessage = `服务器错误 (${error.statusCode}): ${error.error || '请稍后重试'}`;
-      }
+      const details = error.error || error.message || error?.data?.error || error?.details?.error
+      if (details) errorMessage = details
+      else if (error.statusCode) errorMessage = `服务器错误 (${error.statusCode})`
     }
-    
-    console.log('🔍 最终错误消息:', errorMessage);
-    
+
+    this.setData({
+      generating: false,
+      currentPhase: '生成失败',
+      generationProgress: 0
+    })
+
     wx.showModal({
-      title: '生成失败',
+      title: '生成脑波失败',
       content: errorMessage,
       showCancel: true,
       confirmText: '重试',
       success: (res) => {
-        if (res.confirm) {
-          this.generateMusicProcess() // 重试时调用核心流程方法
-        }
+        if (res.confirm) this.generateMusicProcess()
       }
     })
   },
@@ -1055,5 +1017,132 @@ Page({
       app.globalData.currentTheme = theme;
       app.globalData.themeConfig = themeConfig;
     }
+  },
+
+  onSelectDuration(e) {
+    const { duration } = e.currentTarget.dataset
+    this.setData({ selectedDuration: duration })
+    this.updateUIState()
+  },
+
+  startSmartProgressDisplay() {
+    let progress = 5
+    const maxProgress = 25
+
+    const updateProgress = () => {
+      if (!this.data.generating || !this.data.isDeepGeneration) return
+
+      progress += Math.random() * 3 + 1
+      const safeProgress = Math.min(progress, maxProgress)
+      this.setData({
+        generationProgress: safeProgress,
+        currentPhase: safeProgress < 12 ? '连接AI服务...' :
+                     safeProgress < 20 ? '分析评测数据...' :
+                     '准备生成音频...'
+      })
+
+      const interval = safeProgress < 12 ? 600 : 1000
+      this.__smartProgressTimer = setTimeout(updateProgress, interval)
+    }
+
+    this.stopSmartProgressDisplay()
+    updateProgress()
+  },
+
+  stopSmartProgressDisplay() {
+    if (this.__smartProgressTimer) {
+      clearTimeout(this.__smartProgressTimer)
+      this.__smartProgressTimer = null
+    }
+  },
+
+  startEnhancedProgressPolling(musicId) {
+    if (!musicId) return
+    this.stopProgressPolling()
+
+    let pollCount = 0
+    let lastProgress = 25
+
+    const pollOnce = async () => {
+      try {
+        const res = await MusicAPI.getMusicStatus(musicId)
+        if (res && res.success && res.data) {
+          const data = res.data
+          const status = data.status
+          const percentage = data.progress_percentage || data.progress?.percentage || 0
+          const phase = data.progress?.phase_display || data.progress?.phase || ''
+          const isCompleted = status === 'completed'
+
+          const safeProgress = Math.max(lastProgress, Math.min(99, Math.round(percentage)))
+          lastProgress = safeProgress
+
+          let smartPhase = phase
+          if (!smartPhase) {
+            if (safeProgress < 40) smartPhase = '生成同质阶段...'
+            else if (safeProgress < 70) smartPhase = '生成过渡阶段...'
+            else smartPhase = '生成目标阶段...'
+          }
+
+          this.setData({
+            generationProgress: safeProgress,
+            currentPhase: smartPhase
+          })
+
+          if (isCompleted) {
+            this.stopProgressPolling()
+            this.handleDeepGenerationComplete(musicId)
+            return
+          }
+        } else {
+          this.handlePollingFailure(pollCount)
+        }
+      } catch (error) {
+        console.warn('获取脑波生成进度失败，将继续重试:', error.message || error)
+        this.handlePollingFailure(pollCount)
+      }
+
+      pollCount++
+      const interval = pollCount < 5 ? 1000 : pollCount < 15 ? 1500 : 2000
+      this.__progressTimer = setTimeout(pollOnce, interval)
+    }
+
+    pollOnce()
+  },
+
+  handlePollingFailure(pollCount) {
+    if (pollCount > 10) {
+      this.setData({ currentPhase: '网络波动，继续生成中...' })
+    }
+  },
+
+  stopProgressPolling() {
+    if (this.__progressTimer) {
+      clearTimeout(this.__progressTimer)
+      this.__progressTimer = null
+    }
+  },
+
+  handleDeepGenerationComplete(musicId) {
+    this.setData({
+      generating: false,
+      generationProgress: 100,
+      currentPhase: '生成完成'
+    })
+
+    wx.showToast({ title: '🎵 深度脑波生成成功', icon: 'success', duration: 2000 })
+
+    setTimeout(() => {
+      wx.navigateTo({ url: `/pages/music/player/player?musicId=${musicId}` })
+    }, 1500)
+  },
+
+  onHide() {
+    this.stopProgressPolling()
+    this.stopSmartProgressDisplay()
+  },
+
+  onUnload() {
+    this.stopProgressPolling()
+    this.stopSmartProgressDisplay()
   }
 })

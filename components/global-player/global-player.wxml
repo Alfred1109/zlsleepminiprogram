@@ -38,7 +38,8 @@
   <!-- 实时波形可视化 -->
   <view class="waveform-section" wx:if="{{isPlaying}}">
     <realtime-waveform 
-      audioContext="{{audioContext}}"
+      id="realtimeWaveform"
+      audioContext="{{globalPlayer.audioContext}}"
       isPlaying="{{isPlaying}}"
       theme="healing"
       barCount="{{50}}"

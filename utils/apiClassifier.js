@@ -66,6 +66,8 @@ const PRIVATE_APIS = [
   // 用户收藏和下载（新增）
   '/api/favorites',
   '/api/downloads',
+  '/api/downloads/url/',           // 🔧 新增：安全下载链接获取
+  '/api/downloads/check-permission/', // 🔧 新增：下载权限检查
   '/favorites',
   '/downloads',
   
@@ -77,9 +79,8 @@ const PRIVATE_APIS = [
   '/api/music/user_long_sequences',
   '/api/music/long_sequence_status',
   '/api/music/long_sequence_progress/',
-  '/api/music/generate',
+  '/api/music/generate-unified',  // 🔧 更新：新的统一音乐生成API
   '/api/music/long_sequence',
-  '/api/music/create_long_sequence',  // 🔧 修复：添加创建长序列API
   '/api/music/status/',               // 🔧 修复：音乐状态查询
   '/api/music/download/',             // 🔧 修复：音乐下载
   '/api/music/delete/',               // 🔧 修复：音乐删除
@@ -88,6 +89,8 @@ const PRIVATE_APIS = [
   '/api/music/download_long_sequence/', // 🔧 修复：长序列下载
   '/api/music/delete_long_sequence/',  // 🔧 修复：删除长序列
   '/api/music/refresh_long_sequence_url/', // 🔧 修复：刷新长序列URL
+  '/api/music/stream/',               // 🌊 流式播放接口
+  '/api/music/long_sequence_stream/', // 🌊 长序列流式播放接口
   
   // 设备绑定（需要认证）
   '/devices/bind',

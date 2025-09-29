@@ -1097,7 +1097,7 @@ Page({
         displayName: unifiedStatus.displayName,
         expiresAt: unifiedStatus.subscriptionEndDate || unifiedStatus.trialEndDate,
         daysLeft: 0,
-        features: ['60秒音乐生成'],
+        features: ['脑波生成'],
         showUpgrade: !unifiedStatus.isSubscribed,
         statusColor: '#999',
         statusIcon: '👤'
@@ -1106,18 +1106,18 @@ Page({
       // 根据订阅类型设置详细信息
       if (unifiedStatus.isSubscribed) {
         if (unifiedStatus.type === 'premium') {
-          status.features = ['60秒音乐生成', 'AI音乐生成', '疗愈脑波', '无限播放']
+          status.features = ['脑波生成', 'AI脑波生成', '疗愈脑波', '无限播放']
           status.statusColor = '#10b981'
           status.statusIcon = '💎'
         } else if (unifiedStatus.type === 'vip') {
-          status.features = ['60秒音乐生成', 'AI音乐生成', '疗愈脑波', '无限播放', '专属客服']
+          status.features = ['脑波生成', 'AI脑波生成', '疗愈脑波', '无限播放', '专属客服']
           status.statusColor = '#8b5cf6'
           status.statusIcon = '👑'
         }
         status.showUpgrade = false
         status.daysLeft = this.calculateDaysLeft(unifiedStatus.subscriptionEndDate)
       } else if (unifiedStatus.isInTrial) {
-        status.features = ['60秒音乐生成', 'AI音乐生成', '疗愈脑波']
+        status.features = ['脑波生成', 'AI脑波生成', '疗愈脑波']
         status.statusColor = '#f59e0b'
         status.statusIcon = '⭐'
         status.daysLeft = unifiedStatus.trialDaysLeft

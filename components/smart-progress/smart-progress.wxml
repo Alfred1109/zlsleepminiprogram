@@ -1,0 +1,88 @@
+<!-- 🚀 智能进度显示组件 - 异步优化版本 -->
+<view class="smart-progress {{visible ? 'show' : 'hide'}}" wx:if="{{visible}}">
+  
+  <!-- 线性进度条 -->
+  <view class="progress-container" wx:if="{{type === 'line'}}">
+    <!-- 进度标题 -->
+    <view class="progress-header">
+      <text class="phase-text">{{phase}}</text>
+      <text class="percent-text" wx:if="{{showPercent}}">{{formatPercent(internalProgress)}}</text>
+    </view>
+    
+    <!-- 进度条 -->
+    <view class="progress-track">
+      <view class="progress-bar" 
+            style="width: {{getProgressWidth(internalProgress)}}; background-color: {{getProgressColor(internalProgress)}}; opacity: {{progressOpacity || 1}}">
+        <view class="progress-shine" wx:if="{{animate}}"></view>
+      </view>
+    </view>
+    
+    <!-- 步骤指示器 -->
+    <view class="step-indicators" wx:if="{{totalSteps > 1}}">
+      <view class="step-item {{index <= currentStepIndex ? 'active' : ''}}" 
+            wx:for="{{phaseSteps}}" 
+            wx:key="index"
+            wx:for-index="index">
+        <view class="step-dot"></view>
+        <text class="step-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 圆形进度条 -->
+  <view class="circle-progress-container" wx:if="{{type === 'circle'}}">
+    <view class="circle-progress">
+      <!-- SVG圆形进度 -->
+      <svg class="progress-svg" width="120" height="120">
+        <circle class="progress-bg" cx="60" cy="60" r="54" stroke="#E5E5E5" stroke-width="6" fill="none"/>
+        <circle class="progress-circle" cx="60" cy="60" r="54" 
+                stroke="{{getProgressColor(internalProgress)}}" 
+                stroke-width="6" 
+                fill="none"
+                stroke-dasharray="{{339.29}}"
+                stroke-dashoffset="{{339.29 * (1 - internalProgress / 100)}}"
+                transform="rotate(-90 60 60)"/>
+      </svg>
+      
+      <!-- 中心内容 -->
+      <view class="circle-content">
+        <text class="circle-percent">{{formatPercent(internalProgress)}}</text>
+        <text class="circle-phase">{{phase}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 步骤进度条 -->
+  <view class="steps-progress-container" wx:if="{{type === 'steps'}}">
+    <view class="steps-header">
+      <text class="steps-title">{{phase}}</text>
+      <text class="steps-counter">{{currentStepIndex + 1}} / {{phaseSteps.length}}</text>
+    </view>
+    
+    <view class="steps-list">
+      <view class="step-item {{index < currentStepIndex ? 'completed' : index === currentStepIndex ? 'active' : 'pending'}}"
+            wx:for="{{phaseSteps}}"
+            wx:key="index"
+            wx:for-index="index">
+        <view class="step-icon">
+          <text class="step-number" wx:if="{{index >= currentStepIndex}}">{{index + 1}}</text>
+          <text class="step-check" wx:if="{{index < currentStepIndex}}">✓</text>
+        </view>
+        <view class="step-content">
+          <text class="step-title">{{item.name}}</text>
+          <text class="step-progress" wx:if="{{index === currentStepIndex}}">
+            {{Math.round((internalProgress - item.range[0]) / (item.range[1] - item.range[0]) * 100)}}%
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 动态粒子效果 (仅在动画开启时显示) -->
+  <view class="particles-container" wx:if="{{animate && visible}}">
+    <view class="particle particle-1"></view>
+    <view class="particle particle-2"></view>
+    <view class="particle particle-3"></view>
+  </view>
+
+</view>

@@ -171,7 +171,7 @@ const SceneMappingAPI = {
  */
 const MusicAPI = {
   /**
-   * 生成60秒音乐片段
+   * 生成个性化音乐
    * @param {number} assessmentId - 主评测ID
    * @param {object} options - 可选参数
    * @param {array} options.additionalAssessments - 额外的评测ID数组（多选模式）
@@ -193,7 +193,7 @@ const MusicAPI = {
       const currentUser = AuthService.getCurrentUser()
       if (currentUser && (currentUser.id || currentUser.user_id || currentUser.userId)) {
         requestData.user_id = currentUser.id || currentUser.user_id || currentUser.userId
-        console.log('🎯 添加用户ID到60秒音乐请求:', requestData.user_id)
+        console.log('🎯 添加用户ID到音乐生成请求:', requestData.user_id)
       } else {
         console.warn('⚠️ 无法获取用户ID，使用默认用户ID: 1')
         requestData.user_id = 1
@@ -206,10 +206,10 @@ const MusicAPI = {
     // 🔧 适配后端新接口：发送scene_id而不是scene_context对象
     if (options.sceneContext && options.sceneContext.sceneId != null) {
       requestData.scene_id = options.sceneContext.sceneId
-      console.log('🎯 60秒音乐生成传递场景ID:', requestData.scene_id)
+      console.log('🎯 音乐生成传递场景ID:', requestData.scene_id)
     } else {
-      console.log('ℹ️ 60秒音乐生成无场景上下文，使用默认场景ID: 0')
-      // 默认场景为0，避免与业务场景冲突
+      console.log('ℹ️ 音乐生成无场景上下文，使用全量场景模式: 0')
+      // 场景ID为0表示全量场景/无场景模式
       requestData.scene_id = 0
     }
     
@@ -217,8 +217,11 @@ const MusicAPI = {
     if (options.duration_seconds) {
       requestData.duration_seconds = options.duration_seconds
     } else {
-      requestData.duration_seconds = 60  // 默认60秒
+      requestData.duration_seconds = 60
     }
+    
+    // 🔧 新增：设置音乐风格（默认为 healing）
+    requestData.music_style = options.music_style || 'healing'
 
     
     // 如果有多选参数，添加综合生成相关字段
@@ -239,9 +242,10 @@ const MusicAPI = {
           评测ID: assessmentId,
           场景ID: requestData.scene_id
         })
-        return post('/api/music/generate', requestData, {
-          loadingText: '正在生成音乐...',
-          timeout: 90000
+        // 🚀 异步优化：减少超时时间，不显示全局加载
+        return post('/api/music/generate-unified', requestData, {
+          timeout: 30000, // 减少到30秒
+          showLoading: false
         })
       }
 
@@ -265,9 +269,10 @@ const MusicAPI = {
 
     console.log('🔍 最终发送数据:', requestData)
     
-    return post('/api/music/generate', requestData, {
-      loadingText: options.mode === 'comprehensive' ? '正在综合分析生成音乐...' : '正在生成音乐...',
-      timeout: 90000 // 综合生成可能需要更长时间，调整为90秒
+    // 🚀 异步优化：减少超时时间，不显示全局加载
+    return post('/api/music/generate-unified', requestData, {
+      timeout: 30000, // 统一接口快速响应
+      showLoading: false // 不显示全局加载
     })
   },
 
@@ -426,6 +431,85 @@ const MusicAPI = {
       file_path: filePath,
       expires_in: expiresIn
     })
+  },
+
+  /**
+   * 🔧 新增：获取安全下载链接
+   */
+  getSecureDownloadUrl(musicId, quality = 'standard') {
+    return get(`/api/downloads/url/${musicId}`, { quality })
+  },
+
+  /**
+   * 🔧 新增：检查下载权限
+   */
+  checkDownloadPermission(musicId) {
+    return get(`/api/downloads/check-permission/${musicId}`)
+  },
+
+  /**
+   * 🔧 新增：安全下载音乐（完整流程）
+   */
+  async secureDownloadMusic(musicId, quality = 'standard') {
+    try {
+      // 1. 检查下载权限
+      console.log('🔍 检查下载权限, musicId:', musicId)
+      const permissionResult = await this.checkDownloadPermission(musicId)
+      
+      if (!permissionResult.success || !permissionResult.data.allowed) {
+        throw new Error(permissionResult.data.reason || '无下载权限')
+      }
+      
+      // 2. 获取安全下载链接
+      console.log('📥 获取安全下载链接')
+      const urlResult = await this.getSecureDownloadUrl(musicId, quality)
+      
+      if (!urlResult.success || !urlResult.data.download_url) {
+        throw new Error('获取下载链接失败')
+      }
+      
+      // 3. 执行下载
+      console.log('📥 开始下载音乐文件:', urlResult.data.download_url)
+      return new Promise((resolve, reject) => {
+        wx.downloadFile({
+          url: urlResult.data.download_url,
+          timeout: 60000, // 60秒超时
+          success: (downloadRes) => {
+            if (downloadRes.statusCode === 200 && downloadRes.tempFilePath) {
+              // 4. 保存文件
+              wx.saveFile({
+                tempFilePath: downloadRes.tempFilePath,
+                success: (saveRes) => {
+                  console.log('✅ 安全下载完成:', saveRes.savedFilePath)
+                  resolve({
+                    success: true,
+                    data: {
+                      savedFilePath: saveRes.savedFilePath,
+                      tempFilePath: downloadRes.tempFilePath,
+                      fileSize: urlResult.data.file_size
+                    }
+                  })
+                },
+                fail: (saveError) => {
+                  console.error('❌ 保存文件失败:', saveError)
+                  reject(new Error('保存文件失败'))
+                }
+              })
+            } else {
+              reject(new Error('下载失败'))
+            }
+          },
+          fail: (downloadError) => {
+            console.error('❌ 下载失败:', downloadError)
+            reject(new Error('下载失败'))
+          }
+        })
+      })
+      
+    } catch (error) {
+      console.error('❌ 安全下载流程失败:', error)
+      throw error
+    }
   }
 }
 
@@ -496,7 +580,7 @@ const LongSequenceAPI = {
 
     const requestData = {
       assessment_id: assessmentId,
-      duration_minutes: durationMinutes
+      duration_seconds: durationMinutes * 60  // 转换为秒
     }
     
     // 🔧 修复：添加用户ID（从认证服务获取）
@@ -520,10 +604,13 @@ const LongSequenceAPI = {
       requestData.scene_id = options.sceneContext.sceneId
       console.log('🎯 长序列生成传递场景ID:', requestData.scene_id)
     } else {
-      console.log('ℹ️ 长序列生成无场景上下文，使用默认场景ID: 0')
-      // 默认场景为0，避免与业务场景冲突
+      console.log('ℹ️ 长序列生成无场景上下文，使用全量场景模式: 0')
+      // 场景ID为0表示全量场景/无场景模式
       requestData.scene_id = 0
     }
+    
+    // 🔧 新增：设置音乐风格（长序列音乐默认使用iso_three_stage）
+    requestData.music_style = 'iso_three_stage'
     
     // 如果有多选参数，添加综合生成相关字段
     if (options.additionalAssessments && options.additionalAssessments.length > 0) {
@@ -541,14 +628,14 @@ const LongSequenceAPI = {
         // 如果所有额外评测ID都无效，则切换到单一生成模式
         console.log('🎶 发送单一长序列创建请求（额外ID无效）:', {
           评测ID: assessmentId,
-          时长: durationMinutes,
+          时长秒数: requestData.duration_seconds,
           场景ID: requestData.scene_id,
           用户ID: requestData.user_id
         })
-        return post('/api/music/create_long_sequence', requestData, {
-          loadingText: '正在生成长序列音乐...',
-          timeout: 180000,
-          showLoading: false // 使用页面内进度条，关闭全局遮罩
+        // 🚀 异步优化：统一使用30秒超时，不显示全局加载
+        return post('/api/music/generate-unified', requestData, {
+          timeout: 30000,
+          showLoading: false
         })
       }
 
@@ -559,7 +646,7 @@ const LongSequenceAPI = {
       
       console.log('🎶 发送综合长序列创建请求:', {
         主评测ID: assessmentId,
-        时长: durationMinutes,
+        时长秒数: requestData.duration_seconds,
         全部评测IDs: requestData.assessment_ids,
         生成模式: requestData.generation_mode,
         场景ID: requestData.scene_id,
@@ -568,30 +655,28 @@ const LongSequenceAPI = {
     } else {
       console.log('🎶 发送单一长序列创建请求:', {
         评测ID: assessmentId,
-        时长: durationMinutes,
+        时长秒数: requestData.duration_seconds,
         场景ID: requestData.scene_id,
         用户ID: requestData.user_id
       })
     }
     
-    return post('/api/music/create_long_sequence', requestData, {
-      loadingText: options.mode === 'comprehensive' ? '正在综合分析生成长序列...' : '正在生成长序列音乐...',
-      timeout: 180000, // 综合生成长序列需要更长时间，调整为3分钟
-      showLoading: false // 使用页面内进度条，关闭全局遮罩
+    console.log('🔍 长序列创建请求:', {
+      评测ID: assessmentId,
+      时长秒数: requestData.duration_seconds,
+      场景ID: requestData.scene_id,
+      用户ID: requestData.user_id
+    })
+    
+    // 🚀 异步优化：减少超时时间，不显示加载遮罩
+    return post('/api/music/generate-unified', requestData, {
+      timeout: 30000, // 减少到30秒，因为只需要创建会话
+      showLoading: false, // 不显示全局加载，由页面进度显示处理
+      loadingText: null // 不显示加载文本
     }).then(response => {
-      console.log('🎶 长序列创建API响应 success:', response?.success)
-      
-      // 检查响应的完整性
-      if (response.success && response.data) {
-        console.log('✅ 长序列创建响应成功')
-        console.log('🔍 响应关键字段:', !!response.data.session_id, response.data.status)
-        
-        // 验证必要字段
-        if (!response.data.session_id) {
-          console.error('❌ 响应缺少session_id字段')
-        }
-      } else {
-        console.error('❌ 长序列创建响应异常:', response)
+      // 🚀 简化日志：仅在异常时输出详细信息
+      if (!response.success || !response.data?.session_id) {
+        console.error('❌ 长序列创建失败:', response.error || '响应异常')
       }
       
       if (handleSubscriptionResponse(response)) {
@@ -602,6 +687,13 @@ const LongSequenceAPI = {
     }).catch(error => {
       console.error('❌ 长序列创建请求失败:', error)
       console.error('❌ 请求参数:', requestData)
+      
+      // 简化错误日志
+      if (error.statusCode === 500) {
+        console.error('❌ 长序列创建500错误 - 后端问题')
+        console.error('🔍 请求参数:', JSON.stringify(requestData, null, 2))
+      }
+      
       throw error
     })
   },
@@ -625,9 +717,21 @@ const LongSequenceAPI = {
         if (response.data.status === 'failed') {
           console.error('❌ 长序列生成失败，错误信息:', response.data.error_message)
         } else if (response.data.status === 'completed' && !response.data.final_file_path) {
-          console.error('❌ 状态为completed但缺少文件路径!')
+          console.error('🚨🚨🚨 发现关键问题：状态为completed但缺少文件路径!')
+          console.error('🚨 会话ID:', sessionId)
+          console.error('🚨 返回数据:', {
+            状态: response.data.status,
+            文件路径: response.data.final_file_path,
+            文件大小: response.data.final_file_size,
+            创建时间: response.data.created_at,
+            更新时间: response.data.updated_at,
+            错误信息: response.data.error_message
+          })
+          console.error('🚨 这表明后端音频生成完成但文件保存/上传失败!')
         } else if (response.data.status === 'generating') {
           console.log('⏳ 长序列正在生成中，进度:', response.data.progress_percentage || 0, '%')
+        } else if (response.data.status === 'completed' && response.data.final_file_path) {
+          console.log('✅ 长序列生成完成，文件路径正常:', response.data.final_file_path)
         }
       } else {
         console.error('❌ 长序列状态查询失败:', response)
@@ -646,22 +750,76 @@ const LongSequenceAPI = {
   },
 
   /**
-   * 获取长序列实时进度
+   * 🚀 获取长序列实时进度 - 异步优化版本
    */
   getLongSequenceProgress(sessionId) {
-    // 与后端新接口对齐：GET /api/music/long_sequence_progress/<session_id>
-    return get(`/api/music/long_sequence_progress/${sessionId}`).then(response => {
-      // 保持日志克制，只输出关键字段
+    // 🚀 异步优化：减少超时时间，提高响应性
+    return get(`/api/music/long_sequence_progress/${sessionId}`, {
+      timeout: 5000, // 减少到5秒超时
+      showLoading: false // 不显示加载提示，避免频繁弹窗
+    }).then(response => {
+      // 🚀 智能日志：只在关键节点输出
       if (response && response.success && response.data && response.data.progress) {
         const p = response.data.progress
-        console.log('📊 长序列进度:', {
-          segment: `${p.current_segment}/${p.total_segments}`,
-          percentage: p.percentage,
-          phase: p.phase
-        })
+        const percentage = p.percentage || 0
+        
+        // 只在进度变化较大时输出日志
+        if (!this._lastLoggedProgress || Math.abs(percentage - this._lastLoggedProgress) >= 10) {
+          console.log('📊 长序列进度:', {
+            segment: `${p.current_segment || 0}/${p.total_segments || 0}`,
+            percentage: percentage.toFixed(1) + '%',
+            phase: p.phase || 'unknown'
+          })
+          this._lastLoggedProgress = percentage
+        }
       }
+      
+      // 🚀 数据清洗和标准化
+      if (response && response.success && response.data) {
+        const data = response.data
+        
+        // 清洗数据格式，确保前端可以稳定使用
+        if (data.progress) {
+          data.progress.percentage = Math.max(0, Math.min(100, data.progress.percentage || 0))
+          data.progress.is_completed = data.progress.is_completed || data.status === 'completed'
+          data.progress.phase_display = data.progress.phase_display || 
+                                       data.progress.phase || 
+                                       this.getPhaseDisplayName(data.progress.percentage)
+        }
+      }
+      
       return response
+    }).catch(error => {
+      // 🚀 错误处理：不影响轮询流程
+      if (error.statusCode !== 404) { // 404是正常情况，可能会话不存在
+        console.warn('🚀 进度查询暂时失败，将继续重试:', error.message || error)
+      }
+      // 返回模拟数据，保持轮询稳定
+      return {
+        success: false,
+        error: error.message || '网络波动',
+        data: {
+          progress: {
+            percentage: this._lastKnownProgress || 0,
+            phase: '网络波动，继续生成中...',
+            is_completed: false
+          }
+        }
+      }
     })
+  },
+
+  /**
+   * 🚀 根据进度百分比生成阶段显示名称
+   */
+  getPhaseDisplayName(percentage) {
+    if (percentage < 10) return '初始化项目...'
+    if (percentage < 25) return '分析评测结果...'
+    if (percentage < 40) return '设计ISO阶段...'
+    if (percentage < 60) return '生成同质阶段...'
+    if (percentage < 80) return '生成过渡阶段...'
+    if (percentage < 95) return '生成目标阶段...'
+    return '合成最终文件...'
   },
 
   /**
@@ -733,6 +891,82 @@ const LongSequenceAPI = {
       console.error('❌ 长序列URL刷新请求失败:', error)
       throw error
     })
+  },
+
+  /**
+   * 🔧 新增：安全下载长序列音乐
+   */
+  async secureDownloadLongSequence(musicId, quality = 'standard') {
+    try {
+      // 1. 检查下载权限
+      console.log('🔍 检查长序列下载权限, musicId:', musicId)
+      const permissionResult = await get(`/api/downloads/check-permission/${musicId}`)
+      
+      if (!permissionResult.success || !permissionResult.data.allowed) {
+        throw new Error(permissionResult.data.reason || '无下载权限')
+      }
+      
+      // 2. 获取安全下载链接
+      console.log('📥 获取长序列安全下载链接')
+      const urlResult = await get(`/api/downloads/url/${musicId}`, { quality })
+      
+      if (!urlResult.success || !urlResult.data.download_url) {
+        throw new Error('获取下载链接失败')
+      }
+      
+      // 3. 执行下载
+      console.log('📥 开始下载长序列音乐文件:', urlResult.data.download_url)
+      return new Promise((resolve, reject) => {
+        const downloadTask = wx.downloadFile({
+          url: urlResult.data.download_url,
+          timeout: 120000, // 长序列文件较大，120秒超时
+          success: (downloadRes) => {
+            if (downloadRes.statusCode === 200 && downloadRes.tempFilePath) {
+              // 4. 保存文件
+              wx.saveFile({
+                tempFilePath: downloadRes.tempFilePath,
+                success: (saveRes) => {
+                  console.log('✅ 长序列安全下载完成:', saveRes.savedFilePath)
+                  resolve({
+                    success: true,
+                    data: {
+                      savedFilePath: saveRes.savedFilePath,
+                      tempFilePath: downloadRes.tempFilePath,
+                      fileSize: urlResult.data.file_size
+                    }
+                  })
+                },
+                fail: (saveError) => {
+                  console.error('❌ 保存长序列文件失败:', saveError)
+                  reject(new Error('保存文件失败'))
+                }
+              })
+            } else {
+              reject(new Error('下载失败'))
+            }
+          },
+          fail: (downloadError) => {
+            console.error('❌ 长序列下载失败:', downloadError)
+            reject(new Error('下载失败'))
+          }
+        })
+        
+        // 显示下载进度
+        downloadTask.onProgressUpdate((res) => {
+          const progress = Math.round(res.progress)
+          console.log('📥 长序列下载进度:', progress + '%')
+          
+          // 可以通过事件传递进度给UI
+          if (progress > 0) {
+            wx.showLoading({ title: `下载中 ${progress}%` })
+          }
+        })
+      })
+      
+    } catch (error) {
+      console.error('❌ 长序列安全下载流程失败:', error)
+      throw error
+    }
   }
 }
 

@@ -1,0 +1,349 @@
+/* 🚀 智能进度显示组件 - 异步优化版本 */
+.smart-progress {
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.smart-progress.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.smart-progress.hide {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* 线性进度条样式 */
+.progress-container {
+  width: 100%;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.phase-text {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+
+.percent-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: #F0F0F0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  position: relative;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  overflow: hidden;
+}
+
+.progress-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: shine 2s infinite;
+}
+
+@keyframes shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* 步骤指示器 */
+.step-indicators {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 0 4px;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 80px;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #E5E5E5;
+  margin-bottom: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.step-item.active .step-dot {
+  background-color: #4F98F7;
+}
+
+.step-name {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.step-item.active .step-name {
+  color: #4F98F7;
+  font-weight: 500;
+}
+
+/* 圆形进度条样式 */
+.circle-progress-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.circle-progress {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.progress-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-90deg);
+}
+
+.progress-circle {
+  transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+}
+
+.circle-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.circle-percent {
+  display: block;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1;
+}
+
+.circle-phase {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+/* 步骤进度条样式 */
+.steps-progress-container {
+  width: 100%;
+}
+
+.steps-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.steps-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.steps-counter {
+  font-size: 14px;
+  color: #666;
+  background-color: #F5F5F5;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.step-item.completed {
+  background-color: #F0F9FF;
+  border: 1px solid #E0F2FE;
+}
+
+.step-item.active {
+  background-color: #FFF7ED;
+  border: 1px solid #FED7AA;
+}
+
+.step-item.pending {
+  background-color: #F9F9F9;
+  border: 1px solid #E5E5E5;
+}
+
+.step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.step-item.completed .step-icon {
+  background-color: #10B981;
+  color: white;
+}
+
+.step-item.active .step-icon {
+  background-color: #F59E0B;
+  color: white;
+}
+
+.step-item.pending .step-icon {
+  background-color: #D1D5DB;
+  color: #6B7280;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.step-item.completed .step-title {
+  color: #059669;
+}
+
+.step-item.active .step-title {
+  color: #D97706;
+}
+
+.step-item.pending .step-title {
+  color: #6B7280;
+}
+
+.step-progress {
+  display: block;
+  font-size: 12px;
+  color: #F59E0B;
+  margin-top: 2px;
+}
+
+/* 动态粒子效果 */
+.particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #4F98F7;
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.particle-1 {
+  top: 20%;
+  left: 10%;
+  animation: float1 3s infinite ease-in-out;
+}
+
+.particle-2 {
+  top: 60%;
+  right: 15%;
+  animation: float2 4s infinite ease-in-out;
+}
+
+.particle-3 {
+  bottom: 30%;
+  left: 70%;
+  animation: float3 3.5s infinite ease-in-out;
+}
+
+@keyframes float1 {
+  0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
+  50% { transform: translateY(-20px) translateX(10px); opacity: 0.8; }
+}
+
+@keyframes float2 {
+  0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.4; }
+  50% { transform: translateY(15px) translateX(-15px); opacity: 0.9; }
+}
+
+@keyframes float3 {
+  0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.5; }
+  50% { transform: translateY(-10px) translateX(20px); opacity: 0.7; }
+}
+
+/* 响应式设计 */
+@media (max-width: 320px) {
+  .smart-progress {
+    padding: 16px;
+  }
+  
+  .phase-text {
+    font-size: 14px;
+  }
+  
+  .steps-title {
+    font-size: 16px;
+  }
+  
+  .step-item {
+    padding: 8px;
+  }
+}

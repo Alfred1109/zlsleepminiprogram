@@ -11,8 +11,6 @@
     "pages/music/library/library",
     "pages/music/category/category",
     "pages/music/player/player",
-    "pages/longSequence/create/create",
-    "pages/longSequence/player/player",
     "pages/history/history",
     "pages/play/play",
     "pages/profile/profile",
@@ -25,15 +23,11 @@
     "pages/device/control/control",
     "pages/scene/detail/detail",
     "pages/scene/list/list",
-    "pages/scene-mapping-test/scene-mapping-test",
     "pages/product/list/list",
     "pages/product/detail/detail",
     "pages/order/create/create",
     "pages/address/list/list",
-    "pages/address/edit/edit",
-    "pages/api-test/api-test",
-    "pages/product-test/product-test",
-    "pages/debug-products/debug-products"
+    "pages/address/edit/edit"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -55,7 +49,6 @@
   "requiredBackgroundModes": [
     "audio"
   ],
-
   "networkTimeout": {
     "request": 30000,
     "downloadFile": 30000,

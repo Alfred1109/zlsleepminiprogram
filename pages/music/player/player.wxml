@@ -39,7 +39,7 @@
         <view class="music-info-section">
           <view class="music-title">{{musicInfo.title || '个性化疗愈音乐'}}</view>
           <view class="music-subtitle">
-            {{musicType === '60s' ? '60秒版本' : '疗愈脑波'}} · 
+            {{musicType === 'quick' ? '快速脑波' : '深度脑波'}} · 
             {{musicInfo.mood || '放松疗愈'}}
           </view>
           <view wx:if="{{musicInfo.description}}" class="music-description">
@@ -48,9 +48,39 @@
           
           <!-- 音乐标签 -->
           <view class="music-tags">
-            <view class="tag">{{musicInfo.category || 'AI音乐'}}</view>
+            <view class="tag">{{musicType === 'quick' ? '快速脑波' : '深度脑波'}}</view>
             <view wx:if="{{musicInfo.mood}}" class="tag">{{musicInfo.mood}}</view>
             <view class="tag">{{formattedDuration}}</view>
+          </view>
+
+          <view wx:if="{{isDeepBrainwave}}" class="deep-info">
+            <view class="phase-header" bindtap="onTogglePhaseInfo">
+              <view class="phase-title">
+                <text>ISO疗愈结构</text>
+                <text class="phase-current">{{phaseLabels[currentPhase] || '疗愈阶段'}}</text>
+              </view>
+              <view class="phase-progress">
+                <view class="phase-progress-bar">
+                  <view class="phase-progress-inner" style="width: {{phaseProgress}}%"></view>
+                </view>
+                <text class="phase-progress-text">{{phaseProgressDisplay}}%</text>
+              </view>
+            </view>
+
+            <view wx:if="{{showPhaseInfo}}" class="phase-details">
+              <view class="phase-item">
+                <view class="phase-name">同质阶段</view>
+                <view class="phase-desc">引导脑波匹配当前情绪，稳定情绪波动。</view>
+              </view>
+              <view class="phase-item">
+                <view class="phase-name">过渡阶段</view>
+                <view class="phase-desc">逐渐过渡到目标情绪，平滑调整脑波频率。</view>
+              </view>
+              <view class="phase-item">
+                <view class="phase-name">目标阶段</view>
+                <view class="phase-desc">达到预期疗愈状态，维持最佳脑波节奏。</view>
+              </view>
+            </view>
           </view>
         </view>
 

@@ -32,16 +32,24 @@ function formatSuccess(data, message = null) {
  * @param {string} error - 错误信息
  * @param {string} code - 错误代码（可选）
  * @param {any} details - 错误详情（可选）
+ * @param {number} statusCode - HTTP状态码（可选）
  * @returns {object} 格式化后的错误响应
  */
-function formatError(error, code = null, details = null) {
-  return {
+function formatError(error, code = null, details = null, statusCode = null) {
+  const result = {
     success: false,
     error: error,
     code: code,
     details: details,
     timestamp: Date.now()
   };
+  
+  // 🚀 保留statusCode以便错误处理逻辑使用
+  if (statusCode !== null && statusCode !== undefined) {
+    result.statusCode = statusCode;
+  }
+  
+  return result;
 }
 
 /**
@@ -110,10 +118,15 @@ function standardizeError(error) {
       standardMessage = ERROR_TYPES[errorCode];
     }
 
-    return formatError(standardMessage, errorCode, {
-      originalMessage: errorMessage,
-      stack: error.stack
-    });
+    return formatError(
+      standardMessage, 
+      errorCode, 
+      {
+        originalMessage: errorMessage,
+        stack: error.stack
+      },
+      error.statusCode  // 🚀 保留statusCode（如果存在）
+    );
   }
 
   // 处理字符串错误
@@ -126,12 +139,18 @@ function standardizeError(error) {
     return formatError(
       error.message || error.error || '请求失败',
       error.code || 'OBJECT_ERROR',
-      error
+      error,
+      error.statusCode  // 🚀 保留原始的statusCode
     );
   }
 
   // 兜底处理
-  return formatError(ERROR_TYPES.UNKNOWN_ERROR, 'UNKNOWN_ERROR', error);
+  return formatError(
+    ERROR_TYPES.UNKNOWN_ERROR, 
+    'UNKNOWN_ERROR', 
+    error,
+    error && error.statusCode  // 🚀 尝试保留statusCode
+  );
 }
 
 /**
@@ -165,7 +184,8 @@ function standardizeHttpError(statusCode, originalMessage = '') {
   return formatError(
     originalMessage || errorInfo.message,
     errorInfo.type,
-    { statusCode, originalMessage }
+    { statusCode, originalMessage },
+    statusCode  // 🚀 传递statusCode到顶层
   );
 }
 

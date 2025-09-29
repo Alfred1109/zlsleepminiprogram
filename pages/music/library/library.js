@@ -1,7 +1,7 @@
 // pages/music/library/library.js
 // 脑波库页面
 const app = getApp()
-const { MusicAPI, LongSequenceAPI } = require('../../../utils/healingApi')
+const { MusicAPI } = require('../../../utils/healingApi')
 const { getGlobalPlayer, formatTime } = require('../../../utils/musicPlayer')
 const AuthService = require('../../../services/AuthService')
 const { requireSubscription, getSubscriptionInfo, getUnifiedSubscriptionStatus } = require('../../../utils/subscription')
@@ -12,13 +12,13 @@ Page({
   data: {
     userInfo: null,
     musicList: [],
-    longSequenceList: [],
-    filteredMusicList: [], // 过滤后的60秒脑波
-    filteredLongSequenceList: [], // 过滤后的疗愈脑波
-    currentTab: 'longSequence', // 默认显示疗愈脑波，60秒脑波已隐藏
+    deepBrainwaveList: [],
+    filteredMusicList: [], // 过滤后的脑波列表
+    filteredDeepBrainwaveList: [],
+    currentTab: 'deep',
     loading: false,
     currentPlayingId: null,
-    currentPlayingType: null, // 'music' or 'longSequence'
+    currentPlayingType: null, // 'music' 或 'deep'
     player: null,
     subscriptionInfo: null,
     canUseFeature: true,
@@ -121,7 +121,7 @@ Page({
     })
     
     // 如果脑波数据已加载，重新过滤
-    if (this.data.musicList.length > 0 || this.data.longSequenceList.length > 0) {
+    if (this.data.musicList.length > 0 || this.data.deepBrainwaveList.length > 0) {
       this.filterBrainwavesByScene()
     }
   },
@@ -130,17 +130,17 @@ Page({
    * 根据场景过滤脑波数据（使用动态映射服务）
    */
   async filterBrainwavesByScene() {
-    const { musicList, longSequenceList, sceneContext, isInSceneMode } = this.data
+    const { musicList, deepBrainwaveList, sceneContext, isInSceneMode } = this.data
     
     if (!isInSceneMode || !sceneContext) {
       // 没有场景限制，显示所有脑波
       this.setData({ 
         filteredMusicList: musicList,
-        filteredLongSequenceList: longSequenceList
+        filteredDeepBrainwaveList: deepBrainwaveList
       })
       console.log('🧠 显示所有脑波数据:', {
         音频数量: musicList.length,
-        长序列数量: longSequenceList.length
+        深度脑波数量: deepBrainwaveList.length
       })
       return
     }
@@ -162,18 +162,18 @@ Page({
       }
 
       const filteredMusic = musicList.filter(m => matchesSceneId(m, sceneContext.sceneId))
-      const filteredLongSequence = longSequenceList.filter(s => matchesSceneId(s, sceneContext.sceneId))
+      const filteredDeep = deepBrainwaveList.filter(s => matchesSceneId(s, sceneContext.sceneId))
       
       this.setData({ 
         filteredMusicList: filteredMusic,
-        filteredLongSequenceList: filteredLongSequence
+        filteredDeepBrainwaveList: filteredDeep
       })
       
       console.log(`🎯 场景「${sceneContext.sceneName}」(ID:${sceneContext.sceneId})过滤后脑波数据:`, {
         原始音频数量: musicList.length,
         过滤后音频数量: filteredMusic.length,
-        原始长序列数量: longSequenceList.length,
-        过滤后长序列数量: filteredLongSequence.length,
+        原始深度脑波数量: deepBrainwaveList.length,
+        过滤后深度脑波数量: filteredDeep.length,
         映射服务调试: sceneMappingService.getDebugInfo()
       })
       
@@ -181,7 +181,7 @@ Page({
       console.error('❌ 场景脑波过滤失败，显示所有脑波:', error)
       this.setData({ 
         filteredMusicList: [],
-        filteredLongSequenceList: []
+        filteredDeepBrainwaveList: []
       })
     }
   },
@@ -215,7 +215,7 @@ Page({
     console.log('显示访客内容')
     this.setData({
       musicList: [],
-      longSequenceList: [],
+      deepBrainwaveList: [],
       loading: false,
       userInfo: null,
       isGuestMode: true
@@ -229,7 +229,7 @@ Page({
     console.log('显示降级内容')
     this.setData({
       musicList: [],
-      longSequenceList: [],
+      deepBrainwaveList: [],
       loading: false,
       userInfo: null,
       showFallback: true
@@ -440,17 +440,11 @@ Page({
         return
       }
 
-      // 并行加载60秒音频和长序列音频
-      const [musicResult, longSequenceResult] = await Promise.all([
-        MusicAPI.getUserMusic(userId).catch((error) => {
-          console.error('获取用户音频失败:', error)
-          return { data: [] }
-        }),
-        LongSequenceAPI.getUserLongSequences(userId).catch((error) => {
-          console.error('获取用户长序列失败:', error)
-          return { data: [] }
-        })
-      ])
+      // 并行加载快速脑波和深度脑波
+      const musicResult = await MusicAPI.getUserMusic(userId).catch((error) => {
+        console.error('获取用户音频失败:', error)
+        return { data: [] }
+      })
 
       // 处理音频数据，确保字段映射正确
       const processedMusicList = (musicResult.data || []).map(music => ({
@@ -469,29 +463,17 @@ Page({
         ...music
       }))
 
-      // 处理长序列数据
-      const processedLongSequenceList = (longSequenceResult.data || []).map(sequence => ({
-        id: sequence.id,
-        title: `长序列音频 #${sequence.id}`,
-        total_duration: sequence.total_duration_minutes * 60,
-        segments_count: sequence.segment_count,
-        description: `基于心理评测生成的${sequence.total_duration_minutes}分钟疗愈音频`,
-        created_at: sequence.created_at,
-        cover_url: '/images/default-sequence-cover.svg',
-        is_favorite: false,
-        ...sequence
-      }))
+      const processedDeepBrainwaves = processedMusicList.filter(item => (item.duration || item.duration_seconds || 0) >= 600)
+      const processedQuickBrainwaves = processedMusicList.filter(item => (item.duration || item.duration_seconds || 0) < 600)
 
       this.setData({
-        musicList: processedMusicList,
-        longSequenceList: processedLongSequenceList
+        musicList: processedQuickBrainwaves,
+        deepBrainwaveList: processedDeepBrainwaves
       })
 
       console.log('音频数据加载完成:', {
-        musicCount: processedMusicList.length,
-        longSequenceCount: processedLongSequenceList.length,
-        musicData: processedMusicList,
-        longSequenceData: processedLongSequenceList
+        quickCount: processedQuickBrainwaves.length,
+        deepCount: processedDeepBrainwaves.length
       })
 
       // 根据场景上下文过滤脑波数据
@@ -613,7 +595,7 @@ Page({
 
     // 跳转到播放页面
     wx.navigateTo({
-      url: `/pages/music/player/player?musicId=${music.id}&type=60s`
+      url: `/pages/music/player/player?musicId=${music.id}`
     })
   },
 
@@ -679,16 +661,14 @@ Page({
    * 跳转到创建疗愈脑波页面
    */
   onGoToCreateSequence() {
-    wx.navigateTo({
-      url: '/pages/longSequence/create/create'
-    })
+    this.onGoToGenerate()
   },
 
   /**
    * 切换音频收藏状态
    */
   async onToggleFavorite(e) {
-    console.log('❤️ 60秒音频收藏按钮被点击', e)
+    console.log('❤️ 脑波收藏按钮被点击', e)
     // 阻止事件冒泡，防止触发播放
     e.stopPropagation && e.stopPropagation()
     
@@ -705,7 +685,7 @@ Page({
 
     console.log('❤️ 切换收藏状态:', {
       id: music.id,
-      title: music.title || '60秒音频',
+      title: music.title || '脑波音频',
       currentFavorite: music.is_favorite
     })
 
@@ -721,7 +701,14 @@ Page({
         return item
       })
 
-      this.setData({ musicList })
+      const deepList = this.data.deepBrainwaveList.map(item => {
+        if (item.id === music.id) {
+          return { ...item, is_favorite: !item.is_favorite }
+        }
+        return item
+      })
+
+      this.setData({ musicList, deepBrainwaveList: deepList })
 
       // 显示反馈
       wx.showToast({
@@ -746,7 +733,7 @@ Page({
    * 显示音频菜单
    */
   onShowMusicMenu(e) {
-    console.log('📋 60秒音频更多菜单被点击', e)
+    console.log('📋 脑波更多菜单被点击', e)
     // 阻止事件冒泡，防止触发播放
     e.stopPropagation && e.stopPropagation()
     
@@ -763,7 +750,7 @@ Page({
 
     console.log('📋 显示菜单:', {
       id: music.id,
-      title: music.title || '60秒音频'
+      title: music.title || '脑波音频'
     })
 
     // 保存音频数据，用于菜单选择回调
@@ -782,15 +769,15 @@ Page({
         
         if (res.tapIndex === 0) {
           // 播放
-          console.log('🎵 从菜单播放60秒音频:', savedMusic.title || `音频#${savedMusic.id}`)
+          console.log('🎵 从菜单播放脑波:', savedMusic.title || `脑波#${savedMusic.id}`)
           this.playMusic(savedMusic)
         } else if (res.tapIndex === 1) {
           // 下载
-          console.log('📥 从菜单下载60秒音频:', savedMusic.title || `音频#${savedMusic.id}`)
+          console.log('📥 从菜单下载脑波:', savedMusic.title || `脑波#${savedMusic.id}`)
           this.downloadMusic(savedMusic)
         } else if (res.tapIndex === 2) {
           // 删除
-          console.log('🗑️ 从菜单删除60秒音频:', savedMusic.title || `音频#${savedMusic.id}`)
+          console.log('🗑️ 从菜单删除脑波:', savedMusic.title || `脑波#${savedMusic.id}`)
           this.deleteMusic(savedMusic)
         }
       },
@@ -801,17 +788,17 @@ Page({
   },
 
   /**
-   * 直接播放60秒音频（不依赖事件对象）
+   * 直接播放脑波（不依赖事件对象）
    */
   async playMusic(music) {
-    console.log('🎵 直接播放60秒音频:', music)
+    console.log('🎵 直接播放脑波:', music)
 
     // 🔑 优先检查音频播放权限（如果需要）
     // const permissionCheck = await requireSubscription('music', {...})
 
     // 检查文件路径
     if (!music.file_path && !music.audio_url && !music.url) {
-      console.log('🔍 60秒音频文件路径缺失:', music)
+      console.log('🔍 脑波文件路径缺失:', music)
       wx.showToast({
         title: '音频文件不存在',
         icon: 'error'
@@ -824,10 +811,10 @@ Page({
   },
 
   /**
-   * 直接下载60秒音频（不依赖事件对象）
+   * 直接下载脑波（不依赖事件对象）
    */
   async downloadMusic(music) {
-    console.log('📥 直接下载60秒音频:', music)
+    console.log('📥 直接下载脑波:', music)
     
     try {
       // 先检查订阅权限（下载为高级功能）
@@ -855,10 +842,10 @@ Page({
         icon: 'success'
       })
 
-      console.log('60秒音频已保存到:', savedPath)
+      console.log('脑波已保存到:', savedPath)
 
     } catch (error) {
-      console.error('下载60秒音频失败:', error)
+      console.error('下载脑波失败:', error)
       // 针对401未授权（含订阅不足）给出升级引导
       if (error && (error.statusCode === 401 || /401/.test(error.message || ''))) {
         wx.showModal({
@@ -884,14 +871,14 @@ Page({
   },
 
   /**
-   * 直接删除60秒音频（不依赖事件对象）
+   * 直接删除脑波（不依赖事件对象）
    */
   deleteMusic(music) {
-    console.log('🗑️ 直接删除60秒音频:', music)
+    console.log('🗑️ 直接删除脑波:', music)
 
     wx.showModal({
       title: '删除音频',
-      content: `确定要删除"${music.title || '60秒音频'}"吗？\n删除后将无法恢复。`,
+      content: `确定要删除"${music.title || '脑波'}"吗？\n删除后将无法恢复。`,
       confirmText: '删除',
       cancelText: '取消',
       confirmColor: '#e64340',
@@ -912,7 +899,7 @@ Page({
 
           } catch (error) {
             wx.hideLoading()
-            console.error('删除60秒音频失败:', error)
+            console.error('删除脑波失败:', error)
             
             let errorMsg = '删除失败，请重试'
             if (error.message && error.message.includes('权限')) {
@@ -1074,7 +1061,7 @@ Page({
       console.log('🔍 长序列音频文件路径缺失，跳转到播放页面获取:', sequence)
       // 跳转到长序列播放页面，由播放页面处理文件加载
       wx.navigateTo({
-        url: `/pages/longSequence/player/player?sessionId=${sequence.id}`
+        url: `/pages/music/detail?id=${sequence.music_id || sequence.id}`
       })
       return
     }
@@ -1552,7 +1539,7 @@ Page({
   onNextTrack() {
     console.log('下一首')
     // 实现切换到下一首的逻辑
-    const currentList = this.data.currentTab === 'music' ? this.data.musicList : this.data.longSequenceList
+    const currentList = this.data.currentTab === 'music' ? this.data.musicList : this.data.deepBrainwaveList
     const currentIndex = currentList.findIndex(item => item.id === this.data.currentPlayingId)
     
     if (currentIndex >= 0 && currentIndex < currentList.length - 1) {
@@ -1570,7 +1557,7 @@ Page({
   onPreviousTrack() {
     console.log('上一首')
     // 实现切换到上一首的逻辑
-    const currentList = this.data.currentTab === 'music' ? this.data.musicList : this.data.longSequenceList
+    const currentList = this.data.currentTab === 'music' ? this.data.musicList : this.data.deepBrainwaveList
     const currentIndex = currentList.findIndex(item => item.id === this.data.currentPlayingId)
     
     if (currentIndex > 0) {
@@ -1651,49 +1638,9 @@ Page({
     }, 100)
   },
 
-  // 使用全局播放器播放长序列音频
+  // 使用全局播放器播放深度脑波
   playSequenceWithGlobalPlayer(sequenceInfo) {
-    console.log('使用全局播放器播放长序列音频:', sequenceInfo)
-    
-    // 构建正确的音频URL
-    let audioUrl = sequenceInfo.url || sequenceInfo.final_file_path || sequenceInfo.audio_url || sequenceInfo.path  // 优先使用带token的url
-    if (audioUrl && audioUrl.startsWith('/')) {
-      // 如果是相对路径，构建完整URL
-      const baseUrl = app.globalData.apiBaseUrl.replace('/api', '')
-      audioUrl = `${baseUrl}${audioUrl}`
-    }
-    
-    // 准备播放器需要的音频数据格式
-    const trackInfo = {
-      name: sequenceInfo.title || sequenceInfo.name || '未知长序列',
-      url: audioUrl,
-      image: sequenceInfo.cover_image || sequenceInfo.cover_url || sequenceInfo.image || '/images/default-sequence-cover.svg',
-      category: '长序列音频',
-      type: 'longSequence',
-      id: sequenceInfo.id,
-      duration: sequenceInfo.duration || 1800 // 默认30分钟
-    }
-    
-    // 更新当前播放状态
-    this.setData({
-      showGlobalPlayer: true,
-      currentPlayingId: sequenceInfo.id,
-      currentPlayingType: 'longSequence'
-    })
-    
-    // 延迟调用播放器
-    setTimeout(() => {
-      const globalPlayer = this.selectComponent('#globalPlayer')
-      if (globalPlayer && globalPlayer.playTrack) {
-        globalPlayer.playTrack(trackInfo)
-      } else {
-        console.warn('Global player组件未找到')
-        wx.showToast({
-          title: '播放器初始化失败',
-          icon: 'none'
-        })
-      }
-    }, 100)
+    this.playMusicWithGlobalPlayer(sequenceInfo)
   },
 
   /**
@@ -1710,8 +1657,8 @@ Page({
         displayName: unifiedStatus.displayName,
         expiresAt: unifiedStatus.subscriptionEndDate || unifiedStatus.trialEndDate,
         daysLeft: 0,
-        features: ['60秒音频生成'],
-        showUpgrade: !unifiedStatus.isSubscribed,
+        features: [],
+        showUpgrade: false,
         statusColor: '#999',
         statusIcon: '👤'
       }
@@ -1719,18 +1666,18 @@ Page({
       // 根据订阅类型设置详细信息
       if (unifiedStatus.isSubscribed) {
         if (unifiedStatus.type === 'premium') {
-          status.features = ['60秒音频生成', 'AI音频生成', '长序列音频', '无限播放']
+          status.features = ['脑波生成', 'AI脑波生成', '深度脑波', '无限播放']
           status.statusColor = '#10b981'
           status.statusIcon = '💎'
         } else if (unifiedStatus.type === 'vip') {
-          status.features = ['60秒音频生成', 'AI音频生成', '长序列音频', '无限播放', '专属客服']
+          status.features = ['脑波生成', 'AI脑波生成', '深度脑波', '无限播放', '专属客服']
           status.statusColor = '#8b5cf6'
           status.statusIcon = '👑'
         }
         status.showUpgrade = false
         status.daysLeft = this.calculateDaysLeft(unifiedStatus.subscriptionEndDate)
       } else if (unifiedStatus.isInTrial) {
-        status.features = ['60秒音频生成', 'AI音频生成', '长序列音频']
+        status.features = ['脑波生成', 'AI脑波生成', '深度脑波']
         status.statusColor = '#f59e0b'
         status.statusIcon = '⭐'
         status.daysLeft = unifiedStatus.trialDaysLeft
@@ -1755,7 +1702,7 @@ Page({
           displayName: '免费用户',
           expiresAt: null,
           daysLeft: 0,
-          features: ['60秒音频生成'],
+          features: ['脑波生成'],
           showUpgrade: true,
           statusColor: '#999',
           statusIcon: '👤'

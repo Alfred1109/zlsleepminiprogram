@@ -144,7 +144,7 @@
               <view class="generating-spinner"></view>
               <text>生成中...</text>
             </view>
-            <view wx:else class="action-button deep-btn" bindtap="generateLongSequence">
+            <view wx:else class="action-button deep-btn" bindtap="generateBrainwavePlan">
               <text>开始生成</text>
               <text class="btn-arrow">→</text>
             </view>
