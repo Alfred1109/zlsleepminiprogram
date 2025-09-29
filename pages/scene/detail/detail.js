@@ -205,8 +205,23 @@ Page({
     this.setData({ loadingAssessments: true })
     
     try {
-      const userId = this.data.userInfo.id || this.data.userInfo.user_id
+      const userId = this.data.userInfo.id || this.data.userInfo.user_id || this.data.userInfo.userId
       console.log('📡 [调试] 准备调用评测历史API，用户ID:', userId)
+      
+      // 🔧 增强用户ID验证：检查是否为有效数字
+      if (!userId || isNaN(parseInt(userId)) || parseInt(userId) <= 0) {
+        console.error('用户ID无效，无法加载评测历史:', {
+          userId: userId,
+          type: typeof userId,
+          parsed: parseInt(userId),
+          userInfo: this.data.userInfo
+        })
+        wx.showToast({
+          title: '用户信息异常，请重新登录',
+          icon: 'none'
+        })
+        return
+      }
       
       const result = await AssessmentAPI.getHistory(userId)
       console.log('📡 [调试] 评测历史API返回结果:', result)
@@ -356,8 +371,23 @@ Page({
     this.setData({ loadingBrainwaves: true })
     
     try {
-      const userId = this.data.userInfo.id || this.data.userInfo.user_id
+      const userId = this.data.userInfo.id || this.data.userInfo.user_id || this.data.userInfo.userId
       console.log('📡 [调试] 准备并行获取脑波数据，用户ID:', userId)
+      
+      // 🔧 增强用户ID验证：检查是否为有效数字
+      if (!userId || isNaN(parseInt(userId)) || parseInt(userId) <= 0) {
+        console.error('用户ID无效，无法加载脑波数据:', {
+          userId: userId,
+          type: typeof userId,
+          parsed: parseInt(userId),
+          userInfo: this.data.userInfo
+        })
+        wx.showToast({
+          title: '用户信息异常，请重新登录',
+          icon: 'none'
+        })
+        return
+      }
       
       // 🔄 使用统一接口获取所有音频（包含60秒和长序列）
       const musicResult = await MusicAPI.getUserMusic(userId)
@@ -391,7 +421,6 @@ Page({
       }
       
       // ✅ 已统一到上面的处理逻辑中，无需单独处理长序列
-      }
       
       // 按时间排序
       allBrainwaves.sort((a, b) => {
@@ -446,8 +475,8 @@ Page({
       const finalBrainwaves = filteredBrainwaves.slice(0, 10) // 最多显示10条
       
       console.log('🎯 [调试] 最终脑波历史数据处理:', {
-        原始60秒音频数量: musicResult.status === 'fulfilled' && musicResult.value.success ? musicResult.value.data.length : 0,
-        原始长序列数量: longSequenceResult.status === 'fulfilled' && longSequenceResult.value.success ? longSequenceResult.value.data.length : 0,
+        统一接口成功: musicResult.success,
+        原始音频数量: musicResult.success ? (musicResult.data.music || musicResult.data || []).length : 0,
         合并后脑波总数: allBrainwaves.length,
         场景过滤后数量: filteredBrainwaves.length,
         最终页面显示数量: finalBrainwaves.length,

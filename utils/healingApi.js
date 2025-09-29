@@ -54,6 +54,7 @@ const AssessmentAPI = {
 
   /**
    * 获取评测历史
+   * @param {number} userId - 用户ID
    */
   getHistory(userId) {
     return get(`/api/assessment/history/${userId}`)
@@ -68,6 +69,7 @@ const AssessmentAPI = {
   
   /**
    * 获取用户最新评测结果（用于推荐）
+   * @param {number} userId - 用户ID
    */
   getLatestAssessment(userId) {
     return get(`/api/assessment/history/${userId}`).then(result => {
@@ -294,6 +296,7 @@ const MusicAPI = {
 
   /**
    * 获取用户音乐历史（统一接口，包含短音乐和长序列）
+   * @param {number} userId - 用户ID
    */
   getUserMusic(userId) {
     // 参数验证
@@ -301,6 +304,7 @@ const MusicAPI = {
       return Promise.reject(new Error('用户ID无效，无法获取音乐数据'))
     }
     // 🔄 使用统一音乐列表接口，包含所有类型的音乐
+    console.log('📡 调用用户音乐API，用户ID:', userId)
     return get(`/api/music/list/${userId}`)
   },
 
@@ -343,8 +347,10 @@ const MusicAPI = {
 
   /**
    * 获取个性化推荐音乐
+   * @param {number} userId - 用户ID
    */
   getPersonalizedRecommendations(userId) {
+    console.log('📡 调用个性化推荐API，用户ID:', userId)
     return get(`/api/music/personalized_recommendations/${userId}`).then(response => {
       // 🔍 诊断：检查后端返回的URL是否缺少token
       if (response.data && Array.isArray(response.data)) {
@@ -353,7 +359,7 @@ const MusicAPI = {
             console.error(`❌ 后端API返回的URL缺少token (第${index + 1}个音频):`)
             console.error('  音频ID:', music.id)
             console.error('  问题URL:', music.url)
-            console.error('  🎯 根本问题: 后端 /api/music/personalized_recommendations/${userId} 接口返回的URL未经过CDN token签名')
+            console.error('  🎯 根本问题: 后端 /api/music/personalized_recommendations 接口返回的URL未经过CDN token签名')
             console.error('  💡 解决方案: 需要后端开发者修复URL生成逻辑，确保返回带token的URL')
           }
         })

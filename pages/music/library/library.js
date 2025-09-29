@@ -425,8 +425,14 @@ Page({
         availableFields: Object.keys(userInfo || {})
       })
 
-      if (!userId) {
-        console.error('用户ID为空，无法加载音频数据:', userInfo)
+      // 🔧 增强用户ID验证：检查是否为有效数字
+      if (!userId || isNaN(parseInt(userId)) || parseInt(userId) <= 0) {
+        console.error('用户ID无效，无法加载音频数据:', {
+          userId: userId,
+          type: typeof userId,
+          parsed: parseInt(userId),
+          userInfo: userInfo
+        })
         wx.showToast({
           title: '用户信息异常，请重新登录',
           icon: 'none'
@@ -678,8 +684,8 @@ Page({
    * 跳转到音频生成页面
    */
   onGoToGenerate() {
-    // 跳转到评测选择页（tabBar 页面必须使用 switchTab）
-    wx.switchTab({
+    // 跳转到评测选择页面
+    wx.navigateTo({
       url: '/pages/assessment/scales/scales'
     })
   },

@@ -421,10 +421,22 @@ Page({
     const userInfo = AuthService.getCurrentUser();
     if (!userInfo) return;
 
+    // 🔧 增强用户ID验证：检查是否为有效数字
+    const userId = userInfo.id || userInfo.user_id || userInfo.userId;
+    if (!userId || isNaN(parseInt(userId)) || parseInt(userId) <= 0) {
+      console.error('用户ID无效，无法加载评测统计:', {
+        userId: userId,
+        type: typeof userId,
+        parsed: parseInt(userId),
+        userInfo: userInfo
+      });
+      return;
+    }
+
     try {
       const api = require('../../utils/api');
       const result = await api.request({
-        url: `/api/assessment/history/${userInfo.id}`,
+        url: `/api/assessment/history/${userId}`,
         method: 'GET',
         showLoading: false  // 统计数据后台加载，不显示loading
       });

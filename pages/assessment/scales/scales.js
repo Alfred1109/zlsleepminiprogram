@@ -332,8 +332,21 @@ Page({
     }
 
     try {
-      console.log(`📡 调用API获取用户${this.data.userInfo.id}的评测历史`)
-      const result = await AssessmentAPI.getHistory(this.data.userInfo.id)
+      const userId = this.data.userInfo.id || this.data.userInfo.user_id || this.data.userInfo.userId
+      console.log(`📡 调用API获取用户${userId}的评测历史`)
+      
+      // 🔧 增强用户ID验证：检查是否为有效数字
+      if (!userId || isNaN(parseInt(userId)) || parseInt(userId) <= 0) {
+        console.error('用户ID无效，无法加载评测历史:', {
+          userId: userId,
+          type: typeof userId,
+          parsed: parseInt(userId),
+          userInfo: this.data.userInfo
+        })
+        return
+      }
+      
+      const result = await AssessmentAPI.getHistory(userId)
       console.log('API响应:', result)
       
       if (result.success) {
