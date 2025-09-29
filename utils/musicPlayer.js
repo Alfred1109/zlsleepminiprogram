@@ -416,7 +416,7 @@ class MusicPlayer {
     
     // 🔧 回退：如果是长序列音频但没有提供stream_url
     if (music.sessionId) {
-      const fallbackUrl = `${baseUrl}/api/music/long_sequence_stream/${music.sessionId}`
+      const fallbackUrl = `${baseUrl}/api/music/play/${music.sessionId}`
       console.log('🌊 使用回退流式URL:', fallbackUrl)
       return fallbackUrl
     }
@@ -853,7 +853,7 @@ class MusicPlayer {
       
       // 智能延迟检查：根据音频类型调整检查时间
       const isStreamingAudio = this.currentMusic.src && (
-        this.currentMusic.src.includes('/api/music/long_sequence_stream/') || 
+        this.currentMusic.src.includes('/api/music/play/') || 
         this.currentMusic.src.includes('stream') || 
         this.shouldUseStreamPlayback(this.currentMusic)
       )

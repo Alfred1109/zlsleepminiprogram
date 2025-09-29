@@ -196,7 +196,7 @@ Page({
     console.log('🎶 跳转到脑波计划生成，场景上下文:', this.data.sceneContext)
 
     wx.navigateTo({
-      url: `/pages/longSequence/create/create?assessmentId=${this.data.assessmentId}`
+      url: `/pages/music/generate?assessmentId=${this.data.assessmentId}`
     })
   },
 

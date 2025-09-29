@@ -131,7 +131,7 @@ class NetworkManager {
     })
     
     // 🔍 调试：记录请求详情（特别是认证头）
-    if (options.url && options.url.includes('create_long_sequence')) {
+    if (options.url && options.url.includes('generate-unified')) {
       console.log('🔍 长序列请求调试信息:', {
         url: options.url,
         method: options.method,
@@ -152,7 +152,7 @@ class NetworkManager {
           resolve(res)
         } else {
           // 🔍 调试：记录失败响应详情
-          if (options.url && options.url.includes('create_long_sequence')) {
+          if (options.url && options.url.includes('generate-unified')) {
             console.log('🔍 长序列请求失败详情:', {
               statusCode: res.statusCode,
               responseData: res.data,

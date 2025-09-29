@@ -260,7 +260,7 @@
         </view>
 
         <view class="sequence-info">
-          <view class="sequence-title">{{item.title || '长序列疗愈音频'}}</view>
+          <view class="sequence-title">{{item.title || '扩展疗愈音乐'}}</view>
           <view class="sequence-meta">
             <text class="sequence-duration">{{formatTime(item.duration || item.total_duration || item.total_duration_minutes * 60)}} </text>
             <text class="sequence-segments">{{item.segments_count || (item.duration ? Math.round(item.duration / 60) + '分钟' : '')}}</text>

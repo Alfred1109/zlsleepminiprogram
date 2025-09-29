@@ -311,9 +311,9 @@ Page({
         url: `/pages/assessment/result/result?id=${item.id}`
       })
     } else if (item.type === 'sequence') {
-      // 跳转到长序列播放器
+      // 跳转到音乐播放器
       wx.navigateTo({
-        url: `/pages/longSequence/player/player?sessionId=${item.metadata.sessionId}`
+        url: `/pages/music/player?id=${item.metadata.sessionId}&type=extended`
       })
     }
   },

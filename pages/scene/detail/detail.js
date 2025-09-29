@@ -359,22 +359,19 @@ Page({
       const userId = this.data.userInfo.id || this.data.userInfo.user_id
       console.log('📡 [调试] 准备并行获取脑波数据，用户ID:', userId)
       
-      // 并行获取60秒音频和长序列音频
-      const [musicResult, longSequenceResult] = await Promise.allSettled([
-        MusicAPI.getUserMusic(userId),
-        LongSequenceAPI.getUserLongSequences(userId)
-      ])
+      // 🔄 使用统一接口获取所有音频（包含60秒和长序列）
+      const musicResult = await MusicAPI.getUserMusic(userId)
       
-      console.log('📡 [调试] 脑波API调用结果:', {
-        musicResult: musicResult,
-        longSequenceResult: longSequenceResult
+      console.log('📡 [调试] 脑波API调用结果（统一接口）:', {
+        musicResult: musicResult
       })
       
       let allBrainwaves = []
       
-      // 处理60秒音频
-      if (musicResult.status === 'fulfilled' && musicResult.value.success && musicResult.value.data) {
-        const userMusic = musicResult.value.data.map(item => ({
+      // 🔄 处理统一接口返回的所有音频（短音乐和长序列）  
+      if (musicResult.success && musicResult.data) {
+        const allMusicData = musicResult.data.music || musicResult.data || []
+        const userMusic = allMusicData.map(item => ({
           id: item.id,
           name: this.generate60sAudioName(item),
           date: this.formatDate(item.updated_at || item.created_at),
@@ -393,27 +390,7 @@ Page({
         allBrainwaves.push(...userMusic)
       }
       
-      // 处理长序列音频
-      if (longSequenceResult.status === 'fulfilled' && longSequenceResult.value.success && longSequenceResult.value.data) {
-        const longSequences = longSequenceResult.value.data
-          .filter(item => item.status === 'completed' && item.final_file_path)
-          .map(item => ({
-            id: item.session_id,
-            name: this.getBrainwaveDisplayName(item),
-            date: this.formatDate(item.updated_at || item.created_at),
-            duration: item.duration_minutes ? item.duration_minutes * 60 : 1800,
-            url: item.final_file_path,
-            image: '/images/default-music-cover.svg',
-            type: 'long_sequence',
-            // 🔧 修复：将场景映射服务需要的字段提升到顶级
-            assessment_scale_name: item.assessment_info?.scale_name || item.scale_name,
-            scale_type: item.assessment_info?.scale_type || item.scale_type,
-            scale_name: item.assessment_info?.scale_name || item.scale_name,
-            category: item.category,
-            tags: item.tags,
-            rawData: item
-          }))
-        allBrainwaves.push(...longSequences)
+      // ✅ 已统一到上面的处理逻辑中，无需单独处理长序列
       }
       
       // 按时间排序
@@ -715,7 +692,7 @@ Page({
     })
     
     wx.navigateTo({
-      url: '/pages/longSequence/create/create'
+      url: '/pages/music/generate'
     })
   },
 

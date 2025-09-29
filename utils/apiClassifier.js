@@ -76,21 +76,15 @@ const PRIVATE_APIS = [
   
   // 用户特定的音乐
   '/api/music/user_music',
-  '/api/music/user_long_sequences',
-  '/api/music/long_sequence_status',
-  '/api/music/long_sequence_progress/',
-  '/api/music/generate-unified',  // 🔧 更新：新的统一音乐生成API
-  '/api/music/long_sequence',
-  '/api/music/status/',               // 🔧 修复：音乐状态查询
-  '/api/music/download/',             // 🔧 修复：音乐下载
-  '/api/music/delete/',               // 🔧 修复：音乐删除
+  '/api/music/status/',      // 🎯 统一状态查询
+  '/api/music/progress/',    // 🎯 统一进度查询  
+  '/api/music/delete/',      // 🎯 统一删除
+  '/api/music/download/',    // 🎯 统一下载
+  '/api/music/refresh-url/', // 🎯 统一URL刷新
+  '/api/music/generate-unified',  // 🎯 统一音乐生成API
   '/api/music/personalized_recommendations/',  // 🔧 修复：个性化推荐
   '/api/music/refresh_url/',          // 🔧 修复：刷新URL
-  '/api/music/download_long_sequence/', // 🔧 修复：长序列下载
-  '/api/music/delete_long_sequence/',  // 🔧 修复：删除长序列
-  '/api/music/refresh_long_sequence_url/', // 🔧 修复：刷新长序列URL
   '/api/music/stream/',               // 🌊 流式播放接口
-  '/api/music/long_sequence_stream/', // 🌊 长序列流式播放接口
   
   // 设备绑定（需要认证）
   '/devices/bind',

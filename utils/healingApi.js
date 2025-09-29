@@ -293,21 +293,52 @@ const MusicAPI = {
   },
 
   /**
-   * 获取用户音乐历史
+   * 获取用户音乐历史（统一接口，包含短音乐和长序列）
    */
   getUserMusic(userId) {
     // 参数验证
     if (!userId || userId === 'undefined' || userId === 'null') {
       return Promise.reject(new Error('用户ID无效，无法获取音乐数据'))
     }
-    return get(`/api/music/user_music/${userId}`)
+    // 🔄 使用统一音乐列表接口，包含所有类型的音乐
+    return get(`/api/music/list/${userId}`)
   },
 
   /**
-   * 删除音乐文件
+   * 删除音乐文件（统一接口，自动识别短音乐/长序列）
    */
   deleteMusic(musicId) {
     return del(`/api/music/delete/${musicId}`)
+  },
+
+  /**
+   * 获取音乐状态（统一接口）
+   */
+  getMusicStatus(musicId) {
+    return get(`/api/music/status/${musicId}`)
+  },
+
+  /**
+   * 获取音乐进度（统一接口）
+   */
+  getMusicProgress(musicId) {
+    return get(`/api/music/progress/${musicId}`)
+  },
+
+  /**
+   * 刷新音乐URL（统一接口）
+   */
+  refreshMusicUrl(musicId) {
+    return post(`/api/music/refresh-url/${musicId}`)
+  },
+
+  /**
+   * 下载音乐（统一接口）
+   */
+  downloadMusicUnified(musicId) {
+    return downloadFile(`/api/music/download/${musicId}`, {
+      loadingText: '下载音乐中...'
+    })
   },
 
   /**
@@ -699,12 +730,12 @@ const LongSequenceAPI = {
   },
 
   /**
-   * 查询长序列状态
+   * 查询长序列状态（使用统一接口）
    */
   getLongSequenceStatus(sessionId) {
-    console.log('🔍 查询长序列状态')
+    console.log('🔍 查询长序列状态（统一接口）')
     
-    return get(`/api/music/long_sequence_status/${sessionId}`).then(response => {
+    return get(`/api/music/status/${sessionId}`).then(response => {
       // 避免打印完整响应对象
       console.log('🔍 长序列状态 success:', response?.success)
       
@@ -753,8 +784,8 @@ const LongSequenceAPI = {
    * 🚀 获取长序列实时进度 - 异步优化版本
    */
   getLongSequenceProgress(sessionId) {
-    // 🚀 异步优化：减少超时时间，提高响应性
-    return get(`/api/music/long_sequence_progress/${sessionId}`, {
+    // 🚀 异步优化：减少超时时间，提高响应性（使用统一接口）
+    return get(`/api/music/progress/${sessionId}`, {
       timeout: 5000, // 减少到5秒超时
       showLoading: false // 不显示加载提示，避免频繁弹窗
     }).then(response => {
@@ -823,10 +854,10 @@ const LongSequenceAPI = {
   },
 
   /**
-   * 下载长序列音乐
+   * 下载长序列音乐（使用统一接口）
    */
   downloadLongSequence(sessionId) {
-    return downloadFile(`/api/music/download_long_sequence/${sessionId}`, {
+    return downloadFile(`/api/music/download/${sessionId}`, {
       loadingText: '下载长序列音乐中...'
     })
   },
@@ -839,7 +870,9 @@ const LongSequenceAPI = {
     if (!userId || userId === 'undefined' || userId === 'null') {
       return Promise.reject(new Error('用户ID无效，无法获取长序列数据'))
     }
-    return get(`/api/music/user_long_sequences/${userId}`)
+    // ❌ 已废弃：此方法已被 MusicAPI.getUserMusic 统一接口替代
+    console.warn('⚠️ LongSequenceAPI.getUserLongSequences 已废弃，请使用 MusicAPI.getUserMusic')
+    return Promise.reject(new Error('此接口已废弃，请使用 MusicAPI.getUserMusic'))
   },
 
 
@@ -847,9 +880,9 @@ const LongSequenceAPI = {
    * 删除长序列音乐
    */
   deleteLongSequence(sessionId) {
-    console.log('🗑️ 发送长序列删除请求, sessionId:', sessionId)
+    console.log('🗑️ 发送长序列删除请求（统一接口）, sessionId:', sessionId)
     
-    return del(`/api/music/delete_long_sequence/${sessionId}`, {
+    return del(`/api/music/delete/${sessionId}`, {
       loadingText: '正在删除长序列...'
     }).then(response => {
       console.log('🗑️ 长序列删除API响应:', response)
@@ -875,9 +908,9 @@ const LongSequenceAPI = {
    * 刷新长序列音频URL（获取最新的CDN访问链接）
    */
   refreshLongSequenceUrl(sessionId) {
-    console.log('🔄 请求刷新长序列URL, sessionId:', sessionId)
+    console.log('🔄 请求刷新长序列URL（统一接口）, sessionId:', sessionId)
     
-    return get(`/api/music/refresh_long_sequence_url/${sessionId}`).then(response => {
+    return post(`/api/music/refresh-url/${sessionId}`).then(response => {
       console.log('🔄 长序列URL刷新响应:', response)
       
       if (response.success && response.data && response.data.final_file_path) {

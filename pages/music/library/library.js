@@ -440,28 +440,53 @@ Page({
         return
       }
 
-      // 并行加载快速脑波和深度脑波
+      // 🔄 使用统一音乐API加载所有音乐（短音乐+长序列）
       const musicResult = await MusicAPI.getUserMusic(userId).catch((error) => {
         console.error('获取用户音频失败:', error)
-        return { data: [] }
+        return { music_list: [] } // 统一接口返回的是 music_list 字段
       })
 
-      // 处理音频数据，确保字段映射正确
-      const processedMusicList = (musicResult.data || []).map(music => ({
-        id: music.id,
-        duration: music.duration_seconds,
-        file_path: music.file_path,
-        status: music.status,
-        assessment_scale_name: music.assessment_info?.scale_name,
-        assessment_date: music.created_at,
-        assessment_score: music.assessment_info?.total_score,
-        music_style: '疗愈',
-        tempo: '适中',
-        mood: '放松疗愈',
-        cover_url: '/images/default-music-cover.svg',
-        is_favorite: false,
-        ...music
-      }))
+      console.log('🎵 统一API返回数据:', musicResult)
+
+      // 处理统一音频数据，确保字段映射正确
+      const processedMusicList = (musicResult.music_list || []).map(music => {
+        // 根据类型处理不同的音乐数据
+        const baseMusic = {
+          id: music.id,
+          duration: music.duration_seconds,
+          duration_seconds: music.duration_seconds,
+          file_path: music.file_path,
+          status: music.status,
+          type: music.type, // 'short' 或 'long'
+          style: music.style,
+          created_at: music.created_at,
+          is_favorite: false,
+          ...music
+        }
+
+        // 根据音乐类型补充特定字段
+        if (music.type === 'long') {
+          return {
+            ...baseMusic,
+            session_id: music.id,
+            sessionId: music.id,
+            title: `扩展疗愈音乐`,
+            cover_url: '/images/default-sequence-cover.svg',
+            total_duration_minutes: Math.round(music.duration_seconds / 60)
+          }
+        } else {
+          return {
+            ...baseMusic,
+            title: `疗愈音频`,
+            music_style: music.style || '疗愈',
+            tempo: '适中',
+            mood: '放松疗愈',
+            cover_url: '/images/default-music-cover.svg'
+          }
+        }
+      })
+
+      console.log('🎵 处理后的音乐数据:', processedMusicList)
 
       const processedDeepBrainwaves = processedMusicList.filter(item => (item.duration || item.duration_seconds || 0) >= 600)
       const processedQuickBrainwaves = processedMusicList.filter(item => (item.duration || item.duration_seconds || 0) < 600)
@@ -471,9 +496,11 @@ Page({
         deepBrainwaveList: processedDeepBrainwaves
       })
 
-      console.log('音频数据加载完成:', {
-        quickCount: processedQuickBrainwaves.length,
-        deepCount: processedDeepBrainwaves.length
+      console.log('🎵 统一API音频数据加载完成:', {
+        快速脑波数量: processedQuickBrainwaves.length,
+        深度脑波数量: processedDeepBrainwaves.length,
+        总音乐数量: processedMusicList.length,
+        数据示例: processedMusicList.slice(0, 2)
       })
 
       // 根据场景上下文过滤脑波数据
@@ -608,8 +635,8 @@ Page({
 
     // 🔑 优先检查长序列音频权限
     const permissionCheck = await requireSubscription('long_sequence', {
-      modalTitle: '长序列音频播放',
-      modalContent: '长序列音频功能是高级功能，需要订阅后使用。订阅用户可以播放和生成30分钟长序列疗愈音频。',
+      modalTitle: '扩展音乐播放',
+      modalContent: '扩展音乐功能是高级功能，需要订阅后使用。订阅用户可以播放和生成长时程疗愈音乐。',
       onConfirm: async (action) => {
         if (action === 'trial') {
           // 试用成功后继续播放
@@ -627,9 +654,9 @@ Page({
     // 检查文件路径（权限检查通过后再检查文件）
     if (!sequence.final_file_path && !sequence.audio_url && !sequence.url) {
       console.log('🔍 长序列音频文件路径缺失，跳转到播放页面获取:', sequence)
-      // 跳转到长序列播放页面，由播放页面处理文件加载
+      // 跳转到音乐播放页面，由播放页面处理文件加载
       wx.navigateTo({
-        url: `/pages/longSequence/player/player?sessionId=${sequence.id}`
+        url: `/pages/music/player?id=${sequence.id}&type=extended`
       })
       return
     }
@@ -641,9 +668,9 @@ Page({
    * 播放长序列音频核心流程
    */
   playSequenceProcess(sequence) {
-    // 跳转到长序列播放页面
+    // 跳转到音乐播放页面
     wx.navigateTo({
-      url: `/pages/longSequence/player/player?sessionId=${sequence.id}`
+      url: `/pages/music/player?id=${sequence.id}&type=extended`
     })
   },
 
@@ -871,13 +898,23 @@ Page({
   },
 
   /**
-   * 直接删除脑波（不依赖事件对象）
+   * 直接删除脑波（使用统一删除接口，自动识别音乐类型）
    */
   deleteMusic(music) {
-    console.log('🗑️ 直接删除脑波:', music)
+    console.log('🗑️ 直接删除脑波（统一接口）:', music)
+
+    // 从统一API返回的数据中获取类型信息
+    const musicType = music.type || (this._isLongSequenceMusic(music) ? 'long' : 'short')
+    const deleteType = musicType === 'long' ? '扩展音乐' : '快速音频'
+    
+    console.log('🔍 音乐类型信息:', {
+      id: music.id,
+      type: musicType,
+      duration: music.duration_seconds || music.duration
+    })
 
     wx.showModal({
-      title: '删除音频',
+      title: `删除${deleteType}`,
       content: `确定要删除"${music.title || '脑波'}"吗？\n删除后将无法恢复。`,
       confirmText: '删除',
       cancelText: '取消',
@@ -886,6 +923,9 @@ Page({
         if (res.confirm) {
           try {
             wx.showLoading({ title: '删除中...' })
+            
+            // 🎯 使用统一删除接口，后端自动识别音乐类型
+            console.log('🗑️ 调用统一删除API, musicId:', music.id)
             await MusicAPI.deleteMusic(music.id)
             
             wx.hideLoading()
@@ -917,6 +957,34 @@ Page({
         }
       }
     })
+  },
+
+  /**
+   * 判断是否为长序列音乐
+   */
+  _isLongSequenceMusic(music) {
+    // 🔄 优先使用统一API返回的type字段
+    if (music.type === 'long') {
+      return true
+    }
+    
+    // 兼容性检查：检查时长（600秒 = 10分钟以上视为长序列）
+    const duration = music.duration_seconds || music.duration || 0
+    if (duration >= 600) {
+      return true
+    }
+    
+    // 兼容性检查：检查是否有session_id/sessionId字段（长序列特有）
+    if (music.session_id || music.sessionId) {
+      return true
+    }
+    
+    // 兼容性检查：检查是否在deepBrainwaveList中
+    const isInDeepList = this.data.deepBrainwaveList.some(item => 
+      item.id === music.id || item.sessionId === music.id || item.session_id === music.id
+    )
+    
+    return isInDeepList
   },
 
   /**
@@ -1014,15 +1082,15 @@ Page({
         
         if (res.tapIndex === 0) {
           // 播放 - 直接调用播放逻辑，传递正确的序列数据
-          console.log('🎵 从菜单播放长序列:', savedSequence.title || `长序列#${savedSequence.id}`)
+          console.log('🎵 从菜单播放扩展音乐:', savedSequence.title || `扩展音乐#${savedSequence.id}`)
           this.playLongSequence(savedSequence)
         } else if (res.tapIndex === 1) {
           // 下载
-          console.log('📥 从菜单下载长序列:', savedSequence.title || `长序列#${savedSequence.id}`)
+          console.log('📥 从菜单下载扩展音乐:', savedSequence.title || `扩展音乐#${savedSequence.id}`)
           this.downloadLongSequence(savedSequence)
         } else if (res.tapIndex === 2) {
-          // 删除长序列
-          console.log('🗑️ 从菜单删除长序列:', savedSequence.title || `长序列#${savedSequence.id}`)
+          // 删除扩展音乐
+          console.log('🗑️ 从菜单删除扩展音乐:', savedSequence.title || `扩展音乐#${savedSequence.id}`)
           this.deleteLongSequence(savedSequence)
         }
       },
@@ -1040,8 +1108,8 @@ Page({
 
     // 🔑 优先检查长序列音频权限
     const permissionCheck = await requireSubscription('long_sequence', {
-      modalTitle: '长序列音频播放',
-      modalContent: '长序列音频功能是高级功能，需要订阅后使用。订阅用户可以播放和生成30分钟长序列疗愈音频。',
+      modalTitle: '扩展音乐播放',
+      modalContent: '扩展音乐功能是高级功能，需要订阅后使用。订阅用户可以播放和生成长时程疗愈音乐。',
       onConfirm: async (action) => {
         if (action === 'trial') {
           // 试用成功后继续播放
@@ -1083,7 +1151,7 @@ Page({
           success: (res) => {
             if (res.confirm) {
               wx.navigateTo({
-                url: '/pages/longSequence/create/create'
+                url: '/pages/music/generate'
               })
             }
           }
@@ -1149,8 +1217,8 @@ Page({
     console.log('🗑️ 直接删除长序列音频:', sequence)
 
     wx.showModal({
-      title: '删除长序列',
-      content: `确定要删除"${sequence.title || '长序列音频'}"吗？\n删除后将无法恢复。`,
+      title: '删除扩展音乐',
+      content: `确定要删除"${sequence.title || '扩展音乐'}"吗？\n删除后将无法恢复。`,
       confirmText: '删除',
       cancelText: '取消',
       confirmColor: '#e64340',
@@ -1201,8 +1269,8 @@ Page({
     const { sequence } = e.currentTarget.dataset
 
     wx.showModal({
-      title: '删除长序列',
-      content: `确定要删除"${sequence.title || '长序列音频'}"吗？\n删除后将无法恢复。`,
+      title: '删除扩展音乐',
+      content: `确定要删除"${sequence.title || '扩展音乐'}"吗？\n删除后将无法恢复。`,
       confirmText: '删除',
       cancelText: '取消',
       confirmColor: '#e64340',

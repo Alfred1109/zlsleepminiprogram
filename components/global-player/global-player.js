@@ -272,9 +272,9 @@ Component({
           cancelText: '知道了',
           success: (res) => {
             if (res.confirm) {
-              // 跳转到长序列创建页面
+              // 跳转到音乐生成页面
               wx.navigateTo({
-                url: '/pages/longSequence/create/create'
+                url: '/pages/music/generate'
               })
             }
           }
@@ -356,10 +356,11 @@ Component({
         let newUrl = null
         
         // 根据音频类型选择不同的刷新策略
-        if (currentTrack.type === 'longSequence' && currentTrack.sessionId) {
-          // 长序列音频：刷新长序列URL
-          console.log('🔄 刷新长序列URL...')
-          const result = await LongSequenceAPI.refreshLongSequenceUrl(currentTrack.sessionId)
+        if (currentTrack.type === 'longSequence' && (currentTrack.sessionId || currentTrack.id)) {
+          // 长序列音频：使用统一刷新URL接口
+          console.log('🔄 刷新长序列URL（统一接口）...')
+          const musicId = currentTrack.sessionId || currentTrack.id
+          const result = await MusicAPI.refreshMusicUrl(musicId)
           if (result.success && result.data.final_file_path) {
             newUrl = result.data.final_file_path
           }

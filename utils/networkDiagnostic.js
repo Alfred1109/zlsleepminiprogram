@@ -144,7 +144,7 @@ class NetworkDiagnostic {
       
       const result = await new Promise((resolve, reject) => {
         wx.request({
-          url: `${this.baseUrl}/api/music/long_sequence_status/${sessionId}`,
+          url: `${this.baseUrl}/api/music/status/${sessionId}`,
           method: 'GET',
           header: headers,
           timeout: 10000,
